@@ -88,6 +88,9 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("@keyframes light-sweep");
     expect(poster).toContain("@keyframes bubble-rise");
     expect(poster).toContain("@media(min-width:56.25rem)");
+    expect(poster).toContain("@media(min-width:90rem){html{font-size:17px}}");
+    expect(poster).toContain("@media(min-width:120rem){html{font-size:18px}}");
+    expect(poster).toContain("@media(min-width:160rem){html{font-size:20px}}");
     expect(poster).toContain("font-size:clamp(4.3125rem,5.4vw,5.5rem)");
     expect(poster).toContain("font-size:clamp(.625rem,.75vw,.75rem)");
     expect(poster).toContain('class="bubbles"');
