@@ -85,6 +85,11 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("data:image/png;base64,");
     expect(poster).toContain("@keyframes current-drift");
     expect(poster).toContain("@keyframes evidence-scan");
+    expect(poster).toContain('class="evidence-page"');
+    expect(poster).toContain("overflow-y:auto");
+    expect(poster).toContain("object-fit:contain");
+    expect(poster).toContain('loading="lazy"');
+    expect(poster).not.toContain("html,body{width:100%;height:100%;overflow:hidden}");
     expect(poster).toContain("@keyframes light-sweep");
     expect(poster).toContain("@keyframes bubble-rise");
     expect(poster).toContain("@media(min-width:56.25rem)");
