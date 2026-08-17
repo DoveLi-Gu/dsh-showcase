@@ -27,6 +27,19 @@ describe("persistent theme motion", () => {
     expect(app).not.toContain('className="theme-switch"');
   });
 
+  it("renders report screenshot paths instead of placeholder interface blocks", async () => {
+    const [app, css] = await Promise.all([readFile(appUrl, "utf8"), readFile(stylesUrl, "utf8")]);
+
+    expect(app).toContain("evidenceUrl(shot.imagePath)");
+    expect(app).toContain('/evidence/before-desktop.png');
+    expect(app).toContain('className="capture-frame"');
+    expect(app).not.toContain("ScreenMock");
+    expect(app).not.toContain("compare-ui");
+    expect(css).toContain(".capture-frame img");
+    expect(css).not.toContain(".screen-mock");
+    expect(css).not.toContain(".compare-ui");
+  });
+
   it("limits persistent keyframes to compositor-friendly properties and honors reduced motion", async () => {
     const css = await readFile(stylesUrl, "utf8");
     const persistentNames = ["field-photo-drift", "field-scan", "rail-flow", "fish-float", "fish-arc", "fish-current", "sparkle"];

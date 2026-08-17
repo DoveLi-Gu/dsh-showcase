@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useEffect, useState } from "react";
 import {
-  Check, ChevronDown, Code2, Download, FileCode2, FileJson2, Image, LockKeyhole,
+  Check, ChevronDown, Code2, Download, FileCode2, FileJson2, GripVertical, Image, LockKeyhole,
   TerminalSquare, Timer, Upload, X,
 } from "lucide-react";
 import { demoReport } from "./core/browser";
@@ -24,8 +24,8 @@ function selectedTheme(): Theme {
   return new URLSearchParams(window.location.search).get("theme") === "fish" ? "fish" : "field";
 }
 
-function ScreenMock({ kind }: { kind: "desktop" | "tablet" | "mobile" }) {
-  return <div className={`screen-mock ${kind}`} aria-hidden="true"><i /><b /><b /><b /><span /><span /><span /><span /></div>;
+function evidenceUrl(imagePath: string) {
+  return `/${imagePath.replace(/^[/\\]+/, "").replaceAll("\\", "/")}`;
 }
 
 function escapeCoverHtml(value: string) {
@@ -205,7 +205,19 @@ export default function App() {
       {theme === "field" ? <FieldPoster passedTests={passedTests} /> : <FishPoster passedTests={passedTests} />}
 
       <section className="evidence-band overview-band reveal-band" aria-labelledby="overview-title"><div className="band-heading"><span>摘要</span><h2 id="overview-title">交付摘要</h2><p>可复现的完成证据</p></div><div className="overview-grid"><div className="goal"><span className="label">任务目标</span><p>{report.task.goal}</p></div><div className="metric"><Timer size={19} /><span className="label">耗时</span><strong>{formatDurationZh(report.task.durationMs)}</strong></div><div className="metric"><FileCode2 size={19} /><span className="label">变更清单</span><strong>{report.git.summary.changedFiles} 个文件</strong><small>+{report.git.summary.additions} / -{report.git.summary.deletions}</small></div><div className="metric"><Check size={19} /><span className="label">验证结果</span><strong>{passedTests}/{report.tests.length} 已通过</strong></div></div></section>
-      <section className="evidence-band reveal-band" aria-labelledby="screens-title"><div className="band-heading"><span>界面</span><h2 id="screens-title">界面证据</h2><p>响应式视口采集</p></div><div className="gallery">{report.screenshots.map((shot) => <figure className={`capture ${shot.viewport.name}`} key={shot.id}><ScreenMock kind={shot.viewport.name} /><figcaption><span>{viewportName(shot.viewport.name)}</span><small>{shot.viewport.width} x {shot.viewport.height}</small></figcaption></figure>)}</div><div className="comparison" aria-label="改版前后对比"><div className="compare-before"><span>改版前</span><div className="compare-ui before-ui"><b /><i /><i /><i /></div></div><div className="compare-after" style={{ clipPath: `inset(0 0 0 ${comparison}%)` }}><span>改版后</span><div className="compare-ui after-ui"><b /><i /><i /><i /></div></div><input aria-label="对比位置" type="range" min="0" max="100" step="1" value={comparison} onInput={(event) => setComparisonValue(Number(event.currentTarget.value))} onKeyDown={handleComparisonKey} /><div className="compare-handle" style={{ left: `${comparison}%` }} aria-hidden="true">||</div></div></section>
+      <section className="evidence-band reveal-band" aria-labelledby="screens-title">
+        <div className="band-heading"><span>界面</span><h2 id="screens-title">界面证据</h2><p>响应式视口采集</p></div>
+        <div className="gallery">{report.screenshots.map((shot) => <figure className={`capture ${shot.viewport.name}`} key={shot.id}>
+          <div className="capture-frame"><img src={evidenceUrl(shot.imagePath)} alt={`${shot.label}，${shot.viewport.width} x ${shot.viewport.height}`} width={shot.viewport.width} height={shot.viewport.height} loading="lazy" decoding="async" /></div>
+          <figcaption><span>{viewportName(shot.viewport.name)}</span><small>{shot.viewport.width} x {shot.viewport.height}</small></figcaption>
+        </figure>)}</div>
+        <div className="comparison" aria-label="改版前后真实截图对比">
+          <div className="compare-before"><span className="compare-label">改版前</span><img src="/evidence/before-desktop.png" alt="改版前的桌面端报告界面" width="1440" height="900" loading="lazy" decoding="async" /></div>
+          <div className="compare-after" style={{ clipPath: `inset(0 0 0 ${comparison}%)` }}><span className="compare-label">改版后</span><img src={evidenceUrl(report.screenshots[0].imagePath)} alt="改版后的桌面端报告界面" width="1440" height="900" loading="lazy" decoding="async" /></div>
+          <input aria-label="调整改版前后对比位置" type="range" min="0" max="100" step="1" value={comparison} onInput={(event) => setComparisonValue(Number(event.currentTarget.value))} onKeyDown={handleComparisonKey} />
+          <div className="compare-handle" style={{ left: `${comparison}%` }} aria-hidden="true"><GripVertical size={17} strokeWidth={3} /></div>
+        </div>
+      </section>
       <section className="evidence-band split-band reveal-band"><div className="band-heading"><span>代码</span><h2>变更清单</h2><p>统一 Diff 证据</p></div><div className="diff-layout"><nav className="file-list" aria-label="已变更文件">{report.git.files.map((file) => <button key={file.path} onClick={() => setSelectedFile(file.path)} className={selectedFile === file.path ? "selected" : ""}><FileCode2 size={16} /><span>{file.path}</span><small>+{file.additions} -{file.deletions}</small></button>)}</nav><pre className="diff-code" aria-label={`${selectedFile} 的 Diff`}>{(diffs[selectedFile] ?? diffs["src/App.tsx"]).map((line, index) => <code className={line.startsWith("+") ? "addition" : line.startsWith("-") ? "deletion" : ""} key={`${line}-${index}`}>{line}{"\n"}</code>)}</pre></div></section>
       <section className="evidence-band split-band reveal-band"><div className="band-heading"><span>验证</span><h2>验证回执</h2><p>命令与保留输出</p></div><div className="receipts">{report.tests.map((test) => <details key={test.id}><summary><span className={test.status === "passed" ? "status-good" : "status-bad"}>{test.status === "passed" ? <Check size={16} /> : <X size={16} />}</span><code>{test.command}</code><small>{formatDurationZh(test.durationMs)} / 退出码 {test.exitCode}</small><ChevronDown size={18} /></summary><pre>{test.output}</pre></details>)}</div></section>
       <section className="evidence-band privacy-band reveal-band"><div className="band-heading"><span>隐私</span><h2>隐私审查</h2><p>导出前的脱敏审计</p></div><div className="privacy-content"><div className="privacy-total"><LockKeyhole size={22} /><strong>已移除 {report.redaction.totalReplacements} 项值</strong><span>来自保留的命令证据</span></div><ul>{Object.entries(report.redaction.replacements).map(([kind, count]) => <li key={kind}><span className="redacted-dot" />{kind.replaceAll("-", " ")}<b>{count}</b></li>)}</ul><div className="state-row"><span className="state loading">{loading ? "准备中" : "准备就绪"}</span><span className="state success">已验证</span><span className="state warning">需要复核</span><span className="state failure">执行失败</span><span className="state redacted">已脱敏</span></div></div></section>
