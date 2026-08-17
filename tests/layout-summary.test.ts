@@ -35,7 +35,7 @@ describe("generateLayoutSummary", () => {
     const markdown = await readFile(join(projectPath, result.outputPath), "utf8");
     const poster = await readFile(join(projectPath, result.posterPath), "utf8");
 
-    expect(result).toMatchObject({ locale: "zh-CN", outputPath: ".showcase/layout-summary.md", posterPath: ".showcase/layout-poster.html", themes: ["边境信号", "蓝色大肥鱼"], breakpoints: ["max-width: 980px", "max-width: 640px"], stages: ["提示", "构建", "测试", "捕获", "交付"], testCount: 1, redactionCount: 2 });
+    expect(result).toMatchObject({ locale: "zh-CN", outputPath: ".showcase/layout-summary.md", posterPath: ".showcase/layout-poster.html", theme: "边境信号", breakpoints: ["max-width: 980px", "max-width: 640px"], stages: ["提示", "构建", "测试", "捕获", "交付"], testCount: 1, redactionCount: 2 });
     expect(markdown).toContain("# 布局摘要");
     expect(markdown).toContain("海报产物: .showcase/layout-poster.html");
     expect(markdown).toContain("## 截图视口");
@@ -44,10 +44,11 @@ describe("generateLayoutSummary", () => {
     expect(markdown).toContain("令牌: 2");
     expect(markdown).not.toContain("secret-value");
     expect(markdown).not.toContain(projectPath);
-    expect(poster).toContain("data:image/webp;base64,");
     expect(poster).toContain('<html lang="zh-CN">');
     expect(poster).toContain("已验证");
     expect(poster).toContain("提示");
+    expect(poster).toContain('data-theme="frontier-signal"');
+    expect(poster).not.toContain("data:image/webp;base64,");
     expect(poster).not.toContain("未捕获");
     expect(poster).not.toContain("secret-value");
     expect(poster).not.toContain(projectPath);
@@ -60,11 +61,12 @@ describe("generateLayoutSummary", () => {
       locale: "en",
       outputPath: ".showcase/layout-summary.en.md",
       posterPath: ".showcase/layout-poster.en.html",
+      theme: "blue-big-fish",
     });
     const markdown = await readFile(join(projectPath, result.outputPath), "utf8");
     const poster = await readFile(join(projectPath, result.posterPath), "utf8");
 
-    expect(result).toMatchObject({ locale: "en", themes: ["Field Signal", "Blue Big Fish"], stages: ["PROMPT", "BUILD", "TEST", "CAPTURE", "SHIP"] });
+    expect(result).toMatchObject({ locale: "en", theme: "Blue Big Fish", stages: ["PROMPT", "BUILD", "TEST", "CAPTURE", "SHIP"] });
     expect(markdown).toContain("# Layout Summary");
     expect(markdown).toContain("## Screenshot viewports");
     expect(markdown).toContain("mobile: 390 x 844");
@@ -72,6 +74,8 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain('<html lang="en">');
     expect(poster).toContain("VERIFIED");
     expect(poster).toContain("PROMPT");
+    expect(poster).toContain('data-theme="blue-big-fish"');
+    expect(poster).toContain("data:image/webp;base64,");
     expect(poster).not.toContain("not captured");
     expect(poster).not.toContain("secret-value");
   });
@@ -79,6 +83,11 @@ describe("generateLayoutSummary", () => {
   it("rejects unsupported locales", async () => {
     const projectPath = await createProject();
     await expect(generateLayoutSummary({ projectPath, locale: "fr" as never })).rejects.toThrow("locale must be either zh-CN or en");
+  });
+
+  it("rejects unsupported themes", async () => {
+    const projectPath = await createProject();
+    await expect(generateLayoutSummary({ projectPath, theme: "all" as never })).rejects.toThrow("theme must be either frontier-signal or blue-big-fish");
   });
 
   it("rejects report and output paths that escape the project", async () => {

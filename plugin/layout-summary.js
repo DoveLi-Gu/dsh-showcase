@@ -7,6 +7,7 @@ const DEFAULT_POSTER_PATH = ".showcase/layout-poster.html";
 const STAGE_IDS = ["PROMPT", "BUILD", "TEST", "CAPTURE", "SHIP"];
 const STAGE_LABELS = { "zh-CN": ["提示", "构建", "测试", "捕获", "交付"], en: STAGE_IDS };
 const LOCALES = new Set(["zh-CN", "en"]);
+const THEMES = new Set(["frontier-signal", "blue-big-fish"]);
 
 function insideProject(projectPath, value, label) {
   const resolved = resolve(projectPath, value);
@@ -43,12 +44,11 @@ function collectStages(app, locale) {
   return locale === "zh-CN" ? stages.map((id) => STAGE_LABELS["zh-CN"][STAGE_IDS.indexOf(id)]) : stages;
 }
 
-function collectThemes(app, locale) {
-  const hasField = app.includes("边境信号") || app.includes("Field Signal");
-  const hasFish = app.includes("蓝色大肥鱼") || app.includes("Blue Big Fish") || app.includes("Big Blue Bytefish");
-  const themes = [hasField, hasFish];
-  const labels = locale === "zh-CN" ? ["边境信号", "蓝色大肥鱼"] : ["Field Signal", "Blue Big Fish"];
-  return themes.some(Boolean) ? labels.filter((_, index) => themes[index]) : labels;
+function themeLabel(theme, locale) {
+  const labels = locale === "zh-CN"
+    ? { "frontier-signal": "边境信号", "blue-big-fish": "蓝色大肥鱼" }
+    : { "frontier-signal": "Frontier Signal", "blue-big-fish": "Blue Big Fish" };
+  return labels[theme];
 }
 
 function escapeHtml(value) {
@@ -59,13 +59,17 @@ function projectRelativePath(projectPath, fullPath) {
   return relative(projectPath, fullPath).split(sep).join("/");
 }
 
-function createPosterHtml({ image, projectName, task, stages, fileCount, passedTests, testCount, redactionCount, viewports, locale }) {
+function createPosterHtml({ image, projectName, task, stages, fileCount, passedTests, testCount, redactionCount, viewports, locale, theme }) {
   const stageMarkup = stages.map((stage, index) => `<span><b>${String(index + 1).padStart(2, "0")}</b>${escapeHtml(stage)}</span>`).join("");
   const viewportMarkup = viewports.map((viewport) => `<span>${escapeHtml(viewport)}</span>`).join("");
   const text = localeText(locale);
+  const fishTheme = theme === "blue-big-fish";
+  const posterTheme = fishTheme
+    ? `.poster{background:linear-gradient(90deg,#071018 0%,#0a1b27 55%,rgba(7,16,24,.2) 100%),url('data:image/webp;base64,${image}') right center/auto 100% no-repeat}.poster:after{background:linear-gradient(rgba(97,216,226,.08) 1px,transparent 1px);background-size:100% 36px}.kicker,.footer{color:#74e0d2}.verified{background:#76e2a5;color:#052013}.rail{border-color:#41606a;background:#0a1922}.rail span{border-color:#41606a}.rail b{color:#ffd45d}.metric{border-color:#ffd45d;background:rgba(7,16,24,.76)}.viewports span{border-color:#41606a;background:rgba(7,16,24,.72)}`
+    : `.poster{background:linear-gradient(112deg,#f2f4ef 0 58%,#d8ded5 58% 100%);color:#111714}.poster:before{content:"";position:absolute;right:-8vw;top:-18vh;width:46vw;height:128vh;background:#d7ed30;transform:skewX(-13deg)}.poster:after{background:linear-gradient(90deg,transparent 0 63%,rgba(17,23,20,.12) 63% 63.15%,transparent 63.15%)}.content{width:72%}.kicker,.footer{color:#3c4b43}.title{color:#111714}.task{color:#3f4b45}.verified{background:#111714;color:#eef1eb}.rail{border-color:#566159;background:#eef1eb}.rail span{border-color:#929a94}.rail b{color:#586800}.metric{border-color:#9db318;background:#e3e7df}.metric span,.viewports span{color:#46514b}.viewports span{border-color:#818b84;background:#eef1eb}`;
   return `<!doctype html>
 <html lang="${locale}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${text.posterTitle}</title><style>
-*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden}body{margin:0;background:#071018;color:#f5fbfc;font-family:"Microsoft YaHei UI","Noto Sans SC",Arial,sans-serif}.poster{width:100vw;height:100vh;position:relative;overflow:hidden;padding:92px 100px;background:linear-gradient(90deg,#071018 0%,#0a1b27 55%,rgba(7,16,24,.2) 100%),url('data:image/webp;base64,${image}') right center/auto 100% no-repeat}.poster:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(97,216,226,.08) 1px,transparent 1px);background-size:100% 36px;pointer-events:none}.content{position:relative;z-index:1;width:66%}.kicker{color:#74e0d2;font:700 16px monospace;letter-spacing:2px}.title{margin:13px 0 9px;font-size:64px;line-height:1;font-weight:800;max-width:900px}.task{margin:0;color:#c7d8dc;font-size:24px;line-height:1.35;max-width:820px}.verified{display:inline-block;margin-top:28px;padding:9px 13px;background:#76e2a5;color:#052013;font:800 18px monospace;letter-spacing:1px}.rail{display:flex;margin:38px 0 30px;border:1px solid #41606a;background:#0a1922}.rail span{flex:1;min-height:66px;padding:12px;border-right:1px solid #41606a;font-weight:800;font-size:15px}.rail span:last-child{border:0}.rail b{display:block;color:#ffd45d;font:12px monospace;margin-bottom:6px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.metric{border-left:3px solid #ffd45d;background:rgba(7,16,24,.76);padding:13px}.metric b{display:block;font-size:28px}.metric span,.viewports span{color:#b9d1d5;font:13px monospace}.viewports{display:flex;gap:9px;margin-top:20px}.viewports span{padding:8px 10px;border:1px solid #41606a;background:rgba(7,16,24,.72)}.footer{position:absolute;z-index:1;left:100px;bottom:50px;color:#74e0d2;font:700 15px monospace;letter-spacing:1px}</style></head><body><article class="poster"><div class="content"><div class="kicker">${text.kicker}</div><h1 class="title">${escapeHtml(projectName)}</h1><p class="task">${escapeHtml(task)}</p><div class="verified">${text.verified}</div><div class="rail">${stageMarkup}</div><div class="metrics"><div class="metric"><b>${fileCount}</b><span>${text.files}</span></div><div class="metric"><b>${passedTests}/${testCount}</b><span>${text.tests}</span></div><div class="metric"><b>${redactionCount}</b><span>${text.redaction}</span></div></div><div class="viewports">${viewportMarkup}</div></div><div class="footer">${text.footer}</div></article></body></html>`;
+*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden}body{margin:0;background:#071018;color:#f5fbfc;font-family:"Microsoft YaHei UI","Noto Sans SC",Arial,sans-serif}.poster{width:100vw;height:100vh;position:relative;overflow:hidden;padding:92px 100px}.poster:after{content:"";position:absolute;inset:0;pointer-events:none}.content{position:relative;z-index:1;width:66%}.kicker{font:700 16px monospace;letter-spacing:2px}.title{margin:13px 0 9px;font-size:64px;line-height:1;font-weight:800;max-width:900px}.task{margin:0;font-size:24px;line-height:1.35;max-width:820px}.verified{display:inline-block;margin-top:28px;padding:9px 13px;font:800 18px monospace;letter-spacing:1px}.rail{display:flex;margin:38px 0 30px;border:1px solid}.rail span{flex:1;min-height:66px;padding:12px;border-right:1px solid;font-weight:800;font-size:15px}.rail span:last-child{border:0}.rail b{display:block;font:12px monospace;margin-bottom:6px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.metric{border-left:3px solid;padding:13px}.metric b{display:block;font-size:28px}.metric span,.viewports span{font:13px monospace}.viewports{display:flex;gap:9px;margin-top:20px}.viewports span{padding:8px 10px;border:1px solid}.footer{position:absolute;z-index:1;left:100px;bottom:50px;font:700 15px monospace;letter-spacing:1px}${posterTheme}</style></head><body><article class="poster" data-theme="${theme}"><div class="content"><div class="kicker">${escapeHtml(themeLabel(theme, locale))} / ${text.kicker}</div><h1 class="title">${escapeHtml(projectName)}</h1><p class="task">${escapeHtml(task)}</p><div class="verified">${text.verified}</div><div class="rail">${stageMarkup}</div><div class="metrics"><div class="metric"><b>${fileCount}</b><span>${text.files}</span></div><div class="metric"><b>${passedTests}/${testCount}</b><span>${text.tests}</span></div><div class="metric"><b>${redactionCount}</b><span>${text.redaction}</span></div></div><div class="viewports">${viewportMarkup}</div></div><div class="footer">${text.footer}</div></article></body></html>`;
 }
 
 function formatList(items, emptyLabel) {
@@ -116,6 +120,8 @@ export async function generateLayoutSummary(options = {}) {
 
   const locale = options.locale ?? "zh-CN";
   if (!LOCALES.has(locale)) throw new Error("locale must be either zh-CN or en.");
+  const theme = options.theme ?? "frontier-signal";
+  if (!THEMES.has(theme)) throw new Error("theme must be either frontier-signal or blue-big-fish.");
   const text = localeText(locale);
   const projectPath = resolve(options.projectPath);
   const reportPath = insideProject(projectPath, options.reportPath ?? DEFAULT_REPORT_PATH, "reportPath");
@@ -133,18 +139,20 @@ export async function generateLayoutSummary(options = {}) {
 
   let app;
   let css;
-  let posterImage;
+  let posterImage = Buffer.alloc(0);
   try {
-    [app, css, posterImage] = await Promise.all([
+    [app, css] = await Promise.all([
       readFile(appPath, "utf8"),
       readFile(cssPath, "utf8"),
-      readFile(new URL("./assets/whale-girl-poster.webp", import.meta.url)),
     ]);
+    if (theme === "blue-big-fish") {
+      posterImage = await readFile(new URL("./assets/whale-girl-poster.webp", import.meta.url));
+    }
   } catch (error) {
     throw new Error(`Unable to read layout sources or poster asset: ${error instanceof Error ? error.message : String(error)}`);
   }
 
-  const themes = collectThemes(app, locale);
+  const selectedTheme = themeLabel(theme, locale);
   const stages = collectStages(app, locale);
   const breakpoints = collectBreakpoints(css);
   const screenshots = Array.isArray(report.screenshots) ? report.screenshots : [];
@@ -170,7 +178,7 @@ export async function generateLayoutSummary(options = {}) {
     `- ${text.poster}: ${projectRelativePath(projectPath, posterPath)}`,
     "",
     `## ${text.theme}`,
-    formatList(themes, text.empty),
+    `- ${selectedTheme}`,
     "",
     `## ${text.rail}`,
     `- ${stages.join(" -> ")}`,
@@ -214,6 +222,7 @@ export async function generateLayoutSummary(options = {}) {
     redactionCount: Number(redaction.totalReplacements) || 0,
     viewports: posterViewports.slice(0, 3),
     locale,
+    theme,
   });
   await Promise.all([
     mkdir(dirname(outputPath), { recursive: true }),
@@ -229,7 +238,7 @@ export async function generateLayoutSummary(options = {}) {
     outputPath: projectRelativePath(projectPath, outputPath),
     posterPath: projectRelativePath(projectPath, posterPath),
     sections,
-    themes,
+    theme: selectedTheme,
     breakpoints,
     stages,
     testCount: tests.length,

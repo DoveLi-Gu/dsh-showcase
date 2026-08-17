@@ -1,3 +1,5 @@
 - insert:
     - id: showcase-layout-summary
       name: dsh-showcase/plugin
+    - id: showcase-layout-summary-client
+      name: dsh-showcase

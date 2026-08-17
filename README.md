@@ -60,6 +60,8 @@ dsh plugin --profile web add .
 
 Restart DSH, then create a **new session** before using the tool. The new session is required for the plugin tool to become available.
 
+In **Settings → Plugins → Plugin configuration → Layout evidence poster**, choose one poster theme: Frontier Signal or Blue Big Fish. The choice is stored in DSH user settings, and each tool call generates only the currently selected theme.
+
 `showcase_layout_summary` accepts the following parameters:
 
 ```json

@@ -3,11 +3,29 @@
   "version": "0.1.0",
   "description": "Local, verifiable delivery evidence reports for coding-agent work.",
   "type": "module",
+  "main": "./plugin/client-host.js",
   "license": "MIT",
   "keywords": ["deepseek-harness", "dsh-plugin", "coding-agent", "proof-of-work", "developer-tools"],
-  "exports": { "./plugin": "./plugin/index.js" },
+  "exports": {
+    ".": "./plugin/client-host.js",
+    "./plugin": "./plugin/index.js",
+    "./client": "./plugin/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-settings-plugins"
+      ],
+      "platform": "web"
+    }
+  },
   "files": ["dist", "plugin", "cordis.patch.yml", "README.md", "README.zh-CN.md", "CHARACTER_ASSET_NOTICE.md", "LICENSE"],
-  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -17,7 +35,7 @@
     "init": "tsx src/cli/index.ts init",
     "capture": "tsx src/cli/index.ts capture"
   },
-  "dependencies": { "@deepseek-ai/schemastery": "^3.18.1", "@vitejs/plugin-react": "latest", "lucide-react": "latest", "react": "latest", "react-dom": "latest", "zod": "latest" },
+  "dependencies": { "@deepseek-ai/dsh-settings": "^0.1.0-rc.6", "@deepseek-ai/schemastery": "^3.18.1", "@vitejs/plugin-react": "latest", "lucide-react": "latest", "react": "latest", "react-dom": "latest", "zod": "latest" },
   "peerDependencies": { "@deepseek-ai/dsh-tools": "^0.1.0-rc.6", "@deepseek-ai/cordis": "^4.0.1" },
   "devDependencies": { "@deepseek-ai/cordis": "^4.0.1", "@deepseek-ai/dsh-tools": "^0.1.0-rc.6", "@types/node": "latest", "@types/react": "latest", "@types/react-dom": "latest", "typescript": "latest", "vite": "latest", "vitest": "latest", "tsx": "latest", "jsdom": "latest" }
 }

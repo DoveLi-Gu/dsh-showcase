@@ -3,7 +3,7 @@ export type LayoutSummaryResult = {
   outputPath: string;
   posterPath: string;
   sections: string[];
-  themes: string[];
+  theme: string;
   breakpoints: string[];
   stages: string[];
   testCount: number;
@@ -16,4 +16,5 @@ export function generateLayoutSummary(options: {
   outputPath?: string;
   posterPath?: string;
   locale?: "zh-CN" | "en";
+  theme?: "frontier-signal" | "blue-big-fish";
 }): Promise<LayoutSummaryResult>;
