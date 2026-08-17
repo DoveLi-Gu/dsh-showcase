@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { createStyledPosterHtml } from "./poster-html.js";
 
 const DEFAULT_REPORT_PATH = ".showcase/report.json";
@@ -60,17 +60,30 @@ function projectRelativePath(projectPath, fullPath) {
   return relative(projectPath, fullPath).split(sep).join("/");
 }
 
-function createPosterHtml({ image, projectName, task, stages, fileCount, passedTests, testCount, redactionCount, viewports, locale, theme }) {
-  const stageMarkup = stages.map((stage, index) => `<span><b>${String(index + 1).padStart(2, "0")}</b>${escapeHtml(stage)}</span>`).join("");
-  const viewportMarkup = viewports.map((viewport) => `<span>${escapeHtml(viewport)}</span>`).join("");
-  const text = localeText(locale);
-  const fishTheme = theme === "blue-big-fish";
-  const posterTheme = fishTheme
-    ? `.poster{background:linear-gradient(90deg,#071018 0%,#0a1b27 55%,rgba(7,16,24,.2) 100%),url('data:image/webp;base64,${image}') right center/auto 100% no-repeat}.poster:after{background:linear-gradient(rgba(97,216,226,.08) 1px,transparent 1px);background-size:100% 36px}.kicker,.footer{color:#74e0d2}.verified{background:#76e2a5;color:#052013}.rail{border-color:#41606a;background:#0a1922}.rail span{border-color:#41606a}.rail b{color:#ffd45d}.metric{border-color:#ffd45d;background:rgba(7,16,24,.76)}.viewports span{border-color:#41606a;background:rgba(7,16,24,.72)}`
-    : `.poster{background:linear-gradient(112deg,#f2f4ef 0 58%,#d8ded5 58% 100%);color:#111714}.poster:before{content:"";position:absolute;right:-8vw;top:-18vh;width:46vw;height:128vh;background:#d7ed30;transform:skewX(-13deg)}.poster:after{background:linear-gradient(90deg,transparent 0 63%,rgba(17,23,20,.12) 63% 63.15%,transparent 63.15%)}.content{width:72%}.kicker,.footer{color:#3c4b43}.title{color:#111714}.task{color:#3f4b45}.verified{background:#111714;color:#eef1eb}.rail{border-color:#566159;background:#eef1eb}.rail span{border-color:#929a94}.rail b{color:#586800}.metric{border-color:#9db318;background:#e3e7df}.metric span,.viewports span{color:#46514b}.viewports span{border-color:#818b84;background:#eef1eb}`;
-  return `<!doctype html>
-<html lang="${locale}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${text.posterTitle}</title><style>
-*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden}body{margin:0;background:#071018;color:#f5fbfc;font-family:"Microsoft YaHei UI","Noto Sans SC",Arial,sans-serif}.poster{width:100vw;height:100vh;position:relative;overflow:hidden;padding:92px 100px}.poster:after{content:"";position:absolute;inset:0;pointer-events:none}.content{position:relative;z-index:1;width:66%}.kicker{font:700 16px monospace;letter-spacing:2px}.title{margin:13px 0 9px;font-size:64px;line-height:1;font-weight:800;max-width:900px}.task{margin:0;font-size:24px;line-height:1.35;max-width:820px}.verified{display:inline-block;margin-top:28px;padding:9px 13px;font:800 18px monospace;letter-spacing:1px}.rail{display:flex;margin:38px 0 30px;border:1px solid}.rail span{flex:1;min-height:66px;padding:12px;border-right:1px solid;font-weight:800;font-size:15px}.rail span:last-child{border:0}.rail b{display:block;font:12px monospace;margin-bottom:6px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.metric{border-left:3px solid;padding:13px}.metric b{display:block;font-size:28px}.metric span,.viewports span{font:13px monospace}.viewports{display:flex;gap:9px;margin-top:20px}.viewports span{padding:8px 10px;border:1px solid}.footer{position:absolute;z-index:1;left:100px;bottom:50px;font:700 15px monospace;letter-spacing:1px}${posterTheme}</style></head><body><article class="poster" data-theme="${theme}"><div class="content"><div class="kicker">${escapeHtml(themeLabel(theme, locale))} / ${text.kicker}</div><h1 class="title">${escapeHtml(projectName)}</h1><p class="task">${escapeHtml(task)}</p><div class="verified">${text.verified}</div><div class="rail">${stageMarkup}</div><div class="metrics"><div class="metric"><b>${fileCount}</b><span>${text.files}</span></div><div class="metric"><b>${passedTests}/${testCount}</b><span>${text.tests}</span></div><div class="metric"><b>${redactionCount}</b><span>${text.redaction}</span></div></div><div class="viewports">${viewportMarkup}</div></div><div class="footer">${text.footer}</div></article></body></html>`;
+async function collectPosterEvidence(projectPath, screenshots, locale) {
+  const mimeTypes = new Map([[".png", "image/png"], [".webp", "image/webp"], [".jpg", "image/jpeg"], [".jpeg", "image/jpeg"]]);
+  const evidence = [];
+  for (const shot of screenshots.slice(0, 3)) {
+    if (!shot?.imagePath || typeof shot.imagePath !== "string") continue;
+    try {
+      const fullPath = insideProject(projectPath, shot.imagePath, "screenshot imagePath");
+      const mimeType = mimeTypes.get(extname(fullPath).toLowerCase());
+      if (!mimeType) continue;
+      const image = await readFile(fullPath);
+      if (image.length > 8 * 1024 * 1024) continue;
+      const name = viewportLabel(safeText(shot.viewport?.name), locale);
+      const width = Number(shot.viewport?.width) || 0;
+      const height = Number(shot.viewport?.height) || 0;
+      evidence.push({
+        image: image.toString("base64"),
+        mimeType,
+        label: `${name}: ${width} x ${height}`,
+      });
+    } catch {
+      // A missing screenshot should not block the textual report or poster fallback.
+    }
+  }
+  return evidence;
 }
 
 function formatList(items, emptyLabel) {
@@ -156,6 +169,7 @@ export async function generateLayoutSummary(options = {}) {
   const stages = collectStages(app, locale);
   const breakpoints = collectBreakpoints(css);
   const screenshots = Array.isArray(report.screenshots) ? report.screenshots : [];
+  const evidenceImages = await collectPosterEvidence(projectPath, screenshots, locale);
   const files = Array.isArray(report.git?.files) ? report.git.files : [];
   const tests = Array.isArray(report.tests) ? report.tests : [];
   const redaction = report.redaction ?? {};
@@ -221,6 +235,7 @@ export async function generateLayoutSummary(options = {}) {
     testCount: tests.length,
     redactionCount: Number(redaction.totalReplacements) || 0,
     viewports: posterViewports.slice(0, 3),
+    evidenceImages,
     locale,
     theme,
   });

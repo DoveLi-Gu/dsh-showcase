@@ -225,31 +225,37 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .field-poster__rail span:last-child small { color: #596400; }
 .field-poster__footer { position: absolute; z-index: 7; left: 5.2%; bottom: 2.3%; margin: 0; font: 800 10px "Cascadia Mono", monospace; }
 
-/* Blue Big Fish: bright character-led comic poster. */
-.fish-poster { color: #10245c; background: #fff; border: 4px solid #0757cf; }
-.fish-poster__art {
+/* Blue Big Fish: flowing evidence poster with the character embedded as atmosphere. */
+.fish-poster { color: #10245c; background: #eff7ff; border: 4px solid #0757cf; }
+.fish-poster__current { position: absolute; z-index: 0; left: -14%; width: 112%; height: 24%; background: #d2e8ff; clip-path: polygon(0 27%, 92% 0, 100% 71%, 7% 100%); animation: fish-tide 16s cubic-bezier(.22, 1, .36, 1) infinite alternate; }
+.fish-poster__current.current-one { top: -7%; }
+.fish-poster__current.current-two { top: 27%; left: -19%; background: #c2e2ff; animation-duration: 21s; animation-direction: alternate-reverse; }
+.fish-poster__current.current-three { bottom: -7%; left: -8%; background: #dcedff; animation-duration: 18s; }
+.fish-poster__portrait {
   position: absolute;
   z-index: 1;
-  top: 0;
-  right: -2%;
-  bottom: auto;
-  width: 66%;
+  top: -7%;
+  right: -1%;
+  width: 45%;
   height: 112%;
-  object-fit: contain;
-  object-position: right bottom;
-  animation: fish-float 8.2s ease-in-out infinite;
+  opacity: .2;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 31%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 31%, #000 100%);
+  animation: fish-portrait-tide 10s cubic-bezier(.22, 1, .36, 1) infinite alternate;
 }
-.fish-poster__cover {
-  position: absolute;
-  z-index: 2;
-  inset: 0 36% 0 0;
-  background: #fff;
-  clip-path: polygon(0 0, 100% 0, 84% 100%, 0 100%);
+.fish-poster__art {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: right center;
+  filter: saturate(.9) contrast(1.04);
 }
 .fish-poster__arc { position: absolute; z-index: 0; border: 4px solid #1767e8; border-left-color: transparent; border-bottom-color: transparent; border-radius: 50%; }
 .fish-poster__arc.arc-one { top: 11%; right: 7%; width: 42%; aspect-ratio: 1; animation: fish-arc 20s linear infinite; }
 .fish-poster__arc.arc-two { top: 4%; right: -8%; width: 54%; aspect-ratio: 1; border-width: 2px; opacity: .65; animation: fish-arc 28s linear infinite reverse; }
-.fish-poster__copy { position: absolute; z-index: 5; top: 10%; left: 5.4%; width: 52%; }
+.fish-poster__copy { position: absolute; z-index: 5; top: 10%; left: 5.4%; width: 66%; }
 .fish-poster__kicker {
   display: inline-block;
   margin: 0;
@@ -295,6 +301,14 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .fish-poster__sparkles i:nth-child(2) { top: 34%; right: 5%; animation-delay: -1.3s; }
 .fish-poster__sparkles i:nth-child(3) { bottom: 27%; right: 31%; animation-delay: -2.5s; }
 .fish-poster__sparkles i:nth-child(4) { top: 7%; right: 26%; animation-delay: -.7s; }
+.fish-poster__whales { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
+.fish-whale { position: absolute; overflow: visible; color: #0a5fd2; filter: drop-shadow(3px 3px 0 rgba(255, 255, 255, .72)); animation: fish-whale-drift 13s cubic-bezier(.22, 1, .36, 1) infinite alternate; }
+.fish-whale__body, .fish-whale__tail, .fish-whale__fin { fill: currentColor; }
+.fish-whale__eye { fill: #fff; }
+.fish-whale__spout { fill: none; stroke: #48bfe9; stroke-width: 2.2; stroke-linecap: round; }
+.fish-whale--one { top: 12%; right: 27%; width: 8.2%; opacity: .38; transform: rotate(-5deg); }
+.fish-whale--two { top: 42%; right: 4%; width: 5.6%; color: #38b9c8; opacity: .32; animation-delay: -5s; animation-duration: 17s; transform: rotate(4deg); }
+.fish-whale--three { right: 15%; bottom: 7%; width: 9.8%; opacity: .2; animation-delay: -8s; animation-duration: 21s; transform: rotate(-3deg); }
 
 /* Evidence workspace */
 .evidence-band { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 34px; padding: 36px 0; border-bottom: 1px solid var(--line); }
@@ -383,17 +397,21 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @keyframes field-photo-drift { from { transform: translate3d(-5px, 0, 0) scale(1.015); } to { transform: translate3d(8px, -5px, 0) scale(1.035); } }
 @keyframes field-scan { to { transform: translateX(1500px) skewX(-16deg); } }
 @keyframes rail-flow { from { transform: translateX(-120%); } to { transform: translateX(620%); } }
-@keyframes fish-float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(.3deg); } }
 @keyframes fish-arc { to { transform: rotate(360deg); } }
 @keyframes fish-current { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @keyframes sparkle { 0%, 100% { opacity: .4; transform: scale(.72) rotate(0); } 50% { opacity: 1; transform: scale(1.12) rotate(45deg); } }
+@keyframes fish-tide { to { transform: translate3d(7vw, 1.2vh, 0) scale(1.03); } }
+@keyframes fish-portrait-tide { to { transform: translate3d(1.5vw, -.8vh, 0) scale(1.015); opacity: .24; } }
+@keyframes fish-whale-drift { to { translate: 2.4vw -1.1vh; rotate: 2deg; } }
+@keyframes fish-reduced-tide { 50% { opacity: .72; } }
+@keyframes fish-reduced-portrait { 50% { opacity: .14; } }
+@keyframes fish-reduced-pulse { 50% { opacity: .45; } }
 
 @media (max-width: 1100px) {
   .poster-summary { min-height: 560px; }
   .field-poster__copy { width: 51%; }
   .field-poster__metrics { width: 34%; }
-  .fish-poster__art { right: -6%; width: 71%; }
-  .fish-poster__cover { right: 33%; }
+  .fish-poster__portrait { right: -3%; width: 49%; }
   .fish-poster__metrics div { min-width: 115px; }
   .evidence-band { grid-template-columns: 160px minmax(0, 1fr); gap: 22px; }
   .overview-grid { grid-template-columns: 1.4fr repeat(3, 1fr); }
@@ -413,9 +431,8 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .field-poster__metrics { right: 5.2%; bottom: 18%; width: 45%; }
   .field-poster__rail span, .fish-poster__rail span { padding-left: 9px; padding-right: 8px; }
   .fish-poster { min-height: 720px; }
-  .fish-poster__art { top: auto; right: 0; bottom: -2%; width: 90%; height: 68%; }
-  .fish-poster__cover { inset: 0 0 56% 0; clip-path: none; }
-  .fish-poster__copy { top: 7%; width: 80%; }
+  .fish-poster__portrait { top: 30%; right: -7%; width: 68%; height: 76%; opacity: .16; }
+  .fish-poster__copy { top: 7%; width: 88%; }
   .fish-poster h2 { font-size: 65px; }
   .fish-poster__goal { max-width: 520px; font-size: 20px; }
   .fish-poster__pop.pop-one { top: 45%; right: 5%; }
@@ -451,13 +468,15 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .field-poster__rail small { font-size: 8px; }
   .field-poster__footer { left: 18px; right: 18px; font-size: 8px; }
   .fish-poster { min-height: 680px; border-width: 3px; }
-  .fish-poster__cover { inset: 0 0 55% 0; }
   .fish-poster__copy { top: 4%; left: 18px; width: calc(100% - 36px); }
   .fish-poster__kicker { font-size: 12px; }
   .fish-poster h2 { margin: 17px 0 12px; font-size: 57px; }
   .fish-poster__goal { font-size: 17px; }
   .fish-poster__verified { margin-top: 15px; border-width: 3px; box-shadow: 6px 6px 0 #ffd24a; }
-  .fish-poster__art { top: auto; right: -23%; bottom: -9%; width: 135%; height: 70%; }
+  .fish-poster__portrait { top: 34%; right: -22%; width: 104%; height: 70%; opacity: .13; }
+  .fish-whale--one { top: 45%; right: 14%; width: 20%; }
+  .fish-whale--two { top: 58%; right: 2%; width: 13%; }
+  .fish-whale--three { right: 25%; bottom: 8%; width: 24%; }
   .fish-poster__pop.pop-one { top: 46%; right: auto; left: 14px; }
   .fish-poster__pop.pop-two { left: 15px; bottom: 26%; }
   .fish-poster__metrics { left: 14px; bottom: 14.5%; width: calc(100% - 28px); gap: 5px; }
@@ -496,4 +515,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
   .reveal-band { opacity: 1; transform: none; }
+  .fish-poster__current { animation: fish-reduced-tide 8s ease-in-out infinite !important; }
+  .fish-poster__portrait { animation: fish-reduced-portrait 8s ease-in-out infinite !important; }
+  .fish-whale, .fish-poster__sparkles i, .fish-poster__rail span:last-child { animation: fish-reduced-pulse 5s ease-in-out infinite !important; }
 }

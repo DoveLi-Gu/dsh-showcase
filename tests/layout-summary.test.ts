@@ -15,6 +15,8 @@ async function createProject() {
   temporaryDirectories.push(projectPath);
   await mkdir(join(projectPath, "src"), { recursive: true });
   await mkdir(join(projectPath, ".showcase"), { recursive: true });
+  await mkdir(join(projectPath, "evidence"), { recursive: true });
+  await writeFile(join(projectPath, "evidence", "mobile.png"), Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64"));
   await writeFile(join(projectPath, "src", "App.tsx"), 'const showcaseStages = [{ id: "PROMPT", label: "提示" }, { id: "BUILD", label: "构建" }, { id: "TEST", label: "测试" }, { id: "CAPTURE", label: "捕获" }, { id: "SHIP", label: "交付" }];\nconst theme = "边境信号 蓝色大肥鱼";\nconst controls = "theme-switch type=\\"range\\" export-actions setSelectedFile";\n<details />;\n', "utf8");
   await writeFile(join(projectPath, "src", "styles.css"), "@media (max-width: 980px) {}\n@media (max-width: 640px) {}\n", "utf8");
   await writeFile(join(projectPath, ".showcase", "report.json"), JSON.stringify({
@@ -22,7 +24,7 @@ async function createProject() {
     task: { goal: "汇总证据布局 token=secret-value", status: "completed" },
     git: { baseRef: "main", headRef: "HEAD", files: [{ path: "src/App.tsx", status: "modified", additions: 4, deletions: 1 }] },
     tests: [{ command: "npm test", status: "passed", exitCode: 0 }],
-    screenshots: [{ viewport: { name: "mobile", width: 390, height: 844 } }],
+    screenshots: [{ viewport: { name: "mobile", width: 390, height: 844 }, imagePath: "evidence/mobile.png" }],
     redaction: { totalReplacements: 2, replacements: { token: 2 } },
   }, null, 2), "utf8");
   return projectPath;
@@ -76,6 +78,15 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("PROMPT");
     expect(poster).toContain('data-theme="blue-big-fish"');
     expect(poster).toContain("data:image/webp;base64,");
+    expect(poster).toContain("RESPONSIVE EVIDENCE");
+    expect(poster).toContain("data:image/png;base64,");
+    expect(poster).toContain("@keyframes current-drift");
+    expect(poster).toContain("@keyframes evidence-scan");
+    expect(poster).toContain("@keyframes reduced-tide");
+    expect(poster).toContain('class="portrait-wash"');
+    expect(poster).toContain('class="whale-school"');
+    expect(poster).toContain("@keyframes whale-drift");
+    expect(poster).not.toContain('class="art-panel"');
     expect(poster).not.toContain("not captured");
     expect(poster).not.toContain("secret-value");
   });
