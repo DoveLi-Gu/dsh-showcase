@@ -48,7 +48,7 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("已验证");
     expect(poster).toContain("提示");
     expect(poster).toContain('data-theme="frontier-signal"');
-    expect(poster).not.toContain("data:image/webp;base64,");
+    expect(poster).toContain("data:image/webp;base64,");
     expect(poster).not.toContain("未捕获");
     expect(poster).not.toContain("secret-value");
     expect(poster).not.toContain(projectPath);

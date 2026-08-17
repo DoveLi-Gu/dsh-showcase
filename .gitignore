@@ -3,3 +3,6 @@ dist/
 .showcase/
 *.tsbuildinfo
 tests/.tmp/
+output/
+.vite-preview*.log
+docs/assets/*-v2.png

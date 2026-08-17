@@ -14,8 +14,8 @@
 - Git 证据：支持当前工作区改动或配置的基准引用。
 - 测试回执：记录命令、耗时、退出码、状态和已脱敏输出。
 - 脱敏：对常见 Token、Authorization 值、GitHub Token 格式和本机绝对路径进行处理。
-- 双主题报告界面：**边境信号** 与 **蓝色大肥鱼**。
-- 克制的常驻氛围动效：边境信号包含扫描与刻度运动；蓝色大肥鱼包含角色漂浮、水面光纹、气泡和声呐环，并支持 `prefers-reduced-motion`。
+- 两套独立构图的海报方向：**边境信号** 与 **蓝色大肥鱼**。当前方向只在 DSH 插件设置中选择，报告页面内不再提供切换按钮。
+- 支持 `prefers-reduced-motion` 的常驻氛围：边境信号使用建筑漂移、机械遮罩和信号流；蓝色大肥鱼使用角色漂浮、漫画弧线和金色星标呼吸。
 - CLI：初始化本地配置并采集报告。
 - DSH 插件工具 `showcase_layout_summary`：生成本地 Markdown 布局摘要和自包含证据海报。
 - 本地 Markdown 产物和自包含 HTML 海报。插件只读取项目文件、只在项目内写入，不上传内容。
@@ -23,6 +23,8 @@
 ![边境信号主题桌面报告](docs/assets/field-signal-desktop.png)
 
 ![蓝色大肥鱼主题移动端报告](docs/assets/blue-big-fish-mobile.png)
+
+![插件生成的蓝色大肥鱼自包含海报](docs/assets/plugin-blue-big-fish-poster.png)
 
 ## 快速开始
 

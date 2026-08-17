@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { createStyledPosterHtml } from "./poster-html.js";
 
 const DEFAULT_REPORT_PATH = ".showcase/report.json";
 const DEFAULT_OUTPUT_PATH = ".showcase/layout-summary.md";
@@ -145,9 +146,8 @@ export async function generateLayoutSummary(options = {}) {
       readFile(appPath, "utf8"),
       readFile(cssPath, "utf8"),
     ]);
-    if (theme === "blue-big-fish") {
-      posterImage = await readFile(new URL("./assets/whale-girl-poster.webp", import.meta.url));
-    }
+    const assetName = theme === "blue-big-fish" ? "whale-girl-keyvisual.webp" : "frontier-industrial.webp";
+    posterImage = await readFile(new URL("./assets/" + assetName, import.meta.url));
   } catch (error) {
     throw new Error(`Unable to read layout sources or poster asset: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -211,10 +211,10 @@ export async function generateLayoutSummary(options = {}) {
   ].join("\n");
 
   const sanitizedMarkdown = markdown.replaceAll(projectPath, "[PATH OMITTED]");
-  const posterHtml = createPosterHtml({
+  const posterHtml = createStyledPosterHtml({
     image: posterImage.toString("base64"),
     projectName,
-    task: report.task?.goal || text.notRecorded,
+    task: safeText(report.task?.goal) || text.notRecorded,
     stages,
     fileCount: files.length,
     passedTests,
