@@ -72,6 +72,28 @@ type PosterProps = {
   passedTests: number;
 };
 
+function LoadingCurtain({ theme }: { theme: Theme }) {
+  return <div className={`loading-curtain loading-curtain--${theme}`} role="status" aria-label="正在载入布局证据">
+    <div className="loading-curtain__flow" aria-hidden="true"><i /><i /><i /></div>
+    <div className="loading-curtain__brand">
+      <span className="loading-curtain__mark">DSH</span>
+      <strong>dsh-showcase</strong>
+      <small>正在汇聚交付证据</small>
+    </div>
+    <div className="loading-curtain__progress" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+  </div>;
+}
+
+function OceanAtmosphere() {
+  return <div className="ocean-atmosphere" aria-hidden="true">
+    <div className="ocean-light ocean-light--one" />
+    <div className="ocean-light ocean-light--two" />
+    <div className="ocean-current-line ocean-current-line--one" />
+    <div className="ocean-current-line ocean-current-line--two" />
+    <div className="ocean-bubbles">{Array.from({ length: 14 }, (_, index) => <i key={index} />)}</div>
+  </div>;
+}
+
 function FieldPoster({ passedTests }: PosterProps) {
   const report = demoReport;
   return <section className="poster-summary field-poster" aria-labelledby="poster-title">
@@ -101,6 +123,9 @@ function FishPoster({ passedTests }: PosterProps) {
     <div className="fish-poster__current current-three" aria-hidden="true" />
     <div className="fish-poster__arc arc-one" aria-hidden="true" />
     <div className="fish-poster__arc arc-two" aria-hidden="true" />
+    <div className="fish-poster__light light-one" aria-hidden="true" />
+    <div className="fish-poster__light light-two" aria-hidden="true" />
+    <div className="fish-poster__bubbles" aria-hidden="true">{Array.from({ length: 12 }, (_, index) => <i key={index} />)}</div>
     <div className="fish-poster__sparkles" aria-hidden="true"><i /><i /><i /><i /></div>
     <div className="fish-poster__portrait" aria-hidden="true"><img className="fish-poster__art" src="/whale-girl-keyvisual.webp" alt="" /></div>
     <div className="fish-poster__whales" aria-hidden="true">
@@ -128,6 +153,7 @@ function FishPoster({ passedTests }: PosterProps) {
 
 export default function App() {
   const theme = selectedTheme();
+  const [showIntro, setShowIntro] = useState(true);
   const [selectedFile, setSelectedFile] = useState("src/App.tsx");
   const [comparison, setComparison] = useState(58);
   const [toast, setToast] = useState("");
@@ -137,6 +163,10 @@ export default function App() {
   const report = demoReport;
   const passedTests = report.tests.filter((test) => test.status === "passed").length;
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowIntro(false), 1500);
+    return () => window.clearTimeout(timer);
+  }, []);
   useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 2600);
@@ -207,6 +237,8 @@ export default function App() {
   };
 
   return <main className={`app theme-${theme}`}>
+    {showIntro && <LoadingCurtain theme={theme} />}
+    {theme === "fish" && <OceanAtmosphere />}
     <div className="workspace">
       <header className="report-header">
         <div className="identity"><span className="mark">DS</span><div><p className="eyebrow">交付证据 / 0017</p><h1>dsh-showcase</h1></div></div>

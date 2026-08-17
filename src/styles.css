@@ -25,6 +25,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   --cyan: #1767e8;
   --focus: #1767e8;
   min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   padding: 24px;
   color: var(--ink);
   background: var(--ground);
@@ -42,9 +45,66 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   --good: #0f7a58;
   --cyan: #1767e8;
   --focus: #0757cf;
+  background: #edf6ff;
 }
 
-.workspace { max-width: 1440px; margin: 0 auto; }
+.workspace { position: relative; z-index: 2; max-width: 1440px; margin: 0 auto; }
+
+/* A short, non-interactive boot sequence. The interface is already present underneath. */
+.loading-curtain {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #f7fff8;
+  background: #101410;
+  pointer-events: none;
+  animation: loading-curtain-exit 1.45s cubic-bezier(.22, 1, .36, 1) both;
+}
+.loading-curtain--fish { color: #10245c; background: #d9eeff; }
+.loading-curtain__brand { position: relative; z-index: 2; display: grid; justify-items: center; gap: 9px; }
+.loading-curtain__brand strong { font: 900 clamp(38px, 7vw, 82px) / .9 "Arial Narrow", "Microsoft YaHei UI", sans-serif; }
+.loading-curtain__brand small { font: 800 13px "Cascadia Mono", "Microsoft YaHei UI", monospace; }
+.loading-curtain__mark { display: grid; place-items: center; width: 58px; height: 58px; color: #101410; background: #d7ef2f; font: 900 19px "Arial Narrow", sans-serif; transform: rotate(-4deg); animation: loading-mark-lock .7s cubic-bezier(.16, 1, .3, 1) both; }
+.loading-curtain--fish .loading-curtain__mark { color: #fff; background: #0757cf; box-shadow: 7px 7px 0 #ffd24a; }
+.loading-curtain__progress { position: absolute; z-index: 2; bottom: 14%; display: flex; gap: 7px; }
+.loading-curtain__progress i { width: 28px; height: 5px; background: currentColor; opacity: .16; animation: loading-progress .72s ease-out both; }
+.loading-curtain__progress i:nth-child(2) { animation-delay: .08s; }
+.loading-curtain__progress i:nth-child(3) { animation-delay: .16s; }
+.loading-curtain__progress i:nth-child(4) { animation-delay: .24s; }
+.loading-curtain__progress i:nth-child(5) { animation-delay: .32s; }
+.loading-curtain__flow { position: absolute; inset: 0; }
+.loading-curtain__flow i { position: absolute; left: -20%; width: 135%; height: 18%; background: #d7ef2f; opacity: .16; clip-path: polygon(0 38%, 88% 0, 100% 54%, 12% 100%); animation: loading-flow 1.15s cubic-bezier(.22, 1, .36, 1) both; }
+.loading-curtain__flow i:nth-child(1) { top: 9%; }
+.loading-curtain__flow i:nth-child(2) { top: 42%; animation-delay: .08s; }
+.loading-curtain__flow i:nth-child(3) { bottom: 1%; animation-delay: .16s; }
+.loading-curtain--fish .loading-curtain__flow i { background: #48bfe9; opacity: .28; }
+
+/* Persistent page atmosphere: visible around every evidence band, not only the hero. */
+.ocean-atmosphere { position: fixed; z-index: 0; inset: 0; overflow: hidden; pointer-events: none; }
+.ocean-light { position: absolute; top: -30vh; width: 17vw; min-width: 150px; height: 155vh; background: linear-gradient(90deg, transparent, rgba(255,255,255,.68), transparent); opacity: .44; transform: rotate(14deg); animation: ocean-light-sweep 16s ease-in-out infinite alternate; }
+.ocean-light--one { left: 9%; }
+.ocean-light--two { right: 12%; width: 10vw; opacity: .28; animation-delay: -8s; animation-duration: 21s; }
+.ocean-current-line { position: absolute; left: -18vw; width: 132vw; height: 30vh; border: 2px solid rgba(7,87,207,.17); border-color: rgba(7,87,207,.18) transparent transparent; border-radius: 50%; animation: ocean-current-drift 14s cubic-bezier(.22,1,.36,1) infinite alternate; }
+.ocean-current-line--one { top: 16vh; transform: rotate(-4deg); }
+.ocean-current-line--two { top: 62vh; border-width: 1px; opacity: .8; animation-delay: -7s; animation-duration: 19s; }
+.ocean-bubbles i { position: absolute; bottom: -48px; width: 10px; height: 10px; border: 2px solid rgba(7,87,207,.35); border-radius: 50%; opacity: 0; animation: ocean-bubble-rise 12s linear infinite; }
+.ocean-bubbles i:nth-child(1) { left: 4%; animation-delay: -2s; }
+.ocean-bubbles i:nth-child(2) { left: 11%; width: 6px; height: 6px; animation-delay: -8s; animation-duration: 9s; }
+.ocean-bubbles i:nth-child(3) { left: 18%; width: 16px; height: 16px; animation-delay: -5s; animation-duration: 15s; }
+.ocean-bubbles i:nth-child(4) { left: 29%; animation-delay: -11s; }
+.ocean-bubbles i:nth-child(5) { left: 37%; width: 7px; height: 7px; animation-delay: -4s; animation-duration: 10s; }
+.ocean-bubbles i:nth-child(6) { left: 46%; width: 14px; height: 14px; animation-delay: -9s; animation-duration: 16s; }
+.ocean-bubbles i:nth-child(7) { left: 54%; animation-delay: -1s; }
+.ocean-bubbles i:nth-child(8) { left: 63%; width: 6px; height: 6px; animation-delay: -7s; animation-duration: 9s; }
+.ocean-bubbles i:nth-child(9) { left: 70%; width: 18px; height: 18px; animation-delay: -13s; animation-duration: 17s; }
+.ocean-bubbles i:nth-child(10) { left: 78%; animation-delay: -6s; }
+.ocean-bubbles i:nth-child(11) { left: 85%; width: 7px; height: 7px; animation-delay: -10s; animation-duration: 11s; }
+.ocean-bubbles i:nth-child(12) { left: 92%; width: 14px; height: 14px; animation-delay: -3s; animation-duration: 15s; }
+.ocean-bubbles i:nth-child(13) { left: 24%; width: 5px; height: 5px; animation-delay: -12s; animation-duration: 8s; }
+.ocean-bubbles i:nth-child(14) { left: 73%; width: 8px; height: 8px; animation-delay: -1.5s; animation-duration: 10s; }
 .report-header {
   min-height: 80px;
   display: grid;
@@ -226,11 +286,11 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .field-poster__footer { position: absolute; z-index: 7; left: 5.2%; bottom: 2.3%; margin: 0; font: 800 10px "Cascadia Mono", monospace; }
 
 /* Blue Big Fish: flowing evidence poster with the character embedded as atmosphere. */
-.fish-poster { color: #10245c; background: #eff7ff; border: 4px solid #0757cf; }
-.fish-poster__current { position: absolute; z-index: 0; left: -14%; width: 112%; height: 24%; background: #d2e8ff; clip-path: polygon(0 27%, 92% 0, 100% 71%, 7% 100%); animation: fish-tide 16s cubic-bezier(.22, 1, .36, 1) infinite alternate; }
+.fish-poster { color: #10245c; background: #e8f5ff; border: 4px solid #0757cf; }
+.fish-poster__current { position: absolute; z-index: 0; left: -14%; width: 112%; height: 24%; background: rgba(84, 173, 255, .26); clip-path: polygon(0 27%, 92% 0, 100% 71%, 7% 100%); animation: fish-tide 12s cubic-bezier(.22, 1, .36, 1) infinite alternate; }
 .fish-poster__current.current-one { top: -7%; }
-.fish-poster__current.current-two { top: 27%; left: -19%; background: #c2e2ff; animation-duration: 21s; animation-direction: alternate-reverse; }
-.fish-poster__current.current-three { bottom: -7%; left: -8%; background: #dcedff; animation-duration: 18s; }
+.fish-poster__current.current-two { top: 27%; left: -19%; background: rgba(58, 190, 224, .22); animation-duration: 17s; animation-direction: alternate-reverse; }
+.fish-poster__current.current-three { bottom: -7%; left: -8%; background: rgba(115, 171, 255, .24); animation-duration: 14s; }
 .fish-poster__portrait {
   position: absolute;
   z-index: 1;
@@ -255,6 +315,23 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .fish-poster__arc { position: absolute; z-index: 0; border: 4px solid #1767e8; border-left-color: transparent; border-bottom-color: transparent; border-radius: 50%; }
 .fish-poster__arc.arc-one { top: 11%; right: 7%; width: 42%; aspect-ratio: 1; animation: fish-arc 20s linear infinite; }
 .fish-poster__arc.arc-two { top: 4%; right: -8%; width: 54%; aspect-ratio: 1; border-width: 2px; opacity: .65; animation: fish-arc 28s linear infinite reverse; }
+.fish-poster__light { position: absolute; z-index: 2; top: -20%; width: 11%; height: 145%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.86), transparent); opacity: .52; transform: rotate(16deg); animation: fish-light-sweep 9s ease-in-out infinite alternate; pointer-events: none; }
+.fish-poster__light.light-one { left: 46%; }
+.fish-poster__light.light-two { right: 2%; width: 7%; opacity: .32; animation-delay: -4.5s; animation-duration: 13s; }
+.fish-poster__bubbles { position: absolute; z-index: 4; inset: 0; overflow: hidden; pointer-events: none; }
+.fish-poster__bubbles i { position: absolute; bottom: -8%; width: 9px; height: 9px; border: 2px solid rgba(7,87,207,.48); border-radius: 50%; opacity: 0; animation: fish-bubble-rise 8s linear infinite; }
+.fish-poster__bubbles i:nth-child(1) { left: 8%; animation-delay: -1s; }
+.fish-poster__bubbles i:nth-child(2) { left: 18%; width: 5px; height: 5px; animation-delay: -6s; animation-duration: 6s; }
+.fish-poster__bubbles i:nth-child(3) { left: 32%; width: 14px; height: 14px; animation-delay: -3s; animation-duration: 10s; }
+.fish-poster__bubbles i:nth-child(4) { left: 44%; animation-delay: -7s; }
+.fish-poster__bubbles i:nth-child(5) { left: 53%; width: 6px; height: 6px; animation-delay: -2s; animation-duration: 7s; }
+.fish-poster__bubbles i:nth-child(6) { left: 61%; width: 12px; height: 12px; animation-delay: -9s; animation-duration: 11s; }
+.fish-poster__bubbles i:nth-child(7) { left: 70%; animation-delay: -4s; }
+.fish-poster__bubbles i:nth-child(8) { left: 79%; width: 5px; height: 5px; animation-delay: -8s; animation-duration: 6s; }
+.fish-poster__bubbles i:nth-child(9) { left: 88%; width: 15px; height: 15px; animation-delay: -5s; animation-duration: 12s; }
+.fish-poster__bubbles i:nth-child(10) { left: 94%; animation-delay: -1.5s; }
+.fish-poster__bubbles i:nth-child(11) { left: 38%; width: 5px; height: 5px; animation-delay: -9.5s; animation-duration: 7s; }
+.fish-poster__bubbles i:nth-child(12) { left: 74%; width: 7px; height: 7px; animation-delay: -.5s; animation-duration: 9s; }
 .fish-poster__copy { position: absolute; z-index: 5; top: 10%; left: 5.4%; width: 66%; }
 .fish-poster__kicker {
   display: inline-block;
@@ -302,7 +379,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .fish-poster__sparkles i:nth-child(3) { bottom: 27%; right: 31%; animation-delay: -2.5s; }
 .fish-poster__sparkles i:nth-child(4) { top: 7%; right: 26%; animation-delay: -.7s; }
 .fish-poster__whales { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
-.fish-whale { position: absolute; overflow: visible; color: #0a5fd2; filter: drop-shadow(3px 3px 0 rgba(255, 255, 255, .72)); animation: fish-whale-drift 13s cubic-bezier(.22, 1, .36, 1) infinite alternate; }
+.fish-whale { position: absolute; overflow: visible; color: #0a5fd2; filter: drop-shadow(3px 3px 0 rgba(255, 255, 255, .72)); animation: fish-whale-drift 10s cubic-bezier(.22, 1, .36, 1) infinite alternate; }
 .fish-whale__body, .fish-whale__tail, .fish-whale__fin { fill: currentColor; }
 .fish-whale__eye { fill: #fff; }
 .fish-whale__spout { fill: none; stroke: #48bfe9; stroke-width: 2.2; stroke-linecap: round; }
@@ -393,6 +470,13 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .reveal-band { opacity: .001; transform: translateY(15px); transition: opacity .5s ease-out, transform .5s ease-out; }
 .reveal-band.is-visible { opacity: 1; transform: translateY(0); }
 
+@keyframes loading-curtain-exit { 0%, 66% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+@keyframes loading-mark-lock { from { opacity: 0; transform: translate3d(0, 18px, 0) rotate(-9deg) scale(.82); } to { opacity: 1; transform: translate3d(0, 0, 0) rotate(-4deg) scale(1); } }
+@keyframes loading-progress { 0%, 24% { opacity: .16; transform: scaleX(.15); } 100% { opacity: .9; transform: scaleX(1); } }
+@keyframes loading-flow { from { transform: translate3d(-18%, 18px, 0); } to { transform: translate3d(15%, -12px, 0); } }
+@keyframes ocean-light-sweep { from { transform: translate3d(-7vw, 0, 0) rotate(14deg); } to { transform: translate3d(13vw, 0, 0) rotate(14deg); } }
+@keyframes ocean-current-drift { from { transform: translate3d(-3vw, 0, 0) rotate(-4deg); } to { transform: translate3d(8vw, -2vh, 0) rotate(-2deg); } }
+@keyframes ocean-bubble-rise { 0% { opacity: 0; transform: translate3d(0, 0, 0) scale(.7); } 12% { opacity: .62; } 82% { opacity: .28; } 100% { opacity: 0; transform: translate3d(2.6vw, -112vh, 0) scale(1.3); } }
 @keyframes poster-fade { from { opacity: .72; } to { opacity: 1; } }
 @keyframes field-photo-drift { from { transform: translate3d(-5px, 0, 0) scale(1.015); } to { transform: translate3d(8px, -5px, 0) scale(1.035); } }
 @keyframes field-scan { to { transform: translateX(1500px) skewX(-16deg); } }
@@ -402,10 +486,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @keyframes sparkle { 0%, 100% { opacity: .4; transform: scale(.72) rotate(0); } 50% { opacity: 1; transform: scale(1.12) rotate(45deg); } }
 @keyframes fish-tide { to { transform: translate3d(7vw, 1.2vh, 0) scale(1.03); } }
 @keyframes fish-portrait-tide { to { transform: translate3d(1.5vw, -.8vh, 0) scale(1.015); opacity: .24; } }
-@keyframes fish-whale-drift { to { translate: 2.4vw -1.1vh; rotate: 2deg; } }
-@keyframes fish-reduced-tide { 50% { opacity: .72; } }
-@keyframes fish-reduced-portrait { 50% { opacity: .14; } }
-@keyframes fish-reduced-pulse { 50% { opacity: .45; } }
+@keyframes fish-whale-drift { to { translate: 7vw -2vh; rotate: 4deg; } }
+@keyframes fish-light-sweep { from { transform: translate3d(-6vw, 0, 0) rotate(16deg); } to { transform: translate3d(10vw, 0, 0) rotate(16deg); } }
+@keyframes fish-bubble-rise { 0% { opacity: 0; transform: translate3d(0, 0, 0) scale(.65); } 12% { opacity: .8; } 78% { opacity: .38; } 100% { opacity: 0; transform: translate3d(2vw, -760px, 0) scale(1.35); } }
 
 @media (max-width: 1100px) {
   .poster-summary { min-height: 560px; }
@@ -510,12 +593,4 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .export-actions button { justify-content: center; min-width: 0; padding: 0 6px; }
   .export-actions .publish { grid-column: span 2; }
   .toast { right: 12px; bottom: 12px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
-  .reveal-band { opacity: 1; transform: none; }
-  .fish-poster__current { animation: fish-reduced-tide 8s ease-in-out infinite !important; }
-  .fish-poster__portrait { animation: fish-reduced-portrait 8s ease-in-out infinite !important; }
-  .fish-whale, .fish-poster__sparkles i, .fish-poster__rail span:last-child { animation: fish-reduced-pulse 5s ease-in-out infinite !important; }
 }

@@ -51,6 +51,9 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("提示");
     expect(poster).toContain('data-theme="frontier-signal"');
     expect(poster).toContain("data:image/webp;base64,");
+    expect(poster).toContain('class="loader"');
+    expect(poster).toContain('querySelector(".loader")');
+    expect(poster).not.toContain("prefers-reduced-motion");
     expect(poster).not.toContain("未捕获");
     expect(poster).not.toContain("secret-value");
     expect(poster).not.toContain(projectPath);
@@ -82,7 +85,10 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("data:image/png;base64,");
     expect(poster).toContain("@keyframes current-drift");
     expect(poster).toContain("@keyframes evidence-scan");
-    expect(poster).toContain("@keyframes reduced-tide");
+    expect(poster).toContain("@keyframes light-sweep");
+    expect(poster).toContain("@keyframes bubble-rise");
+    expect(poster).toContain('class="bubbles"');
+    expect(poster).toContain('class="loader"');
     expect(poster).toContain('class="portrait-wash"');
     expect(poster).toContain('class="whale-school"');
     expect(poster).toContain("@keyframes whale-drift");
