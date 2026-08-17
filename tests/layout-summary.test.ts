@@ -108,6 +108,10 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain('class="manifest-grid"');
     expect(poster).toContain('class="manifest-block"');
     expect(poster).toContain('class="manifest-output"');
+    expect(poster).toContain('class="manifest-output__path"');
+    expect(poster).toContain('class="manifest-output__label"');
+    expect(poster).toContain('class="manifest-output__meta"');
+    expect(poster).toContain("@keyframes manifest-node-pulse");
     expect(poster).toContain(".showcase/report.json");
     expect(poster).toContain(".showcase/layout-summary.en.md");
     expect(poster).toContain(".showcase/layout-poster.en.html");
