@@ -4,7 +4,7 @@
 
 面向编程 Agent 工作的本地、可核验交付证据报告工具。
 
-![Blue Big Fish 桌面报告](docs/assets/blue-big-fish-desktop.png)
+![蓝色大肥鱼主题桌面报告](docs/assets/blue-big-fish-desktop.png)
 
 `dsh-showcase` 将本地项目证据整理为便于审查的产物：Git 改动、测试回执、脱敏结果、布局证据和可视化报告。它不要求账号，也不要求上传内容。
 
@@ -14,14 +14,15 @@
 - Git 证据：支持当前工作区改动或配置的基准引用。
 - 测试回执：记录命令、耗时、退出码、状态和已脱敏输出。
 - 脱敏：对常见 Token、Authorization 值、GitHub Token 格式和本机绝对路径进行处理。
-- 双主题报告界面：**Field Signal** 与 **Blue Big Fish**。
+- 双主题报告界面：**边境信号** 与 **蓝色大肥鱼**。
+- 克制的常驻氛围动效：边境信号包含扫描与刻度运动；蓝色大肥鱼包含角色漂浮、水面光纹、气泡和声呐环，并支持 `prefers-reduced-motion`。
 - CLI：初始化本地配置并采集报告。
 - DSH 插件工具 `showcase_layout_summary`：生成本地 Markdown 布局摘要和自包含证据海报。
 - 本地 Markdown 产物和自包含 HTML 海报。插件只读取项目文件、只在项目内写入，不上传内容。
 
-![Field Signal 桌面报告](docs/assets/field-signal-desktop.png)
+![边境信号主题桌面报告](docs/assets/field-signal-desktop.png)
 
-![Blue Big Fish 移动端报告](docs/assets/blue-big-fish-mobile.png)
+![蓝色大肥鱼主题移动端报告](docs/assets/blue-big-fish-mobile.png)
 
 ## 快速开始
 
@@ -66,11 +67,12 @@ dsh plugin --profile web add .
   "projectPath": ".",
   "reportPath": ".showcase/report.json",
   "outputPath": ".showcase/layout-summary.md",
-  "posterPath": ".showcase/layout-poster.html"
+  "posterPath": ".showcase/layout-poster.html",
+  "locale": "zh-CN"
 }
 ```
 
-只有 `projectPath` 必填。其余路径均为可选的项目相对路径。生成的 Markdown 摘要与 HTML 海报保留在本地项目中。
+只有 `projectPath` 必填。`locale` 可选，默认值为 `zh-CN`；传入 `en` 可生成英文输出。其余路径均为可选的项目相对路径。生成的 Markdown 摘要与 HTML 海报保留在本地项目中。
 
 ## 开发命令
 

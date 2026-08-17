@@ -4,7 +4,7 @@
 
 Local, verifiable delivery evidence reports for coding-agent work.
 
-![Blue Big Fish desktop report](docs/assets/blue-big-fish-desktop.png)
+![Blue Big Fish theme desktop report](docs/assets/blue-big-fish-desktop.png)
 
 `dsh-showcase` turns local project evidence into reviewable artifacts: Git changes, test receipts, redaction results, layout evidence, and visual report output. It works without an account or upload requirement.
 
@@ -14,12 +14,13 @@ Local, verifiable delivery evidence reports for coding-agent work.
 - Git evidence for the current working tree or a configured base reference.
 - Test execution receipts with command, duration, exit code, status, and redacted output.
 - Built-in redaction for common tokens, authorization values, GitHub token patterns, and local absolute paths in captured output.
-- Two report themes: **Field Signal** and **Blue Big Fish**.
+- Two report themes: **Frontier Signal (`边境信号`)** and **Blue Big Fish (`蓝色大肥鱼`)**.
+- Restrained persistent atmosphere: scanning signals and calibration motion for Frontier Signal; character float, water caustics, bubbles, and sonar rings for Blue Big Fish, with `prefers-reduced-motion` support.
 - CLI commands for initializing local configuration and capturing a report.
 - A DSH plugin tool, `showcase_layout_summary`, for producing a local Markdown layout summary and a self-contained evidence poster.
 - Local Markdown artifacts and a self-contained HTML poster. The plugin reads project files, writes inside the project, and does not upload content.
 
-![Field Signal desktop report](docs/assets/field-signal-desktop.png)
+![Frontier Signal theme desktop report](docs/assets/field-signal-desktop.png)
 
 ![Blue Big Fish mobile report](docs/assets/blue-big-fish-mobile.png)
 
@@ -66,11 +67,12 @@ Restart DSH, then create a **new session** before using the tool. The new sessio
   "projectPath": ".",
   "reportPath": ".showcase/report.json",
   "outputPath": ".showcase/layout-summary.md",
-  "posterPath": ".showcase/layout-poster.html"
+  "posterPath": ".showcase/layout-poster.html",
+  "locale": "zh-CN"
 }
 ```
 
-Only `projectPath` is required. The remaining paths are project-relative and optional. The generated Markdown summary and HTML poster remain local to the project.
+Only `projectPath` is required. `locale` is optional and defaults to `zh-CN`; use `en` for English output. The remaining paths are project-relative and optional. The generated Markdown summary and HTML poster remain local to the project.
 
 ## Development
 

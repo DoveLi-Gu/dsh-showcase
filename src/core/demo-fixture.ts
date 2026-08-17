@@ -5,7 +5,7 @@ const fixture = {
   generatedAt: "2026-08-16T14:30:00.000Z",
   task: {
     id: "task-frontend-redesign",
-    goal: "Add verifiable delivery evidence for the dashboard redesign.",
+    goal: "为仪表盘改版补充可核验的交付证据。",
     status: "completed",
     startedAt: "2026-08-16T14:02:00.000Z",
     completedAt: "2026-08-16T14:30:00.000Z",
@@ -28,7 +28,7 @@ const fixture = {
       durationMs: 4200,
       exitCode: 0,
       status: "passed",
-      output: "7 tests passed\nreport-schema.test.ts 2 passed\nredaction.test.ts 2 passed\ncommand.test.ts 2 passed\ngit.test.ts 1 passed",
+      output: "7 项测试通过\nreport-schema.test.ts 2 项通过\nredaction.test.ts 2 项通过\ncommand.test.ts 2 项通过\ngit.test.ts 1 项通过",
     },
     {
       id: "typecheck",
@@ -37,13 +37,13 @@ const fixture = {
       durationMs: 1850,
       exitCode: 0,
       status: "passed",
-      output: "tsc -b --pretty false\nNo type errors found.",
+      output: "tsc -b --pretty false\n未发现类型错误。",
     },
   ],
   screenshots: [
     {
       id: "desktop-after",
-      label: "Desktop evidence",
+      label: "桌面端界面证据",
       viewport: { name: "desktop", width: 1440, height: 900 },
       url: "http://localhost:5173",
       imagePath: "evidence/desktop-after.png",
@@ -52,7 +52,7 @@ const fixture = {
     },
     {
       id: "tablet-after",
-      label: "Tablet evidence",
+      label: "平板端界面证据",
       viewport: { name: "tablet", width: 834, height: 1112 },
       url: "http://localhost:5173",
       imagePath: "evidence/tablet-after.png",
@@ -61,7 +61,7 @@ const fixture = {
     },
     {
       id: "mobile-after",
-      label: "Mobile evidence",
+      label: "移动端界面证据",
       viewport: { name: "mobile", width: 390, height: 844 },
       url: "http://localhost:5173",
       imagePath: "evidence/mobile-after.png",
@@ -72,7 +72,7 @@ const fixture = {
   redaction: {
     originalLength: 2480,
     redactedLength: 2421,
-    replacements: { token: 1, "windows-path": 2 },
+    replacements: { "令牌": 1, "本机路径": 2 },
     totalReplacements: 3,
   },
 };

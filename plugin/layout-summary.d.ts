@@ -1,4 +1,5 @@
 export type LayoutSummaryResult = {
+  locale: "zh-CN" | "en";
   outputPath: string;
   posterPath: string;
   sections: string[];
@@ -14,4 +15,5 @@ export function generateLayoutSummary(options: {
   reportPath?: string;
   outputPath?: string;
   posterPath?: string;
+  locale?: "zh-CN" | "en";
 }): Promise<LayoutSummaryResult>;
