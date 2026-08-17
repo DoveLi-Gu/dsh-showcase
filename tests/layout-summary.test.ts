@@ -104,8 +104,13 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain('class="whale-school"');
     expect(poster).toContain('class="poster-layout"');
     expect(poster).toContain('class="current-route"');
-    expect(poster).toContain('class="route-evidence"');
-    expect(poster).toContain('class="route-proof"');
+    expect(poster).toContain('class="route-evidence delivery-manifest"');
+    expect(poster).toContain('class="manifest-grid"');
+    expect(poster).toContain('class="manifest-block"');
+    expect(poster).toContain('class="manifest-output"');
+    expect(poster).toContain(".showcase/report.json");
+    expect(poster).toContain(".showcase/layout-summary.en.md");
+    expect(poster).toContain(".showcase/layout-poster.en.html");
     expect(poster).toContain("grid-template-areas:'copy portrait' 'route portrait' 'metrics portrait' 'evidence evidence' 'footer footer'");
     expect(poster).toContain(".copy{grid-area:copy");
     expect(poster).toContain(".current-route{position:relative;grid-area:route");
@@ -114,6 +119,7 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain(".footer{grid-area:footer");
     expect(poster).not.toContain(".copy{position:absolute");
     expect(poster).not.toContain('class="rail"');
+    expect(poster).not.toContain('class="route-proof"');
     expect(poster).not.toContain(".evidence-board{position:absolute");
     expect(poster).not.toContain('class="manifest"');
     expect(poster).not.toContain('class="portrait-wash"');

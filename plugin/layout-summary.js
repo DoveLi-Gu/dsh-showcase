@@ -127,6 +127,13 @@ function redactionLabel(value, locale) {
   if (locale !== "zh-CN") return label;
   return ({ token: "令牌", "windows-path": "本机路径", path: "路径", authorization: "授权信息" })[label] ?? label;
 }
+
+function durationLabel(value) {
+  const milliseconds = Math.max(0, Math.round(Number(value) || 0));
+  if (milliseconds >= 1000) return `${(milliseconds / 1000).toFixed(1)}s`;
+  return `${milliseconds}ms`;
+}
+
 export async function generateLayoutSummary(options = {}) {
   if (!options.projectPath || typeof options.projectPath !== "string") {
     throw new Error("projectPath is required.");
@@ -178,6 +185,17 @@ export async function generateLayoutSummary(options = {}) {
   const posterViewports = [...viewports];
   const projectName = safeText(report.project?.name) || "dsh-showcase";
   const passedTests = tests.filter((test) => test.status === "passed").length;
+  const gitRange = `${safeText(report.git?.baseRef) || text.unknown}..${safeText(report.git?.headRef) || text.unknown}`;
+  const gitFiles = files.slice(0, 5).map((file) => ({
+    path: safeRelativePath(file.path),
+    additions: Number(file.additions) || 0,
+    deletions: Number(file.deletions) || 0,
+  }));
+  const testReceipts = tests.slice(0, 3).map((test) => ({
+    command: safeText(test.command),
+    duration: durationLabel(test.durationMs),
+    exitCode: Number(test.exitCode) || 0,
+  }));
   const changes = files.map((file) => `\`${safeRelativePath(file.path)}\` (${statusLabel(file.status, locale)}, +${Number(file.additions) || 0} / -${Number(file.deletions) || 0})`);
   const receipts = tests.map((test) => `\`${safeText(test.command)}\` (${statusLabel(test.status, locale)}, ${text.exit} ${Number(test.exitCode) || 0})`);
   const redactionItems = Object.entries(redaction.replacements ?? {}).map(([name, count]) => `${redactionLabel(name, locale)}: ${Number(count) || 0}`);
@@ -236,6 +254,13 @@ export async function generateLayoutSummary(options = {}) {
     redactionCount: Number(redaction.totalReplacements) || 0,
     viewports: posterViewports.slice(0, 3),
     evidenceImages,
+    gitRange,
+    gitFileCount: Number(report.git?.summary?.changedFiles) || files.length,
+    gitFiles,
+    testReceipts,
+    reportPath: projectRelativePath(projectPath, reportPath),
+    summaryPath: projectRelativePath(projectPath, outputPath),
+    posterPath: projectRelativePath(projectPath, posterPath),
     locale,
     theme,
   });

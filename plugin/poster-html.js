@@ -27,8 +27,21 @@ function posterText(locale) {
     ready: "可交付",
     route: "交付潮线",
     routeMeta: "从提示到交付的核验轨迹",
-    proof: "真实布局证据",
-    proofMeta: "已采集视口",
+    manifest: "本次交付凭据",
+    manifestMeta: "Git 改动 / 测试回执 / 本地输出",
+    manifestChecked: "项已核验",
+    manifestChanges: "变更潮汐",
+    manifestReceipts: "验证回执",
+    manifestOutput: "本地产物",
+    manifestLocal: "仅在本地生成 / 不会上传",
+    manifestRedactions: "已脱敏",
+    manifestScope: "凭据覆盖",
+    scopeGit: "Git 改动",
+    scopeTests: "测试回执",
+    scopeScreens: "响应式截图",
+    scopePrivacy: "隐私审查",
+    scopeExport: "本地导出",
+    noRecords: "暂无记录",
   } : {
     title: "Layout evidence poster",
     fieldTheme: "Frontier Signal",
@@ -53,8 +66,21 @@ function posterText(locale) {
     ready: "READY",
     route: "Delivery current",
     routeMeta: "VERIFIED FLOW FROM PROMPT TO SHIP",
-    proof: "Layout proof",
-    proofMeta: "CAPTURED VIEWPORTS",
+    manifest: "Delivery ledger",
+    manifestMeta: "GIT CHANGES / TEST RECEIPTS / LOCAL OUTPUT",
+    manifestChecked: "CHECKS VERIFIED",
+    manifestChanges: "Change current",
+    manifestReceipts: "Verification receipts",
+    manifestOutput: "Local artifacts",
+    manifestLocal: "GENERATED LOCALLY / NO UPLOAD",
+    manifestRedactions: "REDACTED",
+    manifestScope: "Evidence coverage",
+    scopeGit: "Git changes",
+    scopeTests: "Test receipts",
+    scopeScreens: "Responsive captures",
+    scopePrivacy: "Privacy review",
+    scopeExport: "Local export",
+    noRecords: "No records",
   };
 }
 
@@ -98,19 +124,24 @@ function currentRouteMarkup(stages, text) {
   ].join("");
 }
 
-function routeEvidenceMarkup(data, text) {
-  const items = Array.isArray(data.evidenceImages) ? data.evidenceImages.slice(0, 3) : [];
-  const proofs = items.length ? items.map((item, index) => [
-    '<figure class="route-proof"><div class="route-proof__frame"><img src="data:', item.mimeType, ';base64,', item.image, '" alt="', escapeHtml(item.label), '"></div>',
-    '<figcaption><b>', String(index + 1).padStart(2, "0"), '</b><span>', escapeHtml(item.label), '</span></figcaption></figure>',
-  ].join("")).join("") : data.viewports.slice(0, 3).map((viewport, index) => [
-    '<figure class="route-proof route-proof--empty"><div class="route-proof__frame"><span>', escapeHtml(viewport), '</span></div>',
-    '<figcaption><b>', String(index + 1).padStart(2, "0"), '</b><span>', escapeHtml(viewport), '</span></figcaption></figure>',
-  ].join("")).join("");
-  const count = items.length || data.viewports.length;
+function deliveryManifestMarkup(data, text) {
+  const emptyItem = '<li class="manifest-empty">' + escapeHtml(text.noRecords) + '</li>';
+  const gitItems = (Array.isArray(data.gitFiles) ? data.gitFiles : []).slice(0, 5).map((file) => [
+    '<li><span>', escapeHtml(file.path), '</span><b>+', Number(file.additions) || 0, ' / -', Number(file.deletions) || 0, '</b></li>',
+  ].join("")).join("") || emptyItem;
+  const receipts = (Array.isArray(data.testReceipts) ? data.testReceipts : []).slice(0, 3).map((receipt) => [
+    '<li><span>', escapeHtml(receipt.command), '</span><b>✓ ', escapeHtml(receipt.duration), ' · exit ', Number(receipt.exitCode) || 0, '</b></li>',
+  ].join("")).join("") || emptyItem;
+  const outputLine = [data.reportPath, data.summaryPath, data.posterPath].filter(Boolean).join(" → ");
+  const checked = Math.max(Number(data.gitFileCount) || 0, (data.gitFiles ?? []).length, (data.testReceipts ?? []).length);
+  const scope = [text.scopeGit, text.scopeTests, text.scopeScreens, text.scopePrivacy, text.scopeExport].map((item) => '<span>' + escapeHtml(item) + '</span>').join("");
   return [
-    '<section class="route-evidence" aria-label="', escapeHtml(text.proof), '"><header><div><small>', escapeHtml(text.proofMeta), '</small><b>', escapeHtml(text.proof), '</b></div>',
-    '<span>', String(count).padStart(2, "0"), ' ', escapeHtml(text.captured), '</span></header><div class="route-proofs">', proofs, '</div></section>',
+    '<section class="route-evidence delivery-manifest" aria-label="', escapeHtml(text.manifest), '"><header><div><small>', escapeHtml(text.manifestMeta), '</small><b>', escapeHtml(text.manifest), '</b></div>',
+    '<span>', String(checked).padStart(2, "0"), ' ', escapeHtml(text.manifestChecked), '</span></header>',
+    '<div class="manifest-grid"><article class="manifest-block"><div class="manifest-block__head"><b>01</b><span>', escapeHtml(text.manifestChanges), '</span><small>', escapeHtml(data.gitRange), '</small></div><ul>', gitItems, '</ul></article>',
+    '<article class="manifest-block"><div class="manifest-block__head"><b>02</b><span>', escapeHtml(text.manifestReceipts), '</span><small>', String(data.passedTests || 0), '/', String(data.testCount || 0), ' ', escapeHtml(text.tests), '</small></div><ul>', receipts, '</ul></article></div>',
+    '<div class="manifest-scope"><small>', escapeHtml(text.manifestScope), '</small><div>', scope, '</div></div>',
+    '<footer class="manifest-output"><div><b>03</b><span>', escapeHtml(text.manifestOutput), '</span><strong>', escapeHtml(outputLine || text.noRecords), '</strong></div><small>', Number(data.redactionCount) || 0, ' ', escapeHtml(text.manifestRedactions), ' / ', escapeHtml(text.manifestLocal), '</small></footer></section>',
   ].join("");
 }
 
@@ -194,6 +225,9 @@ function createFishPoster(data) {
     ".current-route{position:relative;grid-area:route;min-width:0;min-height:clamp(4.35rem,9vh,6.25rem);overflow:hidden;padding-top:clamp(.6rem,1vh,.9rem)}.current-route header{position:relative;z-index:2;display:flex;align-items:baseline;justify-content:space-between;gap:1rem}.current-route header b{color:#0757cf;font-size:clamp(1rem,1.15vw,1.25rem)}.current-route header small{color:#2865ad;font:800 clamp(.8125rem,.85vw,.9375rem) 'Cascadia Mono',monospace}.route-swell{position:absolute;z-index:0;left:0;right:0;bottom:-4%;width:100%;height:78%;overflow:visible}.route-swell path{fill:none;stroke:#48bfe9;stroke-width:12;stroke-linecap:round;stroke-dasharray:30 14;animation:route-swell 9s linear infinite}.route-nodes{position:relative;z-index:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:end;gap:clamp(.3rem,.6vw,.7rem);padding-top:clamp(.8rem,1.8vh,1.3rem)}.route-nodes span{min-width:0;display:grid;justify-items:start;gap:.1rem;color:#10245c}.route-nodes span:nth-child(2),.route-nodes span:nth-child(4){transform:translateY(clamp(.2rem,.65vh,.5rem))}.route-nodes b{display:grid;place-items:center;width:clamp(1.625rem,2vw,2rem);aspect-ratio:1;color:#10245c;background:#fff;border:.15rem solid #0757cf;border-radius:50%;font:900 clamp(.75rem,.8vw,.875rem) 'Cascadia Mono',monospace}.route-nodes span:last-child b{background:#ffd24a;border-color:#ffd24a}.route-nodes em{max-width:100%;overflow-wrap:anywhere;color:#0757cf;font-size:clamp(.9375rem,1.02vw,1.125rem);font-style:normal;font-weight:900}",
     ".metrics{grid-area:metrics;display:flex;flex-wrap:wrap;gap:clamp(.45rem,.7vw,.75rem);align-items:stretch}.metric{min-width:clamp(7.25rem,10.5vw,10rem);flex:1 1 0;display:flex;align-items:baseline;gap:.65rem;padding:clamp(.58rem,.8vw,.82rem) clamp(.72rem,1vw,1rem);background:rgba(255,255,255,.76);border-bottom:.2rem solid #0757cf}.metric:nth-child(2){background:rgba(228,240,255,.92)}.metric:nth-child(3){background:rgba(255,210,74,.92);border-color:#ffd24a}.metric b{color:#10245c;font:900 clamp(1.625rem,2vw,2.25rem) 'Cascadia Mono',monospace;font-variant-numeric:tabular-nums}.metric small{color:#1b3470;font-size:clamp(.8125rem,.9vw,.9375rem);font-weight:800}.metric:nth-child(3) small{color:#5f5200}",
     ".route-evidence{position:relative;grid-area:evidence;min-width:0;min-height:0;overflow:hidden;padding:clamp(.85rem,1.2vw,1.25rem);color:#fff;background:#0757cf;border:.15rem solid #064caf}.route-evidence:after{content:'';position:absolute;z-index:0;left:-12%;right:-12%;bottom:-26%;height:76%;background:rgba(72,191,233,.22);clip-path:ellipse(55% 42% at 50% 48%);animation:evidence-current 13s cubic-bezier(.22,1,.36,1) infinite alternate}.route-evidence header{position:relative;z-index:2;display:flex;align-items:end;justify-content:space-between;gap:1rem;padding-bottom:clamp(.55rem,.8vh,.75rem);border-bottom:1px solid #65b8ef}.route-evidence header div{display:grid;gap:.2rem}.route-evidence header small{color:#d8edff;font:800 clamp(.8125rem,.85vw,.9375rem) 'Cascadia Mono',monospace}.route-evidence header b{font-size:clamp(1.05rem,1.25vw,1.4rem)}.route-evidence header>span{color:#ffd24a;font:800 clamp(.8125rem,.85vw,.9375rem) 'Cascadia Mono',monospace;white-space:nowrap}.route-proofs{position:relative;z-index:1;min-height:0;height:calc(100% - 3.7rem);display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,.9fr) minmax(0,.68fr);gap:clamp(.5rem,.75vw,.85rem);padding-top:clamp(.7rem,1vh,1rem)}.route-proof{min-width:0;min-height:0;margin:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:.45rem}.route-proof__frame{min-height:0;overflow:hidden;background:#dcecff;border:1px solid rgba(255,255,255,.7)}.route-proof__frame img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top;filter:saturate(.95) contrast(1.03)}.route-proof:nth-child(2) .route-proof__frame{transform:translateY(clamp(.25rem,1.4vh,.75rem))}.route-proof:nth-child(3) .route-proof__frame{transform:translateY(clamp(.55rem,2.6vh,1.4rem))}.route-proof--empty .route-proof__frame{display:grid;place-items:center;color:#0757cf;font:800 clamp(.8125rem,.85vw,.9375rem) 'Cascadia Mono',monospace}.route-proof figcaption{display:flex;justify-content:space-between;gap:.55rem;color:#d8edff;font:800 clamp(.8125rem,.85vw,.9375rem) 'Cascadia Mono',monospace}.route-proof figcaption b{color:#ffd24a}.route-proof figcaption span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+    ".current-route{isolation:isolate}.route-swell{z-index:0;pointer-events:none}.route-nodes{z-index:2}.route-nodes span{position:relative;z-index:2}.route-nodes b{position:relative;z-index:3;box-shadow:0 0 0 .16rem #e8f5ff}.route-nodes em{position:relative;z-index:3;display:inline-block;margin-top:.08rem;margin-left:-.16rem;padding:.1rem .2rem .12rem;background:#e8f5ff;box-shadow:.2rem 0 0 #e8f5ff;color:#0757cf;line-height:1.05}",
+    ".delivery-manifest{display:grid;grid-template-rows:auto minmax(0,1fr) auto}.delivery-manifest .manifest-grid{position:relative;z-index:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);padding-top:clamp(.55rem,.9vh,.85rem)}.manifest-block{min-width:0;display:grid;align-content:start;gap:clamp(.45rem,.65vw,.7rem);padding:0 clamp(.7rem,1.1vw,1.15rem)}.manifest-block:first-child{padding-left:0}.manifest-block+.manifest-block{border-left:1px solid rgba(216,237,255,.58)}.manifest-block__head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.45rem}.manifest-block__head b,.manifest-output b{display:grid;place-items:center;width:clamp(1.55rem,1.85vw,1.9rem);aspect-ratio:1;color:#10245c;background:#ffd24a;border-radius:50%;font:900 clamp(.75rem,.8vw,.875rem) 'Cascadia Mono',monospace}.manifest-block__head span{min-width:0;color:#fff;font-size:clamp(.9375rem,1.06vw,1.125rem);font-weight:900}.manifest-block__head small{min-width:0;overflow:hidden;color:#d8edff;font:800 clamp(.75rem,.82vw,.875rem) 'Cascadia Mono',monospace;text-overflow:ellipsis;white-space:nowrap}.manifest-block ul{display:grid;gap:.38rem;margin:0;padding:0;list-style:none}.manifest-block li{min-width:0;display:flex;align-items:baseline;justify-content:space-between;gap:.65rem;padding-bottom:.35rem;border-bottom:1px solid rgba(216,237,255,.24);color:#d8edff;font:800 clamp(.75rem,.82vw,.875rem) 'Cascadia Mono',monospace}.manifest-block li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.manifest-block li b{flex:0 0 auto;color:#ffd24a;font-weight:900;white-space:nowrap}.manifest-block .manifest-empty{justify-content:flex-start;color:#d8edff}.manifest-output{position:relative;z-index:1;display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-top:clamp(.45rem,.75vh,.7rem);padding-top:clamp(.55rem,.8vh,.75rem);border-top:1px solid #65b8ef}.manifest-output div{min-width:0;display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:.5rem}.manifest-output span{color:#d8edff;font-size:clamp(.8125rem,.9vw,.9375rem);font-weight:900;white-space:nowrap}.manifest-output strong{min-width:0;overflow:hidden;color:#fff;font:800 clamp(.75rem,.82vw,.875rem) 'Cascadia Mono',monospace;text-overflow:ellipsis;white-space:nowrap}.manifest-output small{flex:0 0 auto;color:#ffd24a;font:800 clamp(.75rem,.82vw,.875rem) 'Cascadia Mono',monospace;white-space:nowrap}@media(max-width:56.249rem){.delivery-manifest{grid-template-rows:auto auto auto}.delivery-manifest .manifest-grid{grid-template-columns:1fr;gap:0;padding-top:.8rem}.manifest-block{gap:.6rem;padding:.85rem 0}.manifest-block:first-child{padding-top:0}.manifest-block+.manifest-block{border-top:1px solid rgba(216,237,255,.58);border-left:0}.manifest-block__head small{font-size:.8125rem}.manifest-block li{font-size:.8125rem}.manifest-output{align-items:flex-start;flex-direction:column;gap:.55rem}.manifest-output div{width:100%;grid-template-columns:auto auto minmax(0,1fr)}.manifest-output strong{white-space:normal;overflow-wrap:anywhere}.manifest-output small{font-size:.8125rem;white-space:normal}}",
+    ".delivery-manifest{display:flex;flex-direction:column}.delivery-manifest .manifest-grid{flex:0 0 auto}.manifest-scope{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:auto;padding-top:clamp(.55rem,.9vh,.8rem)}.manifest-scope>small{flex:0 0 auto;color:#65b8ef;font:800 clamp(.6875rem,.75vw,.8125rem) 'Cascadia Mono',monospace}.manifest-scope>div{min-width:0;display:flex;flex:1;align-items:center;justify-content:space-between;gap:.55rem}.manifest-scope span{position:relative;min-width:0;padding-left:.85rem;color:#d8edff;font:800 clamp(.6875rem,.75vw,.8125rem) 'Cascadia Mono',monospace;white-space:nowrap}.manifest-scope span:before{content:'';position:absolute;top:50%;left:0;width:.38rem;aspect-ratio:1;background:#48bfe9;border-radius:50%;transform:translateY(-50%)}.manifest-scope span:nth-child(3):before{background:#ffd24a}.manifest-scope span:not(:last-child):after{content:'';position:absolute;top:50%;left:calc(100% + .15rem);width:.4rem;border-top:1px solid rgba(216,237,255,.48)}@media(max-width:56.249rem){.manifest-scope{align-items:flex-start;flex-direction:column;gap:.45rem;margin-top:.85rem}.manifest-scope>div{flex-wrap:wrap;justify-content:flex-start;row-gap:.5rem}.manifest-scope span{font-size:.75rem}.manifest-scope span:not(:last-child):after{display:none}}",
     ".footer{grid-area:footer;align-self:end;color:#0757cf;font:800 clamp(.8125rem,.85vw,.9375rem) 'Cascadia Mono',monospace;letter-spacing:0}",
     "@keyframes current-drift{to{transform:translate3d(7vw,1.2vh,0) scale(1.03)}}@keyframes ripple-spin{to{transform:rotate(360deg)}}@keyframes portrait-tide{to{transform:translate3d(1.2vw,-.55vh,0) scale(1.015);opacity:.76}}@keyframes portrait-current{to{transform:translate3d(7%,0,0)}}@keyframes whale-drift{to{translate:7vw -2vh;rotate:4deg}}@keyframes light-sweep{from{transform:translate3d(-6vw,0,0) rotate(16deg)}to{transform:translate3d(10vw,0,0) rotate(16deg)}}@keyframes bubble-rise{0%{opacity:0;translate:0 0;scale:.65}12%{opacity:.8}78%{opacity:.38}100%{opacity:0;translate:2vw -108vh;scale:1.35}}@keyframes sparkle{50%{transform:scale(1.35) rotate(45deg);opacity:.55}}@keyframes route-swell{to{stroke-dashoffset:-176}}@keyframes evidence-current{to{transform:translate3d(12%,-4%,0) scale(1.06)}}@keyframes evidence-scan{to{transform:translateX(78vw) skewX(-10deg)}}@media(max-height:48rem) and (min-width:56.25rem){.poster-layout{padding-block:1.5rem .8rem;grid-template-rows:auto auto auto minmax(10rem,1fr) auto;row-gap:.42rem}.title{font-size:clamp(3.25rem,4.9vw,4.35rem)}.task{font-size:clamp(1rem,1.25vw,1.1875rem);line-height:1.3}.verified{margin-top:.62rem;padding:.38rem .65rem}.portrait-field{min-height:14rem}.current-route{min-height:3.7rem}.route-proofs{height:calc(100% - 3.3rem)}.metric{padding:.45rem .7rem}.route-evidence{padding:.7rem .85rem}}@media(max-width:56.249rem){.poster{height:auto;min-height:0}.poster-layout{width:auto;height:auto;margin:0;padding:4.75rem 1rem 1.25rem;grid-template-columns:1fr;grid-template-areas:'copy' 'portrait' 'route' 'metrics' 'evidence' 'footer';grid-template-rows:auto 15rem auto auto auto auto;row-gap:.85rem}.copy{max-width:100%}.title{font-size:clamp(3rem,12vw,4.25rem)}.task{font-size:1.0625rem}.portrait-field{min-height:0;height:15rem}.portrait-field:before{inset:4% 0 0 10%}.portrait-field .art{inset:0;width:100%;height:100%;object-position:50% 0%}.portrait-field:after{bottom:14%}.current-route{min-height:12.25rem;padding:.2rem 0 0}.current-route header{align-items:flex-start;flex-direction:column;gap:.2rem}.route-swell{display:none}.route-nodes{min-height:0;grid-template-columns:1fr;gap:.25rem;padding:.65rem 0 .1rem 1.1rem;border-left:.18rem solid #48bfe9}.route-nodes span,.route-nodes span:nth-child(2),.route-nodes span:nth-child(4){display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:.65rem;transform:none}.route-nodes em{font-size:1rem}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}.metric{min-width:0;display:grid;align-content:center;gap:.15rem;padding:.55rem .6rem}.metric b{font-size:1.6rem}.metric small{font-size:.8125rem;line-height:1.15}.route-evidence{min-height:0;padding:.85rem}.route-evidence header{align-items:flex-start;flex-direction:column;gap:.3rem}.route-proofs{height:auto;display:grid;grid-template-columns:1fr;gap:.8rem;padding-top:.8rem}.route-proof{min-height:0}.route-proof__frame{aspect-ratio:16/10}.route-proof:nth-child(2) .route-proof__frame{aspect-ratio:4/3}.route-proof:nth-child(3) .route-proof__frame{aspect-ratio:10/11}.route-proof:nth-child(2) .route-proof__frame,.route-proof:nth-child(3) .route-proof__frame{transform:none}.footer{padding-top:.15rem}.whale-one{right:13%;top:37%;width:17vw}.whale-two{right:4%;top:64%;width:13vw}.whale-three{display:none}}@media(min-width:35rem) and (max-width:56.249rem){.poster-layout{padding-inline:2rem;grid-template-rows:auto 22rem auto auto auto auto}.portrait-field{height:22rem}.current-route{min-height:12rem}.route-proofs{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}.route-proof:first-child{grid-column:1/-1}.route-proof:first-child .route-proof__frame{aspect-ratio:16/8}.route-proof:nth-child(2) .route-proof__frame{aspect-ratio:4/3}.route-proof:nth-child(3) .route-proof__frame{aspect-ratio:4/5}}@media(prefers-reduced-motion:reduce){.loader{animation-duration:.01ms}.current,.ripple,.light,.whale,.spark,.bubbles i,.portrait-field:after,.portrait-field .art,.route-evidence:after{animation:current-breathe 7s ease-in-out infinite alternate}.route-swell path{animation:none;stroke-dashoffset:0}@keyframes current-breathe{to{opacity:.72}}}",
   ].join("");
@@ -204,7 +238,7 @@ function createFishPoster(data) {
     '<aside class="portrait-field" aria-hidden="true"><img class="art" src="data:image/webp;base64,', data.image, '" alt=""></aside>',
     currentRouteMarkup(data.stages, text),
     '<section class="metrics"><div class="metric"><b>', data.fileCount, '</b><small>', escapeHtml(text.files), '</small></div><div class="metric"><b>', data.passedTests, '/', data.testCount, '</b><small>', escapeHtml(text.tests), '</small></div><div class="metric"><b>', data.redactionCount, '</b><small>', escapeHtml(text.redactions), '</small></div></section>',
-    routeEvidenceMarkup(data, text), '<footer class="footer mono">', escapeHtml(text.footer), '</footer></div></article>', evidencePageMarkup(data, text), '</body></html>',
+    deliveryManifestMarkup(data, text), '<footer class="footer mono">', escapeHtml(text.footer), '</footer></div></article>', evidencePageMarkup(data, text), '</body></html>',
   ].join("");
 }
 
