@@ -87,6 +87,9 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("@keyframes evidence-scan");
     expect(poster).toContain("@keyframes light-sweep");
     expect(poster).toContain("@keyframes bubble-rise");
+    expect(poster).toContain("@media(min-width:56.25rem)");
+    expect(poster).toContain("font-size:clamp(4.3125rem,5.4vw,5.5rem)");
+    expect(poster).toContain("font-size:clamp(.625rem,.75vw,.75rem)");
     expect(poster).toContain('class="bubbles"');
     expect(poster).toContain('class="loader"');
     expect(poster).toContain('class="portrait-wash"');

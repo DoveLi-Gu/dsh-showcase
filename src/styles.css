@@ -490,6 +490,16 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @keyframes fish-light-sweep { from { transform: translate3d(-6vw, 0, 0) rotate(16deg); } to { transform: translate3d(10vw, 0, 0) rotate(16deg); } }
 @keyframes fish-bubble-rise { 0% { opacity: 0; transform: translate3d(0, 0, 0) scale(.65); } 12% { opacity: .8; } 78% { opacity: .38; } 100% { opacity: 0; transform: translate3d(2vw, -760px, 0) scale(1.35); } }
 
+@media (min-width: 1101px) {
+  .fish-poster h2 { font-family: "Bahnschrift Condensed", "Arial Narrow", "Microsoft YaHei UI", sans-serif; }
+  .fish-poster__kicker, .fish-poster__verified { font-size: 1rem; }
+  .fish-poster__pop { font-size: 1.125rem; }
+  .fish-poster__rail span { font-size: .9375rem; }
+  .fish-poster__rail small { font-size: .6875rem; }
+  .fish-poster__metrics span { font-size: .8125rem; }
+  .fish-poster__footer { font-size: .75rem; }
+}
+
 @media (max-width: 1100px) {
   .poster-summary { min-height: 560px; }
   .field-poster__copy { width: 51%; }
