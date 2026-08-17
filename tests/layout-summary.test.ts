@@ -100,6 +100,8 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("@keyframes route-swell");
     expect(poster).toContain('class="bubbles"');
     expect(poster).toContain('class="loader"');
+    expect(poster).toContain('class="load-progress"');
+    expect(poster).toContain("node.remove()},2400)");
     expect(poster).toContain('class="portrait-field"');
     expect(poster).toContain('class="whale-school"');
     expect(poster).toContain('class="poster-layout"');
