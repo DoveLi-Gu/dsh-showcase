@@ -431,7 +431,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .field-poster__metrics { right: 5.2%; bottom: 18%; width: 45%; }
   .field-poster__rail span, .fish-poster__rail span { padding-left: 9px; padding-right: 8px; }
   .fish-poster { min-height: 720px; }
-  .fish-poster__portrait { top: 30%; right: -7%; width: 68%; height: 76%; opacity: .16; }
+  .fish-poster__portrait { top: 34%; right: -7%; width: 68%; height: 76%; opacity: .16; }
   .fish-poster__copy { top: 7%; width: 88%; }
   .fish-poster h2 { font-size: 65px; }
   .fish-poster__goal { max-width: 520px; font-size: 20px; }
@@ -473,7 +473,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .fish-poster h2 { margin: 17px 0 12px; font-size: 57px; }
   .fish-poster__goal { font-size: 17px; }
   .fish-poster__verified { margin-top: 15px; border-width: 3px; box-shadow: 6px 6px 0 #ffd24a; }
-  .fish-poster__portrait { top: 34%; right: -22%; width: 104%; height: 70%; opacity: .13; }
+  .fish-poster__portrait { top: 40%; right: -22%; width: 104%; height: 70%; opacity: .13; }
   .fish-whale--one { top: 45%; right: 14%; width: 20%; }
   .fish-whale--two { top: 58%; right: 2%; width: 13%; }
   .fish-whale--three { right: 25%; bottom: 8%; width: 24%; }

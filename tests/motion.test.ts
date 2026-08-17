@@ -29,6 +29,13 @@ describe("persistent theme motion", () => {
     expect(app).not.toContain('className="theme-switch"');
   });
 
+  it("keeps the decorative portrait safely below the tablet and mobile poster edge", async () => {
+    const css = await readFile(stylesUrl, "utf8");
+
+    expect(css).toContain(".fish-poster__portrait { top: 34%; right: -7%; width: 68%; height: 76%; opacity: .16; }");
+    expect(css).toContain(".fish-poster__portrait { top: 40%; right: -22%; width: 104%; height: 70%; opacity: .13; }");
+  });
+
   it("renders report screenshot paths instead of placeholder interface blocks", async () => {
     const [app, css] = await Promise.all([readFile(appUrl, "utf8"), readFile(stylesUrl, "utf8")]);
 
