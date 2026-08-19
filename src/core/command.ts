@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import type { TestReceipt } from "./report-schema";
 
 export type RunCommandOptions = {
@@ -10,6 +10,29 @@ export type RunCommandOptions = {
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const DEFAULT_MAX_OUTPUT_LENGTH = 20_000;
+const MAX_TIMER_MS = 2_147_483_647;
+
+function terminateProcessTree(child: ChildProcess) {
+  if (!child.pid) {
+    child.kill();
+    return;
+  }
+
+  if (process.platform === "win32") {
+    const killer = spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], {
+      stdio: "ignore",
+      windowsHide: true,
+    });
+    killer.once("error", () => child.kill());
+    return;
+  }
+
+  try {
+    process.kill(-child.pid, "SIGKILL");
+  } catch {
+    child.kill();
+  }
+}
 
 export async function runCommand(command: string, options: RunCommandOptions): Promise<TestReceipt> {
   if (!command.trim()) throw new Error("A test command is required.");
@@ -18,9 +41,20 @@ export async function runCommand(command: string, options: RunCommandOptions): P
   const startedMs = Date.now();
   const maxOutputLength = options.maxOutputLength ?? DEFAULT_MAX_OUTPUT_LENGTH;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  if (!Number.isInteger(timeoutMs) || timeoutMs <= 0 || timeoutMs > MAX_TIMER_MS) {
+    throw new Error(`timeoutMs must be a positive integer no greater than ${MAX_TIMER_MS}.`);
+  }
+  if (!Number.isInteger(maxOutputLength) || maxOutputLength < 0) {
+    throw new Error("maxOutputLength must be a non-negative integer.");
+  }
 
   return new Promise((resolve, reject) => {
-    const child = spawn(command, [], { cwd: options.cwd, shell: true, windowsHide: true });
+    const child = spawn(command, [], {
+      cwd: options.cwd,
+      detached: process.platform !== "win32",
+      shell: true,
+      windowsHide: true,
+    });
     let output = "";
     let timedOut = false;
 
@@ -33,7 +67,7 @@ export async function runCommand(command: string, options: RunCommandOptions): P
 
     const timer = setTimeout(() => {
       timedOut = true;
-      child.kill();
+      terminateProcessTree(child);
     }, timeoutMs);
 
     child.once("error", (error) => {
@@ -42,7 +76,14 @@ export async function runCommand(command: string, options: RunCommandOptions): P
     });
     child.once("close", (code) => {
       clearTimeout(timer);
-      if (timedOut) output = `${output}\nCommand timed out after ${timeoutMs}ms.`.slice(0, maxOutputLength);
+      if (timedOut) {
+        const timeoutMessage = `Command timed out after ${timeoutMs}ms.`;
+        const separator = output ? "\n" : "";
+        const retainedLength = Math.max(0, maxOutputLength - separator.length - timeoutMessage.length);
+        output = maxOutputLength === 0
+          ? ""
+          : `${output.slice(0, retainedLength)}${separator}${timeoutMessage}`.slice(-maxOutputLength);
+      }
       const exitCode = timedOut ? 1 : (code ?? 1);
       resolve({
         id: options.id ?? `command-${startedMs}`,

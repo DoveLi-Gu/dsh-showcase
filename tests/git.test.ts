@@ -18,6 +18,20 @@ afterEach(async () => {
 });
 
 describe("collectGitChange", () => {
+  it("returns explicit empty evidence outside a Git repository", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "dsh-showcase-no-git-"));
+    temporaryDirectories.push(cwd);
+
+    const change = await collectGitChange(cwd);
+
+    expect(change).toEqual({
+      baseRef: "NO_GIT",
+      headRef: "NO_GIT",
+      files: [],
+      summary: { changedFiles: 0, additions: 0, deletions: 0 },
+    });
+  });
+
   it("collects modified and newly added files from a repository", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "dsh-showcase-git-"));
     temporaryDirectories.push(cwd);

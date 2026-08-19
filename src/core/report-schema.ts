@@ -41,10 +41,11 @@ export const testReceiptSchema = z.object({
 export const screenshotEvidenceSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
+  theme: z.enum(["frontier-signal", "blue-big-fish", "field", "fish"]).optional(),
   viewport: z.object({
     name: z.enum(["desktop", "tablet", "mobile"]),
-    width: z.number().int().positive(),
-    height: z.number().int().positive(),
+    width: z.number().int().positive().max(16384),
+    height: z.number().int().positive().max(16384),
   }),
   url: z.string().url(),
   imagePath: z.string().min(1),
@@ -62,6 +63,7 @@ export const redactionSummarySchema = z.object({
 export const reportSchema = z.object({
   version: z.literal(1),
   generatedAt: z.string().datetime(),
+  project: z.object({ name: z.string().min(1) }).optional(),
   task: taskSchema,
   git: gitChangeSchema,
   tests: z.array(testReceiptSchema),

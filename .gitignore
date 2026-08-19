@@ -6,3 +6,9 @@ tests/.tmp/
 output/
 .vite-preview*.log
 docs/assets/*-v2.png
+public/evidence/field-*-after.png
+public/evidence/dijiang-*-after.png
+plugin/assets/dijiang-orbital-graphic.png
+tmp/
+.impeccable/
+.codex-tmp/

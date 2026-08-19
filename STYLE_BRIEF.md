@@ -6,9 +6,9 @@ Build a working, local-first showcase report generator for coding-agent work. Th
 
 The same report data and functionality must work in two switchable themes. Theme changes must not alter content hierarchy, interaction behavior, accessibility, or layout stability.
 
-## Theme A: Frontier Industrial
+## Theme A: Dijiang
 
-Inspired by contemporary industrial science-fiction and tactical operations interfaces, without copying any game logo, character, illustration, icon, proprietary layout, or named faction.
+Inspired by a cold industrial science-fiction delivery relay, without copying any game logo, character, illustration, icon, proprietary layout, or named faction.
 
 - Tone: remote industrial facility, field engineering, tactical telemetry, precise machinery.
 - Palette: carbon black, cold white, mineral gray, safety yellow, signal orange, restrained cyan.

@@ -3,9 +3,10 @@ import {
   Check, ChevronDown, Code2, Download, FileCode2, FileJson2, GripVertical, Image, LockKeyhole,
   TerminalSquare, Timer, Upload, X,
 } from "lucide-react";
+import dijiangThemeHtml from "./dijiang-theme.html?raw";
 import { demoReport } from "./core/browser";
 
-type Theme = "field" | "fish";
+type Theme = "dijiang" | "fish";
 
 const diffs: Record<string, string[]> = {
   "src/App.tsx": ["@@ -1,8 +1,42 @@", "-export default function App() {", "-  return <main>Ready</main>;", "+export default function App() {", "+  return <ReportWorkspace report={demoReport} />;", "+}", "+", "+function ReportWorkspace() {", "+  return <main className=\"report-shell\">...</main>;", "+}"],
@@ -21,7 +22,7 @@ const showcaseStages = [
 ];
 
 function selectedTheme(): Theme {
-  return new URLSearchParams(window.location.search).get("theme") === "fish" ? "fish" : "field";
+  return new URLSearchParams(window.location.search).get("theme") === "fish" ? "fish" : "dijiang";
 }
 
 function evidenceUrl(imagePath: string) {
@@ -59,9 +60,8 @@ function createCoverHtml(theme: Theme, dataUrl: string, task: string, files: num
   const shared = `*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden}body{margin:0;font-family:"Microsoft YaHei UI","Noto Sans SC",sans-serif}.poster{position:relative;width:1600px;height:900px;overflow:hidden}.mono{font-family:"Cascadia Mono","Microsoft YaHei UI",monospace}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}}`;
   const whaleSvg = '<path class="wb" d="M15 30C23 17 42 10 61 12c16 1 28 8 34 18-5 11-18 18-34 19-19 1-36-6-46-19Z"/><path class="wb" d="M91 28c8-8 17-11 25-7-1 6-5 10-12 13 7 1 11 5 12 11-10 2-18-1-25-8Z"/><path class="wb" d="M49 41c8 1 14 6 18 12-9 2-16-1-21-7Z"/><circle class="we" cx="35" cy="27" r="1.8"/><path class="ws" d="M54 10c-1-5 2-8 6-10m-5 10c4-4 8-4 11-2"/>';
 
-  if (theme === "field") {
-    return `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>dsh-showcase 边境信号海报</title><style>${shared}
-body{background:#e9ece7;color:#101310}.poster{background:#eff1ec}.photo{position:absolute;inset:-5% 26% -5% 38%;background:url("${dataUrl}") center 48%/cover no-repeat;filter:grayscale(1) contrast(1.2)}.photo:after{content:"";position:absolute;inset:0;background:rgba(239,241,236,.14)}.slash{position:absolute;inset:-14% 25% -14% 33%;background:#d7ef2f;clip-path:polygon(58% 0,100% 0,66% 100%,0 100%);mix-blend-mode:multiply;opacity:.92}.mast{position:absolute;left:72px;right:72px;top:52px;display:flex;justify-content:space-between;border-top:8px solid #111;padding-top:13px;font:800 17px monospace}.ghost{position:absolute;right:-22px;top:78px;color:#111;font:900 248px/.75 Impact,"Microsoft YaHei UI",sans-serif;writing-mode:vertical-rl;opacity:.08}.copy{position:absolute;z-index:3;left:72px;top:164px;width:665px}.kicker{display:inline-block;background:#111;color:#fff;padding:8px 13px;font:800 16px monospace}.title{margin:23px 0 13px;font:900 80px/.88 "Arial Narrow","Microsoft YaHei UI",sans-serif;letter-spacing:0;max-width:650px}.task{margin:0;width:590px;font-size:28px;line-height:1.4;font-weight:700}.verified{display:inline-flex;margin-top:25px;background:#d7ef2f;padding:12px 17px;font:900 18px monospace}.rail{position:absolute;z-index:4;left:72px;right:72px;bottom:68px;display:grid;grid-template-columns:repeat(5,1fr);background:#111;color:#fff}.rail span{position:relative;padding:17px 18px 18px;border-right:1px solid #5b625d;font-weight:900}.rail span:last-child{background:#d7ef2f;color:#111;border:0}.rail b{display:block;margin-bottom:6px;color:#aeb7b0;font:12px monospace}.rail span:last-child b{color:#536000}.metrics{position:absolute;z-index:5;right:77px;bottom:169px;width:360px;background:#111;color:#fff;padding:22px 26px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.metrics b{display:block;font:900 34px monospace}.metrics small{font:700 13px "Microsoft YaHei UI"}.stamp{position:absolute;z-index:5;right:73px;top:142px;border:6px solid #ed4035;color:#ed4035;padding:12px 16px;transform:rotate(-4deg);font:900 24px/1 "Microsoft YaHei UI"}.footer{position:absolute;left:72px;bottom:31px;font:800 14px monospace}.scan{position:absolute;z-index:2;inset:0 auto 0 -18%;width:14%;background:rgba(215,239,47,.28);transform:skewX(-16deg);animation:scan 8s linear infinite}@keyframes scan{to{transform:translateX(1900px) skewX(-16deg)}}</style></head><body><article class="poster"><div class="photo"></div><div class="slash"></div><div class="scan"></div><div class="mast"><span>DSH / 交付证据</span><span>报告 0017 / 本地生成</span></div><div class="ghost">交付</div><div class="copy"><div class="kicker">边境信号 / 任务完成</div><h1 class="title">dsh-showcase</h1><p class="task">${safeTask}</p><div class="verified">✓ 已验证</div></div><div class="stamp">可交付</div><div class="metrics"><div><b>${files}</b><small>改动文件</small></div><div><b>${tests}</b><small>通过测试</small></div><div><b>${redactions}</b><small>已脱敏</small></div></div><div class="rail">${stages}</div><div class="footer mono">${safeViewports} / 仅在本地生成</div></article></body></html>`;
+  if (theme === "dijiang") {
+    return dijiangThemeHtml;
   }
 
   return `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>dsh-showcase 蓝色大肥鱼海报</title><style>${shared}
@@ -92,27 +92,6 @@ function OceanAtmosphere() {
     <div className="ocean-current-line ocean-current-line--two" />
     <div className="ocean-bubbles">{Array.from({ length: 14 }, (_, index) => <i key={index} />)}</div>
   </div>;
-}
-
-function FieldPoster({ passedTests }: PosterProps) {
-  const report = demoReport;
-  return <section className="poster-summary field-poster" aria-labelledby="poster-title">
-    <img className="field-poster__photo" src="/frontier-industrial.webp" alt="" />
-    <div className="field-poster__slash" aria-hidden="true" />
-    <div className="field-poster__scan" aria-hidden="true" />
-    <div className="field-poster__mast"><span>DSH / 交付证据</span><span>报告 0017 / 本地生成</span></div>
-    <span className="field-poster__ghost" aria-hidden="true">交付</span>
-    <div className="field-poster__copy">
-      <p className="field-poster__kicker">边境信号 / 任务完成</p>
-      <h2 id="poster-title">dsh-showcase</h2>
-      <p className="field-poster__goal">{report.task.goal}</p>
-      <span className="field-poster__verified"><Check size={18} /> 已验证</span>
-    </div>
-    <span className="field-poster__stamp">可交付</span>
-    <div className="field-poster__metrics"><div><strong>{report.git.summary.changedFiles}</strong><span>改动文件</span></div><div><strong>{passedTests}/{report.tests.length}</strong><span>通过测试</span></div><div><strong>{report.redaction.totalReplacements}</strong><span>已脱敏</span></div></div>
-    <div className="field-poster__rail" aria-label="交付阶段">{showcaseStages.map((stage, index) => <span className={index === showcaseStages.length - 1 ? "current" : "complete"} key={stage.id}><small>{String(index + 1).padStart(2, "0")}</small>{stage.label}</span>)}</div>
-    <p className="field-poster__footer">{viewportText()} / 仅在本地生成</p>
-  </section>;
 }
 
 function FishPoster({ passedTests }: PosterProps) {
@@ -174,7 +153,12 @@ export default function App() {
   }, [toast]);
   useEffect(() => {
     let disposed = false;
-    const path = theme === "fish" ? "/whale-girl-keyvisual.webp" : "/frontier-industrial.webp";
+    if (theme === "dijiang") {
+      setCoverDataUrl("inline");
+      setCoverAssetError("");
+      return () => { disposed = true; };
+    }
+    const path = "/whale-girl-keyvisual.webp";
     fetch(path)
       .then((response) => {
         if (!response.ok) throw new Error(`素材请求返回 ${response.status}`);
@@ -197,6 +181,10 @@ export default function App() {
     bands.forEach((band) => observer.observe(band));
     return () => observer.disconnect();
   }, []);
+
+  if (theme === "dijiang") {
+    return <iframe className="dijiang-theme-frame" title="终末地帝江号交付证据" srcDoc={dijiangThemeHtml} />;
+  }
 
   const formatDurationZh = (milliseconds: number) => {
     const minutes = Math.floor(milliseconds / 60000);
@@ -238,15 +226,15 @@ export default function App() {
 
   return <main className={`app theme-${theme}`}>
     {showIntro && <LoadingCurtain theme={theme} />}
-    {theme === "fish" && <OceanAtmosphere />}
+    <OceanAtmosphere />
     <div className="workspace">
       <header className="report-header">
         <div className="identity"><span className="mark">DS</span><div><p className="eyebrow">交付证据 / 0017</p><h1>dsh-showcase</h1></div></div>
         <div className="header-meta"><span><Code2 size={15} /> {report.git.baseRef}..{report.git.headRef}</span><span><Timer size={15} /> {new Date(report.generatedAt).toLocaleString("zh-CN")}</span><span className="verified"><Check size={15} /> 已验证</span></div>
-        <span className="theme-badge">{theme === "field" ? "边境信号" : "蓝色大肥鱼"}</span>
+        <span className="theme-badge">蓝色大肥鱼</span>
       </header>
 
-      {theme === "field" ? <FieldPoster passedTests={passedTests} /> : <FishPoster passedTests={passedTests} />}
+      <FishPoster passedTests={passedTests} />
 
       <section className="evidence-band overview-band reveal-band" aria-labelledby="overview-title"><div className="band-heading"><span>摘要</span><h2 id="overview-title">交付摘要</h2><p>可复现的完成证据</p></div><div className="overview-grid"><div className="goal"><span className="label">任务目标</span><p>{report.task.goal}</p></div><div className="metric"><Timer size={19} /><span className="label">耗时</span><strong>{formatDurationZh(report.task.durationMs)}</strong></div><div className="metric"><FileCode2 size={19} /><span className="label">变更清单</span><strong>{report.git.summary.changedFiles} 个文件</strong><small>+{report.git.summary.additions} / -{report.git.summary.deletions}</small></div><div className="metric"><Check size={19} /><span className="label">验证结果</span><strong>{passedTests}/{report.tests.length} 已通过</strong></div></div></section>
       <section className="evidence-band reveal-band" aria-labelledby="screens-title">

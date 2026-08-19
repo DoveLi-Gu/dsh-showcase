@@ -14,13 +14,13 @@ Local, verifiable delivery evidence reports for coding-agent work.
 - Git evidence for the current working tree or a configured base reference.
 - Test execution receipts with command, duration, exit code, status, and redacted output.
 - Built-in redaction for common tokens, authorization values, GitHub token patterns, and local absolute paths in captured output.
-- Two independently composed poster directions: **Frontier Signal (`边境信号`)** and **Blue Big Fish (`蓝色大肥鱼`)**. The active direction is selected in DSH plugin settings rather than inside the report.
-- Persistent atmosphere with `prefers-reduced-motion` support: architectural drift, mechanical masking, and signal flow for Frontier Signal; character float, rotating comic arcs, and gold sparkle pulses for Blue Big Fish.
+- Two independently composed poster directions: **Dijiang (`终末地帝江号`)** and **Blue Big Fish (`蓝色大肥鱼`)**. The active direction is selected in DSH plugin settings rather than inside the report.
+- Persistent atmosphere with `prefers-reduced-motion` support: architectural drift, mechanical masking, and signal flow for Dijiang; character float, rotating comic arcs, and gold sparkle pulses for Blue Big Fish.
 - CLI commands for initializing local configuration and capturing a report.
 - A DSH plugin tool, `showcase_layout_summary`, for producing a local Markdown layout summary and a self-contained evidence poster.
 - Local Markdown artifacts and a self-contained HTML poster. The plugin reads project files, writes inside the project, and does not upload content.
 
-![Frontier Signal theme desktop report](docs/assets/field-signal-desktop.png)
+![Dijiang theme desktop report](docs/assets/field-signal-desktop.png)
 
 ![Blue Big Fish mobile report](docs/assets/blue-big-fish-mobile.png)
 
@@ -36,7 +36,11 @@ npm run init
 npm run capture
 ```
 
-`npm run init` creates `.showcase/config.json`. Edit it to set the task, optional Git base reference, test commands, and timeout. `npm run capture` writes `.showcase/report.json`.
+The CLI above is a repository development helper. The npm package currently published for DSH is the plugin runtime package; it does not include `src/cli` or a `dsh-showcase` `bin` entry. After installing the plugin in DSH, use the `showcase_layout_summary` tool instead. Run `npm run init` / `npm run capture` only from a full source checkout with its development dependencies installed.
+
+`npm run init` creates `.showcase/config.json`. It chooses a sensible default test command for Node, Python, Rust, Go, or Maven projects when it can identify one; Node projects only receive `npm test` when `scripts.test` actually exists. Re-running `init` does not overwrite a customized config. Edit the file to set the task, optional Git base reference, test commands, and timeout.
+
+`npm run capture` writes `.showcase/report.json` before returning. Passing checks produce `completed`; a project without tests or Git evidence produces `partial`; a failed or timed-out check produces `failed`. The CLI exits with code `1` for `failed` while preserving the report for review, and with code `0` for both `completed` and `partial`.
 
 Example configuration:
 
@@ -45,7 +49,7 @@ Example configuration:
   "task": "Capture verifiable delivery evidence.",
   "baseRef": "main",
   "tests": [
-    "npm test -- --run",
+    "npm test",
     { "command": "npm run typecheck", "timeoutMs": 120000 }
   ],
   "timeoutMs": 120000
@@ -53,6 +57,8 @@ Example configuration:
 ```
 
 ## DSH Plugin
+
+If you are new to GitHub, follow the [Chinese GitHub upload guide](docs/GITHUB_UPLOAD_GUIDE_ZH.md); it matches this repository's current `main` branch and local-only state.
 
 From this repository, add the plugin to the web profile:
 
@@ -62,7 +68,31 @@ dsh plugin --profile web add .
 
 Restart DSH, then create a **new session** before using the tool. The new session is required for the plugin tool to become available.
 
-In **Settings → Plugins → Plugin configuration → Layout evidence poster**, choose one poster theme: Frontier Signal or Blue Big Fish. The choice is stored in DSH user settings, and each tool call generates only the currently selected theme.
+In **Settings → Plugins → Plugin configuration → Layout evidence artifacts**, choose one poster theme: Dijiang or Blue Big Fish, and decide whether calls should generate the self-contained HTML poster. The choices are stored in DSH user settings.
+
+### Generation timing and output policy
+
+`npm run capture` and `showcase_layout_summary` are separate steps. First make `.showcase/report.json` represent the checkpoint you want to review or deliver: UI projects should finish the relevant work, tests, and responsive captures, while non-visual projects only need their relevant tests. Reports may be `completed`, `partial`, or `failed`; the latter two produce an explicit review artifact rather than pretending that delivery succeeded. The plugin is not a watcher and does not regenerate artifacts on every edit.
+
+Recommended call timing:
+
+| Situation | Call the tool? | Poster policy |
+| --- | --- | --- |
+| Ordinary edits, status checks, or local debugging | No | No delivery artifact |
+| Tests and captures are ready; a text receipt is enough | Once | Keep the default Markdown-only mode |
+| A backend/CLI project has no captures, or a failed checkpoint needs review | Once | Generate Markdown; enable the poster only when useful |
+| The user asks for visual review, sharing, or final delivery | Once | Enable the setting or pass `generatePoster: true` for that call |
+
+By default, one tool call writes the lightweight Markdown artifact only:
+
+- `.showcase/layout-summary.md` — the Markdown summary, always generated.
+- `.showcase/layout-poster.html` — the optional self-contained visual poster, generated with the theme selected above.
+
+The poster switch is persistent: when it is off, calls stay Markdown-only; when it is on, the next calls also write the HTML poster. Turning it off does not delete an existing poster; it simply stops creating or overwriting one. The optional `generatePoster` tool argument can override that choice for one call (`true` for an explicitly requested poster, `false` for a Markdown-only call) without changing the saved setting. The plugin does not generate both themes or silently switch themes from a natural-language request.
+
+To prevent accidental overwrites of source or configuration files, `outputPath` must stay under the project's `.showcase/` directory and end in `.md` or `.markdown`; `posterPath` must also stay under `.showcase/` and end in `.html` or `.htm`. The report, Markdown summary, and poster must resolve to different files.
+
+The plugin also performs a lightweight freshness review across discovered layout sources, Git files recorded in the report, test receipts, capture timestamps, and screenshot files changed after capture. Conflicts appear in `freshnessWarnings` in both Markdown and the tool result. This does not block review of partial or failed reports; it tells you to recapture before final delivery.
 
 `showcase_layout_summary` accepts the following parameters:
 
@@ -72,11 +102,34 @@ In **Settings → Plugins → Plugin configuration → Layout evidence poster**,
   "reportPath": ".showcase/report.json",
   "outputPath": ".showcase/layout-summary.md",
   "posterPath": ".showcase/layout-poster.html",
+  "generatePoster": true,
   "locale": "zh-CN"
 }
 ```
 
-Only `projectPath` is required. `locale` is optional and defaults to `zh-CN`; use `en` for English output. The remaining paths are project-relative and optional. The generated Markdown summary and HTML poster remain local to the project.
+Only `projectPath` is required. `locale` is optional and defaults to `zh-CN`; use `en` for English output. `outputPath`, `posterPath`, and `generatePoster` are single-call overrides: they affect only the current invocation and are not saved to DSH settings. Omit `generatePoster` to use the saved setting. The active theme is intentionally not a tool parameter; change it in the plugin settings before the next call. The plugin is not tied to this repository's React layout: it discovers common React, Node, Python, and static HTML source files, and safely falls back to default stages when a project has no layout source. Use `appPath` or `cssPath` when a project has an unusual source location. The generated artifacts remain local to the project.
+
+### Universal use and limits
+
+This is not a page template for `dsh-showcase` itself. Project name, task, Git files, test receipts, artifact paths, and evidence state come from the current project's `.showcase/report.json` and files. Both themes render the same delivery data through different visual systems. When a report omits `project.name`, output uses “Untitled project”; it never falls back to this plugin repository's name.
+
+- Backend, CLI, library, and static-site projects are supported. If no visual source is found, captures are explicitly optional rather than fabricated as UI evidence.
+- No Git repository, no tests, missing outputs, cross-theme captures, unclassified captures, and unreadable images are all represented as explicit states; none claim verification.
+- To keep pathological projects bounded, reports are limited to 2 MiB, each source file to 2 MiB, and each embedded capture to 8 MiB and 16384 px per dimension. A poster embeds at most three verified captures matching its active theme.
+- Directory discovery skips common dependency and build folders and is depth/count limited. Every read/write path remains inside the current project, with generated artifacts confined to `.showcase/`.
+
+Direct imports of `generateLayoutSummary()` still default `generatePoster` to `true` for compatibility with early callers. The DSH tool follows the saved switch and defaults to Markdown-only. Third-party code that does not need a poster should pass `generatePoster: false` explicitly.
+
+For example, a Python or static HTML project can use the same call without creating `src/App.tsx`:
+
+```json
+{
+  "projectPath": "C:/work/ledger-api",
+  "appPath": "service/main.py",
+  "cssPath": "web/theme.css",
+  "locale": "en"
+}
+```
 
 ## Development
 

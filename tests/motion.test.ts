@@ -1,16 +1,19 @@
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
 const stylesUrl = new URL("../src/styles.css", import.meta.url);
 const appUrl = new URL("../src/App.tsx", import.meta.url);
+const mainUrl = new URL("../src/main.tsx", import.meta.url);
+const dijiangThemeUrl = new URL("../src/dijiang-theme.html", import.meta.url);
 
 describe("persistent theme motion", () => {
-  it("keeps both poster worlds alive with restrained infinite animations", async () => {
-    const css = await readFile(stylesUrl, "utf8");
+  it("keeps the approved Dijiang motion and the fish poster motion intact", async () => {
+    const [css, dijiang] = await Promise.all([readFile(stylesUrl, "utf8"), readFile(dijiangThemeUrl, "utf8")]);
 
-    expect(css).toMatch(/animation:\s*field-photo-drift 13s ease-in-out infinite alternate/);
-    expect(css).toMatch(/animation:\s*field-scan 8\.5s linear infinite/);
-    expect(css).toMatch(/animation:\s*rail-flow 7s linear infinite/);
+    expect(dijiang).toContain("dijiang-loader-sweep-rotate");
+    expect(dijiang).toContain("dijiang-loader-scan-final");
+    expect(dijiang).toContain("dijiang-loader-status-final");
     expect(css).toMatch(/animation:\s*fish-tide 12s cubic-bezier\(\.22, 1, \.36, 1\) infinite alternate/);
     expect(css).toMatch(/animation:\s*fish-portrait-tide 10s cubic-bezier\(\.22, 1, \.36, 1\) infinite alternate/);
     expect(css).toMatch(/animation:\s*fish-whale-drift 10s cubic-bezier\(\.22, 1, \.36, 1\) infinite alternate/);
@@ -22,7 +25,7 @@ describe("persistent theme motion", () => {
     expect(css).toMatch(/animation:\s*fish-light-sweep 9s ease-in-out infinite alternate/);
   });
 
-  it("adds a one-shot loading curtain and page-wide fish atmosphere", async () => {
+  it("keeps the fish loading curtain and page-wide atmosphere", async () => {
     const app = await readFile(appUrl, "utf8");
 
     expect(app).toContain("function LoadingCurtain");
@@ -32,12 +35,30 @@ describe("persistent theme motion", () => {
     expect(app).toContain("window.setTimeout(() => setShowIntro(false), 1500)");
   });
 
-  it("uses genuinely separate DOM compositions and keeps switching out of the report", async () => {
-    const app = await readFile(appUrl, "utf8");
+  it("hands the document to the approved Dijiang artifact verbatim and keeps fish as the other public theme", async () => {
+    const [app, main, dijiang] = await Promise.all([
+      readFile(appUrl, "utf8"),
+      readFile(mainUrl, "utf8"),
+      readFile(dijiangThemeUrl, "utf8"),
+    ]);
 
-    expect(app).toContain("function FieldPoster");
     expect(app).toContain("function FishPoster");
-    expect(app).toContain('src="/frontier-industrial.webp"');
+    expect(app).toContain('type Theme = "dijiang" | "fish"');
+    expect(main).toContain('import dijiangThemeHtml from "./dijiang-theme.html?raw"');
+    expect(main).toContain('selectedTheme !== "fish"');
+    expect(main).toContain("document.open()");
+    expect(main).toContain("document.write(dijiangThemeHtml)");
+    expect(main).toContain("document.close()");
+    expect(app).toContain("return dijiangThemeHtml");
+    expect(createHash("sha256").update(dijiang).digest("hex")).toBe("cdb4b1ab96de4ca433741e0693120c9fa671a6bea2ed7282e48ba3de1c14e0ed");
+    expect(dijiang).toContain("终末地帝江号 / 正在汇聚交付证据");
+    expect(dijiang).toContain("终末地帝江号 / 任务完成 / 交付通告");
+    expect(app).not.toContain("边境信号");
+    expect(app).not.toContain('theme === "field"');
+    expect(app).not.toContain("function DijiangContours");
+    expect(app).not.toContain("function DijiangBlueprint");
+    expect(app).not.toContain("function DijiangPoster");
+    expect(app).not.toContain('src="/frontier-industrial.webp"');
     expect(app).toContain('src="/whale-girl-keyvisual.webp"');
     expect(app).not.toContain('className="theme-switch"');
   });
@@ -64,11 +85,14 @@ describe("persistent theme motion", () => {
 
   it("limits persistent keyframes to compositor-friendly properties and keeps full-motion mode explicit", async () => {
     const css = await readFile(stylesUrl, "utf8");
-    const persistentNames = ["field-photo-drift", "field-scan", "rail-flow", "ocean-light-sweep", "ocean-current-drift", "ocean-bubble-rise", "fish-tide", "fish-portrait-tide", "fish-whale-drift", "fish-arc", "fish-current", "sparkle", "fish-light-sweep", "fish-bubble-rise"];
+    const persistentNames = ["ocean-light-sweep", "ocean-current-drift", "ocean-bubble-rise", "fish-tide", "fish-portrait-tide", "fish-whale-drift", "fish-arc", "fish-current", "sparkle", "fish-light-sweep", "fish-bubble-rise"];
     const keyframeLines = css.split(/\r?\n/).filter((line) => persistentNames.some((name) => line.includes(`@keyframes ${name}`)));
 
     expect(keyframeLines).toHaveLength(persistentNames.length);
     expect(keyframeLines.join("\n")).not.toMatch(/(?:top|right|bottom|left|width|height|margin|padding):/);
-    expect(css).not.toContain("prefers-reduced-motion");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).toContain("reduced-breathe 2.8s ease-in-out infinite alternate");
+    expect(css).toContain("reduced-bubble 14s ease-in-out infinite alternate");
+    expect(css).toContain(".reveal-band { opacity: 1; transform: none; }");
   });
 });

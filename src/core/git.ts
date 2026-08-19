@@ -3,6 +3,7 @@ import { promisify } from "node:util";
 import type { GitChange } from "./report-schema";
 
 const execFileAsync = promisify(execFile);
+const NO_GIT_REF = "NO_GIT";
 
 type GitFile = GitChange["files"][number];
 
@@ -72,6 +73,19 @@ async function hasHead(cwd: string): Promise<boolean> {
   }
 }
 
+async function isGitRepository(cwd: string): Promise<boolean> {
+  try {
+    const { stdout } = await execFileAsync("git", ["rev-parse", "--is-inside-work-tree"], {
+      cwd,
+      encoding: "utf8",
+      windowsHide: true,
+    });
+    return stdout.trim() === "true";
+  } catch {
+    return false;
+  }
+}
+
 function mergeNumstats(...outputs: string[]): Map<string, Pick<GitFile, "additions" | "deletions">> {
   const combined = new Map<string, Pick<GitFile, "additions" | "deletions">>();
   for (const output of outputs) {
@@ -87,6 +101,15 @@ function mergeNumstats(...outputs: string[]): Map<string, Pick<GitFile, "additio
 }
 
 export async function collectGitChange(cwd: string, options: CollectGitOptions = {}): Promise<GitChange> {
+  if (!(await isGitRepository(cwd))) {
+    return {
+      baseRef: NO_GIT_REF,
+      headRef: NO_GIT_REF,
+      files: [],
+      summary: { changedFiles: 0, additions: 0, deletions: 0 },
+    };
+  }
+
   const [statusOutput, headRef, repositoryHasHead] = await Promise.all([
     runGit(cwd, ["status", "--porcelain=v1", "-z"]),
     runGit(cwd, ["branch", "--show-current"]),

@@ -44,6 +44,7 @@ const fixture = {
     {
       id: "desktop-after",
       label: "桌面端界面证据",
+      theme: "blue-big-fish",
       viewport: { name: "desktop", width: 1440, height: 900 },
       url: "http://localhost:5173",
       imagePath: "evidence/desktop-after.png",
@@ -53,6 +54,7 @@ const fixture = {
     {
       id: "tablet-after",
       label: "平板端界面证据",
+      theme: "blue-big-fish",
       viewport: { name: "tablet", width: 834, height: 1112 },
       url: "http://localhost:5173",
       imagePath: "evidence/tablet-after.png",
@@ -62,6 +64,7 @@ const fixture = {
     {
       id: "mobile-after",
       label: "移动端界面证据",
+      theme: "blue-big-fish",
       viewport: { name: "mobile", width: 390, height: 844 },
       url: "http://localhost:5173",
       imagePath: "evidence/mobile-after.png",

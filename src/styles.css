@@ -7,10 +7,19 @@
 
 * { box-sizing: border-box; }
 html { background: #e9ece7; }
-body { margin: 0; min-width: 320px; }
+body { margin: 0; min-width: 0; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+.dijiang-theme-frame {
+  display: block;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  border: 0;
+  background: #f0f2ef;
+}
 
 .app {
   --ink: #121713;
@@ -149,141 +158,6 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   margin: 22px 0 32px;
   animation: poster-fade .3s ease-out both;
 }
-
-/* Frontier Signal: high-key industrial collage. */
-.field-poster { color: #111410; background: #eff1ec; }
-.field-poster__photo {
-  position: absolute;
-  z-index: 0;
-  inset: -8% 24% -8% 35%;
-  width: 48%;
-  height: 116%;
-  object-fit: cover;
-  object-position: center 48%;
-  filter: grayscale(1) contrast(1.22) brightness(1.08);
-  clip-path: polygon(18% 0, 100% 0, 77% 100%, 0 100%);
-  animation: field-photo-drift 13s ease-in-out infinite alternate;
-}
-.field-poster__slash {
-  position: absolute;
-  z-index: 1;
-  inset: -18% 24% -18% 29%;
-  background: #d7ef2f;
-  clip-path: polygon(66% 0, 100% 0, 61% 100%, 0 100%);
-  mix-blend-mode: multiply;
-  opacity: .88;
-}
-.field-poster__scan {
-  position: absolute;
-  z-index: 2;
-  inset: 0 auto 0 -18%;
-  width: 13%;
-  background: rgba(215, 239, 47, .28);
-  transform: skewX(-16deg);
-  animation: field-scan 8.5s linear infinite;
-}
-.field-poster__mast {
-  position: absolute;
-  z-index: 4;
-  top: 38px;
-  left: 4.6%;
-  right: 4.6%;
-  display: flex;
-  justify-content: space-between;
-  padding-top: 11px;
-  border-top: 7px solid #111410;
-  font: 900 13px "Cascadia Mono", "Microsoft YaHei UI", monospace;
-}
-.field-poster__ghost {
-  position: absolute;
-  z-index: 0;
-  top: 78px;
-  right: -12px;
-  color: #111410;
-  font: 900 clamp(150px, 16vw, 242px) / .74 "Arial Narrow", "Microsoft YaHei UI", sans-serif;
-  writing-mode: vertical-rl;
-  opacity: .075;
-}
-.field-poster__copy { position: absolute; z-index: 5; top: 21%; left: 5.2%; width: 48%; }
-.field-poster__kicker {
-  display: inline-block;
-  margin: 0;
-  padding: 7px 11px;
-  color: #fff;
-  background: #111410;
-  font: 900 13px "Cascadia Mono", "Microsoft YaHei UI", monospace;
-}
-.field-poster h2 {
-  max-width: 680px;
-  margin: 20px 0 13px;
-  font: 900 clamp(48px, 6vw, 84px) / .86 "Arial Narrow", "HarmonyOS Sans SC", "Microsoft YaHei UI", sans-serif;
-  letter-spacing: 0;
-  text-wrap: balance;
-}
-.field-poster__goal { max-width: 610px; margin: 0; font-size: clamp(18px, 2vw, 28px); line-height: 1.4; font-weight: 800; text-wrap: pretty; }
-.field-poster__verified {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 22px;
-  padding: 10px 14px;
-  color: #111410;
-  background: #d7ef2f;
-  font-weight: 900;
-}
-.field-poster__stamp {
-  position: absolute;
-  z-index: 7;
-  top: 19%;
-  right: 5.2%;
-  padding: 10px 14px;
-  color: #ed4035;
-  border: 5px solid #ed4035;
-  font-size: clamp(18px, 2vw, 26px);
-  font-weight: 900;
-  transform: rotate(-4deg);
-}
-.field-poster__metrics {
-  position: absolute;
-  z-index: 6;
-  right: 5.2%;
-  bottom: 18.8%;
-  width: min(31%, 410px);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 17px;
-  padding: 20px 23px;
-  color: #fff;
-  background: #111410;
-}
-.field-poster__metrics strong, .field-poster__metrics span { display: block; }
-.field-poster__metrics strong { font: 900 clamp(23px, 2.4vw, 36px) "Cascadia Mono", monospace; }
-.field-poster__metrics span { margin-top: 4px; font-size: 11px; font-weight: 800; }
-.field-poster__rail {
-  position: absolute;
-  z-index: 7;
-  left: 5.2%;
-  right: 5.2%;
-  bottom: 7%;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  color: #fff;
-  background: #111410;
-}
-.field-poster__rail::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: 18%;
-  background: rgba(215, 239, 47, .22);
-  animation: rail-flow 7s linear infinite;
-  pointer-events: none;
-}
-.field-poster__rail span { position: relative; z-index: 1; min-height: 62px; padding: 12px 16px; border-right: 1px solid #606761; font-weight: 900; }
-.field-poster__rail span:last-child { color: #111410; background: #d7ef2f; border: 0; }
-.field-poster__rail small { display: block; margin-bottom: 5px; color: #aeb7b0; font: 11px "Cascadia Mono", monospace; }
-.field-poster__rail span:last-child small { color: #596400; }
-.field-poster__footer { position: absolute; z-index: 7; left: 5.2%; bottom: 2.3%; margin: 0; font: 800 10px "Cascadia Mono", monospace; }
 
 /* Blue Big Fish: flowing evidence poster with the character embedded as atmosphere. */
 .fish-poster { color: #10245c; background: #e8f5ff; border: 4px solid #0757cf; }
@@ -478,9 +352,6 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @keyframes ocean-current-drift { from { transform: translate3d(-3vw, 0, 0) rotate(-4deg); } to { transform: translate3d(8vw, -2vh, 0) rotate(-2deg); } }
 @keyframes ocean-bubble-rise { 0% { opacity: 0; transform: translate3d(0, 0, 0) scale(.7); } 12% { opacity: .62; } 82% { opacity: .28; } 100% { opacity: 0; transform: translate3d(2.6vw, -112vh, 0) scale(1.3); } }
 @keyframes poster-fade { from { opacity: .72; } to { opacity: 1; } }
-@keyframes field-photo-drift { from { transform: translate3d(-5px, 0, 0) scale(1.015); } to { transform: translate3d(8px, -5px, 0) scale(1.035); } }
-@keyframes field-scan { to { transform: translateX(1500px) skewX(-16deg); } }
-@keyframes rail-flow { from { transform: translateX(-120%); } to { transform: translateX(620%); } }
 @keyframes fish-arc { to { transform: rotate(360deg); } }
 @keyframes fish-current { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @keyframes sparkle { 0%, 100% { opacity: .4; transform: scale(.72) rotate(0); } 50% { opacity: 1; transform: scale(1.12) rotate(45deg); } }
@@ -489,6 +360,11 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @keyframes fish-whale-drift { to { translate: 7vw -2vh; rotate: 4deg; } }
 @keyframes fish-light-sweep { from { transform: translate3d(-6vw, 0, 0) rotate(16deg); } to { transform: translate3d(10vw, 0, 0) rotate(16deg); } }
 @keyframes fish-bubble-rise { 0% { opacity: 0; transform: translate3d(0, 0, 0) scale(.65); } 12% { opacity: .8; } 78% { opacity: .38; } 100% { opacity: 0; transform: translate3d(2vw, -760px, 0) scale(1.35); } }
+@keyframes reduced-breathe { from { opacity: .62; transform: translate3d(0, 0, 0) scale(.99); } to { opacity: .9; transform: translate3d(0, -2px, 0) scale(1.01); } }
+@keyframes reduced-drift { from { transform: translate3d(-1.5%, 0, 0); } to { transform: translate3d(1.5%, -1%, 0); } }
+@keyframes reduced-sweep { from { transform: translate3d(-20%, 0, 0) skewX(-16deg); } to { transform: translate3d(120%, 0, 0) skewX(-16deg); } }
+@keyframes reduced-bubble { 0%, 100% { opacity: .12; transform: translate3d(0, 0, 0) scale(.92); } 50% { opacity: .38; transform: translate3d(1vw, -8vh, 0) scale(1.04); } }
+@keyframes reduced-curtain-exit { 0%, 72% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
 
 @media (min-width: 1101px) {
   .fish-poster h2 { font-family: "Bahnschrift Condensed", "Arial Narrow", "Microsoft YaHei UI", sans-serif; }
@@ -502,8 +378,6 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 
 @media (max-width: 1100px) {
   .poster-summary { min-height: 560px; }
-  .field-poster__copy { width: 51%; }
-  .field-poster__metrics { width: 34%; }
   .fish-poster__portrait { right: -3%; width: 49%; }
   .fish-poster__metrics div { min-width: 115px; }
   .evidence-band { grid-template-columns: 160px minmax(0, 1fr); gap: 22px; }
@@ -515,14 +389,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .report-header { grid-template-columns: 1fr auto; }
   .header-meta { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; }
   .poster-summary { min-height: 660px; aspect-ratio: auto; }
-  .field-poster__photo { inset: 38% -4% -8% 32%; width: 74%; height: 73%; }
-  .field-poster__slash { inset: 34% 13% -14% 27%; }
-  .field-poster__copy { top: 17%; width: 76%; }
-  .field-poster h2 { font-size: 55px; }
-  .field-poster__goal { font-size: 20px; }
-  .field-poster__stamp { top: 47%; }
-  .field-poster__metrics { right: 5.2%; bottom: 18%; width: 45%; }
-  .field-poster__rail span, .fish-poster__rail span { padding-left: 9px; padding-right: 8px; }
+  .fish-poster__rail span { padding-left: 9px; padding-right: 8px; }
   .fish-poster { min-height: 720px; }
   .fish-poster__portrait { top: 34%; right: -7%; width: 68%; height: 76%; opacity: .16; }
   .fish-poster__copy { top: 7%; width: 88%; }
@@ -546,20 +413,6 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .header-meta { grid-column: auto; grid-row: auto; gap: 7px 10px; font-size: 9px; }
   .theme-badge { justify-self: stretch; text-align: center; }
   .poster-summary { margin: 14px 0 20px; }
-  .field-poster { min-height: 680px; }
-  .field-poster__mast { top: 23px; left: 18px; right: 18px; font-size: 9px; }
-  .field-poster__copy { top: 15%; left: 18px; width: calc(100% - 36px); }
-  .field-poster h2 { margin-top: 17px; font-size: 45px; }
-  .field-poster__goal { max-width: 90%; font-size: 17px; }
-  .field-poster__photo { inset: 42% -20% -5% 8%; width: 106%; height: 64%; }
-  .field-poster__slash { inset: 40% 4% -14% 7%; }
-  .field-poster__stamp { top: 49%; right: 18px; font-size: 15px; border-width: 4px; }
-  .field-poster__metrics { left: 18px; right: auto; bottom: 18.5%; width: calc(100% - 36px); padding: 13px 14px; }
-  .field-poster__metrics strong { font-size: 23px; }
-  .field-poster__rail { left: 18px; right: 18px; bottom: 7%; }
-  .field-poster__rail span { min-height: 54px; padding: 9px 4px; text-align: center; font-size: 11px; }
-  .field-poster__rail small { font-size: 8px; }
-  .field-poster__footer { left: 18px; right: 18px; font-size: 8px; }
   .fish-poster { min-height: 680px; border-width: 3px; }
   .fish-poster__copy { top: 4%; left: 18px; width: calc(100% - 36px); }
   .fish-poster__kicker { font-size: 12px; }
@@ -603,4 +456,21 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .export-actions button { justify-content: center; min-width: 0; padding: 0 6px; }
   .export-actions .publish { grid-column: span 2; }
   .toast { right: 12px; bottom: 12px; }
+}
+
+/* Reduced motion keeps a low-amplitude signal instead of going visually dead. */
+@media (prefers-reduced-motion: reduce) {
+  .loading-curtain { animation: reduced-curtain-exit 1.1s ease-out both; }
+  .loading-curtain__mark { animation: reduced-breathe 2.8s ease-in-out infinite alternate; }
+  .loading-curtain__progress i { animation: reduced-breathe 2.8s ease-in-out infinite alternate; }
+  .loading-curtain__flow i { animation: reduced-drift 9s ease-in-out infinite alternate; }
+  .poster-summary, .reveal-band { animation: none; transition: none; }
+  .reveal-band { opacity: 1; transform: none; }
+  .ocean-light, .ocean-current-line,
+  .fish-poster__current, .fish-poster__portrait, .fish-poster__light,
+  .fish-whale, .fish-poster__sparkles i,
+  .fish-poster__rail span:last-child { animation: reduced-drift 16s ease-in-out infinite alternate; }
+  .ocean-bubbles i, .fish-poster__bubbles i { animation: reduced-bubble 14s ease-in-out infinite alternate; }
+  .fish-poster__arc { animation: fish-arc 38s linear infinite; }
+  .export-actions button { transition-duration: .2s; }
 }

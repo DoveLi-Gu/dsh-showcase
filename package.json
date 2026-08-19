@@ -25,7 +25,22 @@
       "platform": "web"
     }
   },
-  "files": ["dist", "plugin", "cordis.patch.yml", "README.md", "README.zh-CN.md", "CHARACTER_ASSET_NOTICE.md", "LICENSE"],
+  "files": [
+    "plugin/client-host.js",
+    "plugin/client.js",
+    "plugin/index.d.ts",
+    "plugin/index.js",
+    "plugin/layout-summary.d.ts",
+    "plugin/layout-summary.js",
+    "plugin/poster-html.js",
+    "plugin/report-schema.js",
+    "plugin/assets/whale-girl-keyvisual.webp",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh-CN.md",
+    "CHARACTER_ASSET_NOTICE.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -35,7 +50,7 @@
     "init": "tsx src/cli/index.ts init",
     "capture": "tsx src/cli/index.ts capture"
   },
-  "dependencies": { "@deepseek-ai/dsh-settings": "^0.1.0-rc.6", "@deepseek-ai/schemastery": "^3.18.1", "@vitejs/plugin-react": "latest", "lucide-react": "latest", "react": "latest", "react-dom": "latest", "zod": "latest" },
+  "dependencies": { "@deepseek-ai/dsh-settings": "^0.1.0-rc.6", "@deepseek-ai/schemastery": "^3.18.1", "zod": "latest" },
   "peerDependencies": { "@deepseek-ai/dsh-tools": "^0.1.0-rc.6", "@deepseek-ai/cordis": "^4.0.1" },
-  "devDependencies": { "@deepseek-ai/cordis": "^4.0.1", "@deepseek-ai/dsh-tools": "^0.1.0-rc.6", "@types/node": "latest", "@types/react": "latest", "@types/react-dom": "latest", "typescript": "latest", "vite": "latest", "vitest": "latest", "tsx": "latest", "jsdom": "latest" }
+  "devDependencies": { "@deepseek-ai/cordis": "^4.0.1", "@deepseek-ai/dsh-tools": "^0.1.0-rc.6", "@types/node": "latest", "@types/react": "latest", "@types/react-dom": "latest", "@vitejs/plugin-react": "latest", "jsdom": "latest", "lucide-react": "latest", "react": "latest", "react-dom": "latest", "tsx": "latest", "typescript": "latest", "vite": "latest", "vitest": "latest" }
 }
