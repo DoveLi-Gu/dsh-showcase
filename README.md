@@ -61,7 +61,8 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 
 ## 5 分钟快速开始
 
-### 第一步：安装插件
+<details>
+<summary><strong>第一步：安装插件</strong></summary>
 
 当前版本尚未发布到 npm，因此先从 GitHub 源码安装。仓库放在固定目录后，DSH 插件和采集 CLI 可以共用同一份代码。
 
@@ -85,7 +86,10 @@ dsh plugin --profile web add "C:\tools\dsh-showcase"
 
 > **发布到 npm 后**：DSH 插件入口会改为 `dsh plugin --profile web add dsh-showcase`。当前版本尚未发布到 npm，也不要使用 `npm install --global dsh-showcase`：npm 包目前提供的是 DSH 插件运行时，不是全局 CLI。采集 CLI 仍按上面的 GitHub 源码目录运行。
 
-### 第二步：在目标项目采集证据
+</details>
+
+<details>
+<summary><strong>第二步：在目标项目采集证据</strong></summary>
 
 进入你真正要检查的项目：
 
@@ -128,7 +132,10 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 `init` 只需执行一次。如果 `config.json` 已存在，直接编辑后运行 `capture`。
 
-### 第三步：让 DSH 生成报告
+</details>
+
+<details>
+<summary><strong>第三步：让 DSH 生成报告</strong></summary>
 
 回到这个目标项目的 DSH 会话，直接发送：
 
@@ -153,7 +160,10 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 只想生成 Markdown 时，将 `generatePoster` 设为 `false`，或关闭插件设置里的海报开关。
 
-### 最小可用命令
+</details>
+
+<details>
+<summary><strong>补充：最小可用命令</strong></summary>
 
 如果你不需要自定义任务，下面是一次完整的最短流程（在目标项目目录执行）：
 
@@ -165,6 +175,8 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 随后在 DSH 会话中调用 `showcase_layout_summary`。`init` 只执行一次；以后每次改完代码、测试和截图后，只需要重新执行 `capture`，再重新生成摘要。
 
+</details>
+
 ## 赞助商
 
 <p align="center">
@@ -175,11 +187,9 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 <h3 align="center"><a href="https://api.doveli.top/">鸽子中转站 · Pigeon API Relay</a></h3>
 
-<p align="center"><strong>稳定、清晰的 AI API 接入。一处接入，持续抵达。</strong></p>
+鸽子中转站（Pigeon API Relay）是一站式 AI API 中转服务：兼容 OpenAI API 格式，提供稳定、透明、易接入的模型调用入口。平台覆盖 GPT-5.6 系列、GPT-5.5、GPT-5.4、DeepSeek V4 Pro/Flash、Claude Opus 4.8、Opus 4.7、Sonnet 4.6，以及 Gemini、Grok、Qwen、Kimi、GLM、MiniMax 和部分图像模型。
 
-鸽子中转站为 Codex、Claude Code、OpenCode 等 Agent 工具提供统一 API 接入。你可以在一个控制台中独立管理密钥，查看模型、Token、费用与响应状态，并通过稳定路由和故障切换减少开发流程中的连接中断。
-
-除了按实际用量计费，还提供 **日卡与月卡订阅套餐**：日卡适合短期集中任务，月卡适合持续开发。订阅页面可查看套餐有效期和用量，注册后还可领取体验额度，再根据自己的调用节奏选择计费方式。
+在一个控制台里，你可以统一管理 API Key、模型调用、账户余额、用量和订阅权益，并随时查看模型价格、服务状态和接入文档。无论是 AI 编程、日常对话、内容创作、图像生成，还是快速配置和长期使用，都能按自己的节奏接入；具体可用模型、价格与服务状态，以鸽子中转站页面的实时信息为准。
 
 <p align="center">
   <a href="https://api.doveli.top/register"><strong>创建账户</strong></a>
@@ -215,8 +225,8 @@ $showcaseRepo = "C:\tools\dsh-showcase"
         </a>
       </td>
       <td>
-        <strong>面向日常开发与 Agent 工作流的统一 AI API 中转服务。</strong><br>
-        支持在一个控制台中管理密钥、用量与账单，提供透明调用记录、稳定路由和故障切换；同时支持按量计费与日卡/月卡订阅，兼顾短期集中任务和长期开发需求。
+        <strong>一站式 AI API 中转服务，兼容 OpenAI API 格式。</strong><br>
+        支持统一管理 API Key、模型调用、余额、用量和订阅权益，并提供模型价格、服务状态与接入文档查询；覆盖 AI 编程、对话、内容创作和图像生成等使用场景。
       </td>
     </tr>
   </tbody>

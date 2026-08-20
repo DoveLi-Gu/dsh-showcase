@@ -6,7 +6,7 @@
 
 [打开 README.md](README.md)
 
-赞助商：**鸽子中转站（Pigeon Relay）**。它提供面向 Codex、Claude Code、OpenCode 等 Agent 工具的统一 API 接入、用量记录与稳定路由调度，并支持按量计费及日卡/月卡订阅；详情见主 README 快速开始后的赞助商区域。
+赞助商：**鸽子中转站（Pigeon API Relay）**。它是一站式 AI API 中转服务，兼容 OpenAI API 格式，覆盖多类文本、代码与图像模型，并支持统一管理 API Key、余额、用量和订阅权益；详情见主 README 快速开始后的赞助商区域。
 
 本项目提供两套主题：
 
