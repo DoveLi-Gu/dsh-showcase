@@ -12,6 +12,35 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 
 > 本项目是社区工具，不是 DeepSeek、DSH 或《终末地》的官方产品。主题名仅描述视觉风格，不代表官方授权。演示素材说明见 [CHARACTER_ASSET_NOTICE.md](CHARACTER_ASSET_NOTICE.md)。
 
+**目录**： [功能](#它能帮你做什么) · [快速开始](#5-分钟快速开始) · [产物](#生成了哪些文件) · [截图](#截图证据) · [工具参数](#工具参数) · [边界与安全](#安全与边界) · [开发](#从源码开发)
+
+## 先看效果
+
+这是一个 **DSH 插件 + 本地采集 CLI**，不是只展示截图的主题包。插件负责把证据整理成摘要和海报；CLI 负责在任意目标项目中采集 Git 与测试回执。
+
+<details>
+<summary>终末地帝江号（机械工业 / 等高线 / 黄黑校准）</summary>
+
+<p><img src="docs/assets/dijiang-desktop-latest.png" alt="终末地帝江号桌面 1K 预览，1024 x 640" width="680"></p>
+<p><img src="docs/assets/dijiang-mobile-latest.png" alt="终末地帝江号移动端 1K 预览，455 x 1024" width="220"></p>
+</details>
+
+<details>
+<summary>蓝色大肥鱼（浅蓝 / 钴蓝 / 角色主视觉）</summary>
+
+<p><img src="docs/assets/blue-big-fish-desktop-latest.png" alt="蓝色大肥鱼桌面 1K 预览，1024 x 640" width="680"></p>
+<p><img src="docs/assets/blue-big-fish-mobile-latest.png" alt="蓝色大肥鱼移动端 1K 预览，455 x 1024" width="220"></p>
+</details>
+
+## 你需要什么
+
+- **必须**：已经可以运行的 DSH Web 环境；
+- **必须**：Node.js 20+ 和 npm，用于安装本仓库及运行采集 CLI；
+- **可选**：Git。没有 Git 时仍会生成报告，但状态会明确标为 `partial`；
+- **可选**：Playwright 或其他浏览器验收工具。截图不是后端、CLI、库项目的必需项。
+
+如果你只想查看海报，可以直接打开已经生成的 `.showcase/layout-poster.html`；如果你要让 DSH 读取新项目，按下面三步操作。
+
 ## 它能帮你做什么
 
 | 你现在要做的事 | dsh-showcase 的输出 |
@@ -34,7 +63,7 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 
 ### 第一步：安装插件
 
-当前版本尚未发布到 npm。推荐把仓库放在固定工具目录，这样 DSH 插件和采集 CLI 可以共用同一份代码。如果 `dsh web` 已经能正常启动，可以直接继续；本仓库自身要求 Node.js 20 或更新版本。
+当前版本尚未发布到 npm，因此先从 GitHub 源码安装。仓库放在固定目录后，DSH 插件和采集 CLI 可以共用同一份代码。
 
 ~~~powershell
 Set-Location C:\tools
@@ -42,10 +71,9 @@ git clone https://github.com/DoveLi-Gu/dsh-showcase.git
 Set-Location .\dsh-showcase
 npm ci
 dsh plugin --profile web add "C:\tools\dsh-showcase"
-dsh --profile web --dump-config
 ~~~
 
-重启 `dsh web`，并新建一个会话。
+然后重启 `dsh web`，再新建一个会话。若命令提示 `dsh` 不存在，先安装并确认 DSH CLI 已加入 `PATH`；这不是本插件自身的安装错误。
 
 打开 DSH 的插件设置，找到 **布局证据产物**。这里可以选择：
 
@@ -54,6 +82,8 @@ dsh --profile web --dump-config
 - **生成自包含 HTML 海报**：关闭时只生成 Markdown，开启后同时生成 HTML。
 
 主题只在插件设置中选择，目标项目不需要增加主题字段。
+
+> **发布到 npm 后**：DSH 插件入口会改为 `dsh plugin --profile web add dsh-showcase`。当前版本尚未发布到 npm，也不要使用 `npm install --global dsh-showcase`：npm 包目前提供的是 DSH 插件运行时，不是全局 CLI。采集 CLI 仍按上面的 GitHub 源码目录运行。
 
 ### 第二步：在目标项目采集证据
 
@@ -122,6 +152,18 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 ~~~
 
 只想生成 Markdown 时，将 `generatePoster` 设为 `false`，或关闭插件设置里的海报开关。
+
+### 最小可用命令
+
+如果你不需要自定义任务，下面是一次完整的最短流程（在目标项目目录执行）：
+
+~~~powershell
+$showcaseRepo = "C:\tools\dsh-showcase"
+& "$showcaseRepo\node_modules\.bin\tsx.cmd" "$showcaseRepo\src\cli\index.ts" init
+& "$showcaseRepo\node_modules\.bin\tsx.cmd" "$showcaseRepo\src\cli\index.ts" capture
+~~~
+
+随后在 DSH 会话中调用 `showcase_layout_summary`。`init` 只执行一次；以后每次改完代码、测试和截图后，只需要重新执行 `capture`，再重新生成摘要。
 
 ## 最省事的用法
 
@@ -206,6 +248,8 @@ CLI 会保留 `report.json` 中已经存在的截图记录，但不会自动启�
 - 缺失、过期、跨主题或不可读的截图不会被当成有效证据；
 - 没有可视界面的项目可以不提供截图。
 
+截图不是“随便放一张图片”：它必须属于目标项目、采集时间不能晚于报告、格式和尺寸必须可读，而且主题要和当前海报一致。跨主题截图会保留在报告里，但会从当前海报隔离出去。
+
 `frontier-signal` 是“终末地帝江号”的内部兼容键，不是第三套主题；普通用户只需要在 DSH 设置中选择中文主题名。
 
 ## 工具参数
@@ -234,22 +278,6 @@ CLI 会保留 `report.json` 中已经存在的截图记录，但不会自动启�
   "generatePoster": false
 }
 ~~~
-
-## 主题预览
-
-<details>
-<summary>终末地帝江号</summary>
-
-<p><img src="docs/assets/dijiang-desktop-latest.png" alt="终末地帝江号主题桌面 1K 预览" width="680"></p>
-<p><img src="docs/assets/dijiang-mobile-latest.png" alt="终末地帝江号主题移动端 1K 预览" width="220"></p>
-</details>
-
-<details>
-<summary>蓝色大肥鱼</summary>
-
-<p><img src="docs/assets/blue-big-fish-desktop-latest.png" alt="蓝色大肥鱼主题桌面 1K 预览" width="680"></p>
-<p><img src="docs/assets/blue-big-fish-mobile-latest.png" alt="蓝色大肥鱼主题移动端 1K 预览" width="220"></p>
-</details>
 
 ## 常见问题
 

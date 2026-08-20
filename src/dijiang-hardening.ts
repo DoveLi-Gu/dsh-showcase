@@ -20,7 +20,11 @@ export const dijiangHardeningCss = `
   --ef-muted: #828b91;
   --ef-paper: #f1f2ee;
   color: #eef0ec;
-  background: var(--ef-ink);
+  background:
+    radial-gradient(circle at 73% 41%, rgba(67, 217, 231, 0.075), transparent 22%),
+    radial-gradient(circle at 14% 82%, rgba(244, 106, 140, 0.055), transparent 18%),
+    linear-gradient(118deg, rgba(255, 244, 79, 0.055), transparent 34%),
+    var(--ef-ink);
   box-shadow: inset 0 0 0 0.16rem var(--ef-signal);
 }
 
@@ -73,12 +77,35 @@ export const dijiangHardeningCss = `
   inset: 4.5% 0 0;
   background-color: var(--ef-panel);
   background-image:
+    linear-gradient(118deg, rgba(255, 244, 79, 0.055), transparent 30%, rgba(67, 217, 231, 0.045) 66%, transparent 86%),
+    radial-gradient(circle at 76% 31%, rgba(67, 217, 231, 0.1), transparent 22%),
+    radial-gradient(circle at 18% 84%, rgba(244, 106, 140, 0.06), transparent 18%),
     repeating-radial-gradient(ellipse at 72% 48%, transparent 0 1.2rem, rgba(155, 167, 174, 0.13) 1.26rem 1.32rem, transparent 1.38rem 2.38rem),
     linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: auto, 3rem 3rem, 3rem 3rem;
   border: 0;
   clip-path: none;
+}
+
+.field-sheet::before {
+  content: "SYS-05  //  TOPOLOGY LIVE  //  LOCAL ONLY";
+  position: absolute;
+  z-index: 2;
+  top: 7.5%;
+  right: 3.5%;
+  width: 36%;
+  padding: 0.48rem 0 0.36rem;
+  color: #7f8b91;
+  border-top: 1px solid rgba(67, 217, 231, 0.42);
+  border-bottom: 1px solid rgba(255, 244, 79, 0.28);
+  background: repeating-linear-gradient(90deg, rgba(67, 217, 231, 0.07) 0 1px, transparent 1px 0.55rem);
+  font: 800 clamp(0.5rem, 0.62vw, 0.64rem)/1 "Cascadia Mono", "Microsoft YaHei UI", monospace;
+  letter-spacing: 0.08em;
+  text-align: right;
+  opacity: 0.82;
+  animation: dijiang-signal-drift 11s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 .field-sheet::after {
@@ -90,7 +117,7 @@ export const dijiangHardeningCss = `
 
 .field-contours {
   z-index: 3;
-  opacity: 0.32;
+  opacity: 0.42;
   mix-blend-mode: screen;
 }
 
@@ -136,6 +163,19 @@ export const dijiangHardeningCss = `
   border-left: 0.28rem solid var(--ef-signal);
   box-shadow: 0.55rem 0.55rem 0 rgba(0, 0, 0, 0.28);
   clip-path: none;
+}
+
+.field-copy-panel::after {
+  content: "CALIBRATION  /  05  04  03  02  01";
+  position: absolute;
+  z-index: 1;
+  top: 1.1rem;
+  right: 1.15rem;
+  color: #7f888b;
+  font: 800 clamp(0.48rem, 0.58vw, 0.6rem)/1 "Cascadia Mono", "Microsoft YaHei UI", monospace;
+  letter-spacing: 0.08em;
+  writing-mode: vertical-rl;
+  opacity: 0.82;
 }
 
 .mast {
@@ -204,8 +244,9 @@ export const dijiangHardeningCss = `
   top: 30%;
   width: 40%;
   height: 6.5%;
-  background: var(--ef-signal);
-  opacity: 0.88;
+  background: linear-gradient(90deg, var(--ef-signal) 0 60%, #43d9e7 60% 82%, #f46a8c 82% 100%);
+  opacity: 0.84;
+  box-shadow: 0 0 1.15rem rgba(255, 244, 79, 0.18);
 }
 
 .field-blueprint {
@@ -225,6 +266,22 @@ export const dijiangHardeningCss = `
   clip-path: none;
 }
 
+.field-blueprint::after {
+  content: "";
+  position: absolute;
+  z-index: 7;
+  inset: 0.8rem;
+  border: 1px solid rgba(174, 182, 179, 0.28);
+  border-top-color: rgba(255, 244, 79, 0.78);
+  border-right-color: rgba(67, 217, 231, 0.72);
+  background:
+    linear-gradient(90deg, transparent 0 49.8%, rgba(67, 217, 231, 0.1) 50%, transparent 50.2%),
+    linear-gradient(transparent 0 49.8%, rgba(255, 244, 79, 0.08) 50%, transparent 50.2%);
+  opacity: 0.72;
+  animation: dijiang-hud-pulse 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .field-blueprint::before {
   content: "DIJIANG / INDUSTRIAL RELAY / D-0017";
   position: absolute;
@@ -242,7 +299,7 @@ export const dijiangHardeningCss = `
     repeating-linear-gradient(0deg, transparent 0 1.35rem, rgba(168, 179, 185, 0.045) 1.4rem 1.44rem),
     repeating-linear-gradient(90deg, transparent 0 1.35rem, rgba(168, 179, 185, 0.045) 1.4rem 1.44rem);
   background-size: 3rem 3rem, 3rem 3rem, auto, auto;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .field-blueprint__svg .bp-contour {
@@ -435,9 +492,11 @@ export const dijiangHardeningCss = `
   width: min(38vw, 38rem);
   padding: 0.72rem 0.8rem 0.58rem;
   color: #20272b;
-  border-top: 2px solid #111519;
+  border-top: 2px solid var(--ef-signal);
   border-bottom: 1px solid rgba(17, 21, 25, 0.28);
-  background: rgba(241, 242, 238, 0.72);
+  background:
+    linear-gradient(90deg, rgba(255, 244, 79, 0.2), transparent 28%),
+    rgba(241, 242, 238, 0.82);
 }
 
 .field-readout__head,
@@ -489,7 +548,10 @@ export const dijiangHardeningCss = `
   bottom: 16.2%;
   width: min(42vw, 39rem);
   color: #edf0ec;
-  background: #0a0d0f;
+  background:
+    linear-gradient(135deg, rgba(67, 217, 231, 0.08), transparent 42%),
+    repeating-linear-gradient(90deg, transparent 0 4.4rem, rgba(255, 244, 79, 0.055) 4.4rem 4.48rem),
+    #0a0d0f;
   border: 1px solid #434b50;
   border-top: 0.3rem solid var(--ef-signal);
   box-shadow: 0.32rem 0.32rem 0 rgba(0, 0, 0, 0.28);
@@ -503,7 +565,9 @@ export const dijiangHardeningCss = `
   right: 3.5%;
   bottom: 4.8%;
   color: #e8ebe7;
-  background: #080a0c;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 5.8rem, rgba(67, 217, 231, 0.08) 5.8rem 5.86rem),
+    #080a0c;
   border-top: 1px solid #4a5257;
   border-bottom: 1px solid #282e32;
 }
@@ -521,6 +585,16 @@ export const dijiangHardeningCss = `
 .rail span:last-child { color: var(--ef-ink); background: var(--ef-signal); }
 .rail::after { background: var(--ef-signal); }
 .footer { left: 3.5%; bottom: 1.45%; color: #778086; }
+
+@keyframes dijiang-signal-drift {
+  from { transform: translateX(-0.35rem); opacity: 0.48; }
+  to { transform: translateX(0.35rem); opacity: 0.92; }
+}
+
+@keyframes dijiang-hud-pulse {
+  0%, 100% { opacity: 0.42; }
+  50% { opacity: 0.92; }
+}
 
 .loader.loader--field .field-loader-topband {
   height: 3.25rem;
@@ -569,6 +643,9 @@ export const dijiangHardeningCss = `
     border-left-width: 0.22rem;
   }
 
+  .field-sheet::before { top: 6.3%; right: 1rem; width: 52%; font-size: 0.48rem; }
+  .field-copy-panel::after { top: 0.75rem; right: 0.7rem; font-size: 0.43rem; }
+
   .mast { top: 1.2rem; left: 1rem; right: 1rem; }
   .copy { top: 12.5%; left: 1.35rem; width: calc(100% - 2.7rem); }
   .title { font-size: clamp(2.8rem, 12.5vw, 4.2rem); }
@@ -583,6 +660,7 @@ export const dijiangHardeningCss = `
   }
 
   .field-blueprint__tag { left: 0.65rem; bottom: 0.65rem; box-shadow: 0.14rem 0.14rem 0 #4b5358; }
+  .field-blueprint::after { inset: 0.5rem; opacity: 0.56; }
   .field-safety-slab { top: 54%; opacity: 0.34; }
   .metrics { left: 1rem; right: 1rem; width: auto; }
   .field-readout { top: 34%; left: 1.35rem; width: calc(100% - 2.7rem); padding: 0.52rem 0.62rem 0.45rem; }
@@ -598,10 +676,16 @@ export const dijiangHardeningCss = `
 }
 
 @media (max-height: 48rem) and (min-width: 56.25rem) {
+  .dijiang-poster { min-height: 0; }
   .field-copy-panel { top: 7.5%; height: 61%; }
   .copy { top: 13.5%; }
   .field-blueprint { top: 8.5%; }
   .field-blueprint__tag { bottom: clamp(4.5rem, 9vh, 6.5rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-sheet::before,
+  .field-blueprint::after { animation: none; opacity: 0.62; }
 }
 
 /* Endfield-style single-focus startup sequence. */

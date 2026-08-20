@@ -61,6 +61,7 @@ describe("persistent theme motion", () => {
     expect(hardening).toContain("dijiang-reference-reduced-exit");
     expect(hardening).toContain("dijiang-progress-head");
     expect(hardening).toContain("dijiang-instrument-core-spin");
+    expect(hardening).toContain(".dijiang-poster { min-height: 0; }");
     expect(hardening).toContain("height: clamp(0.48rem, 0.74vw, 0.76rem)");
     expect(hardening).toContain("01   EVIDENCE / CONNECTED");
     expect(hardening).toContain("DSH DELIVERY SYSTEM");

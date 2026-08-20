@@ -580,7 +580,7 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("...");
     // The complete two-theme report includes route and manifest evidence in
     // addition to the bounded project copy.
-    expect(poster.length).toBeLessThan(105_000);
+    expect(poster.length).toBeLessThan(110_000);
   });
 
   it("rejects unsupported locales", async () => {

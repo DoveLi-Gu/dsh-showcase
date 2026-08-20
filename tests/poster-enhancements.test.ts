@@ -69,6 +69,7 @@ describe("poster material and empty-state enhancements", () => {
     expect(dijiang).toContain("dijiang-instrument-core-spin");
     expect(dijiang).toContain("background:#0b0f0d");
     expect(dijiang).toContain("@media(prefers-reduced-motion:reduce)");
+    expect(dijiang).toContain("@media(max-height:48rem) and (min-width:56.25rem){.dijiang-poster{min-height:0}");
     expect(dijiang).not.toContain(".loader.loader--fish .field-loader-instrument");
     expect(fish).not.toContain("field-loader-instrument");
     expect(fish).not.toContain("dijiang-loader-sweep-rotate");
