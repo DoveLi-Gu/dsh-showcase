@@ -6,7 +6,7 @@
 
 [打开 README.md](README.md)
 
-赞助商：**鸽子中转站（Pigeon API Relay）**。它是一站式 AI API 中转服务，兼容 OpenAI API 格式，覆盖多类文本、代码与图像模型，并支持统一管理 API Key、余额、用量和订阅权益；详情见主 README 快速开始后的赞助商区域。
+赞助商：**鸽子中转站（Pigeon API Relay）**。它兼容 OpenAI API 格式，提供 GPT-5.6 全系列、Claude Opus 5、Fable 5 等重点模型和多种国产模型，并支持余额按量、日卡/月卡订阅及统一权益管理；详情见主 README 快速开始后的赞助商区域。
 
 本项目提供两套主题：
 

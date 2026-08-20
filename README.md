@@ -187,9 +187,9 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 <h3 align="center"><a href="https://api.doveli.top/">鸽子中转站 · Pigeon API Relay</a></h3>
 
-鸽子中转站（Pigeon API Relay）是一站式 AI API 中转服务：兼容 OpenAI API 格式，提供稳定、透明、易接入的模型调用入口。平台覆盖 GPT-5.6 系列、GPT-5.5、GPT-5.4、DeepSeek V4 Pro/Flash、Claude Opus 4.8、Opus 4.7、Sonnet 4.6，以及 Gemini、Grok、Qwen、Kimi、GLM、MiniMax 和部分图像模型。
+鸽子中转站（Pigeon API Relay）是一站式 AI API 中转服务，兼容 OpenAI API 格式，重点提供 GPT-5.6 全系列、Claude Opus 5、Fable 5 等模型，同时覆盖多种国产模型，适用于 AI 编程、日常对话、内容创作和图像生成等场景。
 
-在一个控制台里，你可以统一管理 API Key、模型调用、账户余额、用量和订阅权益，并随时查看模型价格、服务状态和接入文档。无论是 AI 编程、日常对话、内容创作、图像生成，还是快速配置和长期使用，都能按自己的节奏接入；具体可用模型、价格与服务状态，以鸽子中转站页面的实时信息为准。
+平台提供余额按量与订阅套餐两种使用方式，包含灵活的日卡、月卡方案；模型价格清晰，API Key、模型调用、余额、用量和订阅权益都可统一管理，并配套模型价格、服务状态及接入文档查询。无论是个人开发、客户端接入、AI 编程还是长期使用，都可以按需选择。具体可用模型、价格及套餐权益，以鸽子中转站站内页面实时信息为准。
 
 <p align="center">
   <a href="https://api.doveli.top/register"><strong>创建账户</strong></a>
@@ -207,7 +207,7 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 ### 赞助中转
 
-[想让你的中转服务显示在下方？](https://github.com/DoveLi-Gu/dsh-showcase/issues) 请在 Issue 中提供名称、Logo、入口链接和简短介绍。
+> 赞助中转列表暂时仅展示当前合作方，新的展示申请尚未开放。
 
 <table>
   <thead>
@@ -225,8 +225,8 @@ $showcaseRepo = "C:\tools\dsh-showcase"
         </a>
       </td>
       <td>
-        <strong>一站式 AI API 中转服务，兼容 OpenAI API 格式。</strong><br>
-        支持统一管理 API Key、模型调用、余额、用量和订阅权益，并提供模型价格、服务状态与接入文档查询；覆盖 AI 编程、对话、内容创作和图像生成等使用场景。
+        <strong>兼容 OpenAI API 格式，覆盖重点模型与多种国产模型。</strong><br>
+        支持余额按量与日卡/月卡订阅，统一管理 API Key、模型调用、余额、用量和订阅权益，适合个人开发、客户端接入、AI 编程及长期使用。
       </td>
     </tr>
   </tbody>
