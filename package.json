@@ -1,6 +1,6 @@
 {
   "name": "dsh-showcase",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local, verifiable delivery evidence reports for coding-agent work.",
   "type": "module",
   "main": "./plugin/client-host.js",
@@ -14,7 +14,14 @@
   "bugs": {
     "url": "https://github.com/DoveLi-Gu/dsh-showcase/issues"
   },
-  "keywords": ["deepseek-harness", "dsh-plugin", "coding-agent", "delivery-evidence", "proof-of-work", "developer-tools"],
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "coding-agent",
+    "delivery-evidence",
+    "proof-of-work",
+    "developer-tools"
+  ],
   "engines": {
     "node": ">=20"
   },
@@ -29,7 +36,9 @@
     "./package.json": "./package.json"
   },
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "inject": [
         "@deepseek-ai/dsh-client-connection",
@@ -72,7 +81,29 @@
     "init": "tsx src/cli/index.ts init",
     "capture": "tsx src/cli/index.ts capture"
   },
-  "dependencies": { "@deepseek-ai/dsh-settings": "^0.1.0-rc.6", "@deepseek-ai/schemastery": "^3.18.1", "zod": "latest" },
-  "peerDependencies": { "@deepseek-ai/dsh-tools": "^0.1.0-rc.6", "@deepseek-ai/cordis": "^4.0.1" },
-  "devDependencies": { "@deepseek-ai/cordis": "^4.0.1", "@deepseek-ai/dsh-tools": "^0.1.0-rc.6", "@types/node": "latest", "@types/react": "latest", "@types/react-dom": "latest", "@vitejs/plugin-react": "latest", "jsdom": "latest", "lucide-react": "latest", "react": "latest", "react-dom": "latest", "tsx": "latest", "typescript": "latest", "vite": "latest", "vitest": "latest" }
+  "dependencies": {
+    "@deepseek-ai/dsh-settings": "^0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1",
+    "zod": "latest"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "jsdom": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest"
+  }
 }
