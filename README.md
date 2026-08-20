@@ -32,20 +32,6 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 <p><img src="docs/assets/blue-big-fish-mobile-latest.png" alt="蓝色大肥鱼移动端 1K 预览，455 x 1024" width="220"></p>
 </details>
 
-## 赞助商
-
-感谢 **鸽子中转站（Pigeon Relay）** 对 `dsh-showcase` 的支持。
-
-鸽子中转站是一个独立运营的 AI API 中转服务，面向支持兼容 API 的开发工具。想了解服务入口、可用性和最新公告，请以官方页面为准：
-
-<p>
-  <a href="https://api.doveli.top/">访问鸽子中转站</a>
-  ·
-  <a href="https://api.doveli.top/status/">查看服务状态</a>
-</p>
-
-> 这是独立第三方服务，与 `dsh-showcase`、DSH、DeepSeek 或 OpenAI 没有官方隶属关系。使用前请自行确认服务条款、价格、隐私政策和可用性；本项目不代收款、不保存 API Key，也不保证第三方服务持续可用。
-
 ## 你需要什么
 
 - **必须**：已经可以运行的 DSH Web 环境；
@@ -178,6 +164,32 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 ~~~
 
 随后在 DSH 会话中调用 `showcase_layout_summary`。`init` 只执行一次；以后每次改完代码、测试和截图后，只需要重新执行 `capture`，再重新生成摘要。
+
+## 赞助商
+
+感谢 **鸽子中转站（Pigeon Relay）** 对 `dsh-showcase` 的支持。
+
+<table align="center">
+  <tr>
+    <td align="center" width="180">
+      <a href="https://api.doveli.top/">
+        <img src="docs/assets/pigeon-logo-512.png" alt="鸽子中转站 Logo" width="128">
+      </a>
+    </td>
+    <td>
+      <h3><a href="https://api.doveli.top/">鸽子中转站</a></h3>
+      <p><code>PIGEON RELAY</code> · 独立运营的 AI API 中转服务</p>
+      <p>面向支持兼容 API 的开发工具，提供服务入口与可用性查询。</p>
+      <p><a href="https://api.doveli.top/">访问服务</a> · <a href="https://api.doveli.top/status/">查看状态</a></p>
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <a href="https://github.com/DoveLi-Gu/dsh-showcase/issues">申请展示赞助</a>
+</p>
+
+> 这是独立第三方服务，与 `dsh-showcase`、DSH、DeepSeek 或 OpenAI 没有官方隶属关系。使用前请自行确认服务条款、价格、隐私政策和可用性；本项目不代收款、不保存 API Key，也不保证第三方服务持续可用。
 
 ## 最省事的用法
 
