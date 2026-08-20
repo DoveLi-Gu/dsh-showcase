@@ -64,7 +64,13 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 <details>
 <summary><strong>第一步：安装插件</strong></summary>
 
-当前版本尚未发布到 npm，因此先从 GitHub 源码安装。仓库放在固定目录后，DSH 插件和采集 CLI 可以共用同一份代码。
+插件运行时已发布到 npm。推荐优先使用 npm 安装插件；如果需要运行采集 CLI 或参与开发，再从 GitHub 源码安装完整仓库。
+
+~~~powershell
+dsh plugin --profile web add dsh-showcase
+~~~
+
+如果你需要同时使用采集 CLI，继续按下面的源码方式安装。仓库放在固定目录后，DSH 插件和采集 CLI 可以共用同一份代码。
 
 ~~~powershell
 Set-Location C:\tools
@@ -84,7 +90,7 @@ dsh plugin --profile web add "C:\tools\dsh-showcase"
 
 主题只在插件设置中选择，目标项目不需要增加主题字段。
 
-> **发布到 npm 后**：DSH 插件入口会改为 `dsh plugin --profile web add dsh-showcase`。当前版本尚未发布到 npm，也不要使用 `npm install --global dsh-showcase`：npm 包目前提供的是 DSH 插件运行时，不是全局 CLI。采集 CLI 仍按上面的 GitHub 源码目录运行。
+> **npm 包说明**：插件入口可以使用 `dsh plugin --profile web add dsh-showcase` 安装。不要使用 `npm install --global dsh-showcase`：npm 包提供的是 DSH 插件运行时，不是全局 CLI。采集 CLI 仍按上面的 GitHub 源码目录运行。
 
 </details>
 
