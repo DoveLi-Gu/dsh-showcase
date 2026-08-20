@@ -12,7 +12,7 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 
 > 本项目是社区工具，不是 DeepSeek、DSH 或《终末地》的官方产品。主题名仅描述视觉风格，不代表官方授权。演示素材说明见 [CHARACTER_ASSET_NOTICE.md](CHARACTER_ASSET_NOTICE.md)。
 
-**目录**： [功能](#它能帮你做什么) · [快速开始](#5-分钟快速开始) · [产物](#生成了哪些文件) · [截图](#截图证据) · [工具参数](#工具参数) · [边界与安全](#安全与边界) · [开发](#从源码开发)
+**目录**： [功能](#它能帮你做什么) · [赞助商](#赞助商) · [快速开始](#5-分钟快速开始) · [产物](#生成了哪些文件) · [截图](#截图证据) · [工具参数](#工具参数) · [边界与安全](#安全与边界) · [开发](#从源码开发)
 
 ## 先看效果
 
@@ -31,6 +31,20 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 <p><img src="docs/assets/blue-big-fish-desktop-latest.png" alt="蓝色大肥鱼桌面 1K 预览，1024 x 640" width="680"></p>
 <p><img src="docs/assets/blue-big-fish-mobile-latest.png" alt="蓝色大肥鱼移动端 1K 预览，455 x 1024" width="220"></p>
 </details>
+
+## 赞助商
+
+感谢 **鸽子中转站（Pigeon Relay）** 对 `dsh-showcase` 的支持。
+
+鸽子中转站是一个独立运营的 AI API 中转服务，面向支持兼容 API 的开发工具。想了解服务入口、可用性和最新公告，请以官方页面为准：
+
+<p>
+  <a href="https://api.doveli.top/">访问鸽子中转站</a>
+  ·
+  <a href="https://api.doveli.top/status/">查看服务状态</a>
+</p>
+
+> 这是独立第三方服务，与 `dsh-showcase`、DSH、DeepSeek 或 OpenAI 没有官方隶属关系。使用前请自行确认服务条款、价格、隐私政策和可用性；本项目不代收款、不保存 API Key，也不保证第三方服务持续可用。
 
 ## 你需要什么
 

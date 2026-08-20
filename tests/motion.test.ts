@@ -88,6 +88,8 @@ describe("persistent theme motion", () => {
 
     expect(css).toContain(".fish-poster__portrait { top: 34%; right: -7%; width: 68%; height: 76%; opacity: .16; }");
     expect(css).toContain(".fish-poster__portrait { top: 40%; right: -22%; width: 104%; height: 70%; opacity: .13; }");
+    expect(css).toContain("@media (min-width: 901px) and (max-height: 48rem)");
+    expect(css).toContain("height: calc(100svh - 148px);");
   });
 
   it("renders report screenshot paths instead of placeholder interface blocks", async () => {

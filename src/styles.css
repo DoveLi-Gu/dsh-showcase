@@ -384,6 +384,15 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .overview-grid { grid-template-columns: 1.4fr repeat(3, 1fr); }
 }
 
+/* Keep the 1K desktop export inside a short viewport instead of cropping its footer. */
+@media (min-width: 901px) and (max-height: 48rem) {
+  .fish-poster {
+    min-height: 0;
+    height: calc(100svh - 148px);
+    aspect-ratio: auto;
+  }
+}
+
 @media (max-width: 900px) {
   .app { padding: 15px; }
   .report-header { grid-template-columns: 1fr auto; }
