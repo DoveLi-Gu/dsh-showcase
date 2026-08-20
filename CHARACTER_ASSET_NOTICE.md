@@ -11,8 +11,12 @@ The following demonstration assets are excluded from that MIT grant:
 - `plugin/assets/dijiang-survey-surface.webp`
 - `docs/assets/dijiang-desktop-latest.png`
 - `docs/assets/dijiang-mobile-latest.png`
+- `docs/assets/dijiang-desktop-readme.png`
+- `docs/assets/dijiang-mobile-readme.png`
 - `docs/assets/blue-big-fish-desktop-latest.png`
 - `docs/assets/blue-big-fish-mobile-latest.png`
+- `docs/assets/blue-big-fish-desktop-readme.png`
+- `docs/assets/blue-big-fish-mobile-readme.png`
 - `public/frontier-industrial.webp`
 - `plugin/assets/frontier-industrial.webp`
 

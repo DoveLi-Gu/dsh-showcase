@@ -13,15 +13,21 @@
 <details open>
 <summary>终末地帝江号主题</summary>
 
-<p><img src="docs/assets/dijiang-desktop-latest.png" alt="终末地帝江号主题桌面报告" width="680"></p>
-<p><img src="docs/assets/dijiang-mobile-latest.png" alt="终末地帝江号主题移动端报告" width="280"></p>
+<p><strong>桌面首屏预览</strong> · 点击图片查看完整桌面交付证据</p>
+<p><a href="docs/assets/dijiang-desktop-latest.png"><img src="docs/assets/dijiang-desktop-readme.png" alt="终末地帝江号主题桌面首屏预览，点击查看完整报告" width="680"></a></p>
+
+<p><strong>移动端首屏预览</strong> · <a href="docs/assets/dijiang-mobile-latest.png">查看完整移动端长图（375 × 3609）</a></p>
+<p><a href="docs/assets/dijiang-mobile-latest.png"><img src="docs/assets/dijiang-mobile-readme.png" alt="终末地帝江号主题移动端首屏预览，点击查看完整长图" width="220"></a></p>
 </details>
 
 <details>
 <summary>蓝色大肥鱼主题</summary>
 
-<p><img src="docs/assets/blue-big-fish-desktop-latest.png" alt="蓝色大肥鱼主题桌面报告" width="680"></p>
-<p><img src="docs/assets/blue-big-fish-mobile-latest.png" alt="蓝色大肥鱼主题移动端报告" width="280"></p>
+<p><strong>桌面首屏预览</strong> · 点击图片查看完整桌面交付证据</p>
+<p><a href="docs/assets/blue-big-fish-desktop-latest.png"><img src="docs/assets/blue-big-fish-desktop-readme.png" alt="蓝色大肥鱼主题桌面首屏预览，点击查看完整报告" width="680"></a></p>
+
+<p><strong>移动端首屏预览</strong> · <a href="docs/assets/blue-big-fish-mobile-latest.png">查看完整移动端长图（375 × 1719）</a></p>
+<p><a href="docs/assets/blue-big-fish-mobile-latest.png"><img src="docs/assets/blue-big-fish-mobile-readme.png" alt="蓝色大肥鱼主题移动端首屏预览，点击查看完整长图" width="220"></a></p>
 </details>
 
 ## 能做什么
