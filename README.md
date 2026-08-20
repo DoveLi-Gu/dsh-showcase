@@ -12,7 +12,7 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 
 > 本项目是社区工具，不是 DeepSeek、DSH 或《终末地》的官方产品。主题名仅描述视觉风格，不代表官方授权。演示素材说明见 [CHARACTER_ASSET_NOTICE.md](CHARACTER_ASSET_NOTICE.md)。
 
-**目录**： [功能](#它能帮你做什么) · [赞助商](#赞助商) · [快速开始](#5-分钟快速开始) · [产物](#生成了哪些文件) · [截图](#截图证据) · [工具参数](#工具参数) · [边界与安全](#安全与边界) · [开发](#从源码开发)
+**目录**： [功能](#它能帮你做什么) · [快速开始](#5-分钟快速开始) · [赞助商](#赞助商) · [产物](#生成了哪些文件) · [截图](#截图证据) · [工具参数](#工具参数) · [边界与安全](#安全与边界) · [开发](#从源码开发)
 
 ## 先看效果
 
@@ -167,29 +167,60 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 ## 赞助商
 
-感谢 **鸽子中转站（Pigeon Relay）** 对 `dsh-showcase` 的支持。
-
-<table align="center">
-  <tr>
-    <td align="center" width="180">
-      <a href="https://api.doveli.top/">
-        <img src="docs/assets/pigeon-logo-512.png" alt="鸽子中转站 Logo" width="128">
-      </a>
-    </td>
-    <td>
-      <h3><a href="https://api.doveli.top/">鸽子中转站</a></h3>
-      <p><code>PIGEON RELAY</code> · 独立运营的 AI API 中转服务</p>
-      <p>面向支持兼容 API 的开发工具，提供服务入口与可用性查询。</p>
-      <p><a href="https://api.doveli.top/">访问服务</a> · <a href="https://api.doveli.top/status/">查看状态</a></p>
-    </td>
-  </tr>
-</table>
-
 <p align="center">
-  <a href="https://github.com/DoveLi-Gu/dsh-showcase/issues">申请展示赞助</a>
+  <a href="https://api.doveli.top/">
+    <img src="docs/assets/pigeon-logo-512.png" alt="鸽子中转站 Logo" width="152">
+  </a>
 </p>
 
-> 这是独立第三方服务，与 `dsh-showcase`、DSH、DeepSeek 或 OpenAI 没有官方隶属关系。使用前请自行确认服务条款、价格、隐私政策和可用性；本项目不代收款、不保存 API Key，也不保证第三方服务持续可用。
+<h3 align="center"><a href="https://api.doveli.top/">鸽子中转站 · Pigeon API Relay</a></h3>
+
+<p align="center"><strong>稳定、清晰的 AI API 接入。一处接入，持续抵达。</strong></p>
+
+鸽子中转站为 Codex、Claude Code、OpenCode 等 Agent 工具提供统一 API 接入。你可以在一个控制台中独立管理密钥，查看模型、Token、费用与响应状态，并通过稳定路由和故障切换减少开发流程中的连接中断。
+
+除了按实际用量计费，还提供 **日卡与月卡订阅套餐**：日卡适合短期集中任务，月卡适合持续开发。订阅页面可查看套餐有效期和用量，注册后还可领取体验额度，再根据自己的调用节奏选择计费方式。
+
+<p align="center">
+  <a href="https://api.doveli.top/register"><strong>创建账户</strong></a>
+  ·
+  <a href="https://api.doveli.top/model-pricing/">模型与价格</a>
+  ·
+  <a href="https://api.doveli.top/subscriptions">订阅套餐</a>
+  ·
+  <a href="https://api.doveli.top/key-usage">用量查询</a>
+  ·
+  <a href="https://www.doveli.top/docs/">接入文档</a>
+  ·
+  <a href="https://api.doveli.top/status/">服务状态</a>
+</p>
+
+### 赞助中转
+
+[想让你的中转服务显示在下方？](https://github.com/DoveLi-Gu/dsh-showcase/issues) 请在 Issue 中提供名称、Logo、入口链接和简短介绍。
+
+<table>
+  <thead>
+    <tr>
+      <th align="center" width="190">赞助中转</th>
+      <th align="left">介绍</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center">
+        <a href="https://api.doveli.top/">
+          <img src="docs/assets/pigeon-logo-512.png" alt="鸽子中转站 Logo" width="92"><br>
+          <strong>鸽子中转站</strong>
+        </a>
+      </td>
+      <td>
+        <strong>面向日常开发与 Agent 工作流的统一 AI API 中转服务。</strong><br>
+        支持在一个控制台中管理密钥、用量与账单，提供透明调用记录、稳定路由和故障切换；同时支持按量计费与日卡/月卡订阅，兼顾短期集中任务和长期开发需求。
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## 最省事的用法
 
