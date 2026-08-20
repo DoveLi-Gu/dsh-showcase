@@ -207,13 +207,23 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 <table>
   <thead>
     <tr>
-      <th align="center" width="190">赞助中转</th>
+      <th align="center" width="190">赞助商</th>
       <th align="left">介绍</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td align="center" colspan="2">当前暂无可展示的赞助中转。</td>
+      <td align="center" valign="middle">
+        <a href="https://api.doveli.top/">
+          <img src="docs/assets/pigeon-logo-512.png" alt="鸽子中转站 Logo" width="92"><br>
+          <strong>鸽子中转站</strong>
+        </a>
+      </td>
+      <td>
+        <p><strong>稳定、透明、易接入的 AI API 中转服务，兼容 OpenAI API 格式。</strong></p>
+        <p>重点提供 GPT-5.6 全系列、Claude Opus 5、Fable 5 等模型，同时覆盖多种国产模型，适用于 AI 编程、客户端接入、日常对话、内容创作和图像生成等场景。</p>
+        <p>平台支持余额按量与订阅套餐两种方式，包含灵活的日卡、月卡方案；用户可以统一管理 API Key、模型调用、余额、用量和订阅权益，并查看模型价格、套餐权益、服务状态和详细接入文档。具体模型、价格及套餐权益以站内实时信息为准。</p>
+      </td>
     </tr>
   </tbody>
 </table>
