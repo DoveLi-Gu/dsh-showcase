@@ -1,0 +1,22 @@
+name: 功能建议
+description: 提议新的证据来源、兼容性或工作流改进
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 使用场景与问题
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: 边界情况
+      description: 例如无 Git、无测试、超长输入、不同系统或非前端项目。

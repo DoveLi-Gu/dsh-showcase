@@ -5,8 +5,11 @@ import {
 } from "lucide-react";
 import dijiangThemeHtml from "./dijiang-theme.html?raw";
 import { demoReport } from "./core/browser";
+import { hardenDijiangDocument } from "./dijiang-hardening";
 
 type Theme = "dijiang" | "fish";
+
+const hardenedDijiangThemeHtml = hardenDijiangDocument(dijiangThemeHtml);
 
 const diffs: Record<string, string[]> = {
   "src/App.tsx": ["@@ -1,8 +1,42 @@", "-export default function App() {", "-  return <main>Ready</main>;", "+export default function App() {", "+  return <ReportWorkspace report={demoReport} />;", "+}", "+", "+function ReportWorkspace() {", "+  return <main className=\"report-shell\">...</main>;", "+}"],
@@ -183,7 +186,7 @@ export default function App() {
   }, []);
 
   if (theme === "dijiang") {
-    return <iframe className="dijiang-theme-frame" title="终末地帝江号交付证据" srcDoc={dijiangThemeHtml} />;
+    return <iframe className="dijiang-theme-frame" title="终末地帝江号交付证据" srcDoc={hardenedDijiangThemeHtml} />;
   }
 
   const formatDurationZh = (milliseconds: number) => {

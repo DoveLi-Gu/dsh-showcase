@@ -1,0 +1,47 @@
+name: Bug 报告
+description: 报告可复现的功能、兼容性或输出问题
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: 请勿粘贴真实密钥、私有报告或包含敏感信息的截图。
+  - type: input
+    id: version
+    attributes:
+      label: 版本或提交
+      placeholder: v0.1.0 或 commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境
+      description: 操作系统、Node.js、npm、DSH 版本和项目类型。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 隐私确认
+      options:
+        - label: 我已删除密钥、私有路径、账号和私密项目内容。
+          required: true

@@ -154,7 +154,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   isolation: isolate;
   min-height: 620px;
   aspect-ratio: 16 / 9;
-  overflow: hidden;
+  overflow: clip;
   margin: 22px 0 32px;
   animation: poster-fade .3s ease-out both;
 }
@@ -405,6 +405,10 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .goal { grid-column: 1 / -1; border-bottom: 1px solid var(--line); }
   .gallery { grid-template-columns: 1.5fr 1fr .72fr; gap: 8px; }
   .comparison { height: 220px; }
+}
+
+@media (min-width: 561px) and (max-width: 900px) {
+  .fish-poster__pop.pop-one { top: 56%; right: 4%; }
 }
 
 @media (max-width: 560px) {

@@ -6,6 +6,7 @@ const stylesUrl = new URL("../src/styles.css", import.meta.url);
 const appUrl = new URL("../src/App.tsx", import.meta.url);
 const mainUrl = new URL("../src/main.tsx", import.meta.url);
 const dijiangThemeUrl = new URL("../src/dijiang-theme.html", import.meta.url);
+const dijiangHardeningUrl = new URL("../src/dijiang-hardening.ts", import.meta.url);
 
 describe("persistent theme motion", () => {
   it("keeps the approved Dijiang motion and the fish poster motion intact", async () => {
@@ -36,10 +37,11 @@ describe("persistent theme motion", () => {
   });
 
   it("hands the document to the approved Dijiang artifact verbatim and keeps fish as the other public theme", async () => {
-    const [app, main, dijiang] = await Promise.all([
+    const [app, main, dijiang, hardening] = await Promise.all([
       readFile(appUrl, "utf8"),
       readFile(mainUrl, "utf8"),
       readFile(dijiangThemeUrl, "utf8"),
+      readFile(dijiangHardeningUrl, "utf8"),
     ]);
 
     expect(app).toContain("function FishPoster");
@@ -49,10 +51,27 @@ describe("persistent theme motion", () => {
     expect(main).toContain("document.open()");
     expect(main).toContain("document.write(dijiangThemeHtml)");
     expect(main).toContain("document.close()");
+    expect(main).toContain('params.get("motion") === "accessible" ? "accessible" : "full"');
+    expect(main).toContain("dataset.dijiangMotion = motionMode");
+    expect(main).toContain("dijiangReadoutMarkup");
+    expect(hardening).toContain("field-readout");
+    expect(hardening).toContain("dijiang-reference-exit");
+    expect(hardening).toContain("dijiang-yellow-transfer");
+    expect(hardening).toContain("clip-path: polygon(0 0, 92% 0, 100% 100%, 8% 100%)");
+    expect(hardening).toContain("dijiang-reference-reduced-exit");
+    expect(hardening).toContain("dijiang-progress-head");
+    expect(hardening).toContain("dijiang-instrument-core-spin");
+    expect(hardening).toContain("height: clamp(0.48rem, 0.74vw, 0.76rem)");
+    expect(hardening).toContain("01   EVIDENCE / CONNECTED");
+    expect(hardening).toContain("DSH DELIVERY SYSTEM");
     expect(app).toContain("return dijiangThemeHtml");
-    expect(createHash("sha256").update(dijiang).digest("hex")).toBe("cdb4b1ab96de4ca433741e0693120c9fa671a6bea2ed7282e48ba3de1c14e0ed");
+    expect(createHash("sha256").update(dijiang).digest("hex")).toBe("2756ad6f3925dfcfa991a7d5df524cff3d3079843b29e70a0ef7a091e89f7a6a");
     expect(dijiang).toContain("终末地帝江号 / 正在汇聚交付证据");
     expect(dijiang).toContain("终末地帝江号 / 任务完成 / 交付通告");
+    expect(dijiang).toContain("帝江号 / 交付拓扑 / 0017");
+    expect(dijiang).toContain('class="bp-stage bp-stage--five"');
+    expect(dijiang).toContain('viewBox="80 90 620 400" preserveAspectRatio="xMidYMid meet"');
+    expect(dijiang).toContain("M156 258L360 320");
     expect(app).not.toContain("边境信号");
     expect(app).not.toContain('theme === "field"');
     expect(app).not.toContain("function DijiangContours");

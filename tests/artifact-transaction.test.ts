@@ -67,6 +67,7 @@ describe("artifact transaction rollback", () => {
     expect(injected).toBe(true);
     expect(await readFile(posterPath, "utf8")).toBe("previous poster");
     expect(await readFile(summaryPath, "utf8")).toBe("previous summary");
+    await expect(readFile(join(projectPath, ".showcase", "dsh-dijiang-survey.webp"))).rejects.toMatchObject({ code: "ENOENT" });
     expect((await readdir(join(projectPath, ".showcase"))).filter((name) => name.includes(".tmp-") || name.includes(".backup"))).toEqual([]);
   });
 });

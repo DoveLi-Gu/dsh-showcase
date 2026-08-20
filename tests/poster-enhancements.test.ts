@@ -60,6 +60,13 @@ describe("poster material and empty-state enhancements", () => {
     expect(dijiang).toContain("instrument-tick--major");
     expect(dijiang).toContain("dijiang-loader-sweep-rotate");
     expect(dijiang).toContain("dijiang-loader-scan-final");
+    expect(dijiang).toContain("dijiang-yellow-transfer");
+    expect(dijiang).toContain("clip-path:polygon(0 0,92% 0,100% 100%,8% 100%)");
+    expect(dijiang).toContain("DIJIANG INDUSTRIES");
+    expect(dijiang).toContain("dijiang-reference-reduced-exit");
+    expect(dijiang).toContain('data-dijiang-motion="full"');
+    expect(dijiang).toContain("dijiang-progress-head");
+    expect(dijiang).toContain("dijiang-instrument-core-spin");
     expect(dijiang).toContain("background:#0b0f0d");
     expect(dijiang).toContain("@media(prefers-reduced-motion:reduce)");
     expect(dijiang).not.toContain(".loader.loader--fish .field-loader-instrument");
@@ -86,6 +93,8 @@ describe("poster material and empty-state enhancements", () => {
     const poster = await renderPoster({ theme: "frontier-signal", evidenceThemeName: "终末地帝江号" });
 
     expect(poster).toContain('data-theme="frontier-signal"');
+    expect(poster).toContain('class="field-readout"');
+    expect(poster).toContain("LOCAL / VERIFIED");
     expect(poster).toContain(".manifest-block .manifest-empty{display:block");
     expect(poster).not.toContain("backdrop-filter");
     expect(poster).not.toContain("fish-glass-flow");

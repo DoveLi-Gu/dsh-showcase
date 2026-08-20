@@ -6,6 +6,7 @@ import { formatReportIssues, reportSchema } from "./report-schema.js";
 const DEFAULT_REPORT_PATH = ".showcase/report.json";
 const DEFAULT_OUTPUT_PATH = ".showcase/layout-summary.md";
 const DEFAULT_POSTER_PATH = ".showcase/layout-poster.html";
+const DIJIANG_SURFACE_FILENAME = "dsh-dijiang-survey.webp";
 const STAGE_IDS = ["PROMPT", "BUILD", "TEST", "CAPTURE", "SHIP"];
 const STAGE_LABELS = { "zh-CN": ["提示", "构建", "测试", "捕获", "交付"], en: STAGE_IDS };
 const LOCALES = new Set(["zh-CN", "en"]);
@@ -190,7 +191,8 @@ async function writeArtifactFiles(artifacts) {
     for (const artifact of artifacts) {
       await mkdir(dirname(artifact.path), { recursive: true });
       const temporaryPath = stagedFilePath(artifact.path);
-      await writeFile(temporaryPath, artifact.content, "utf8");
+      if (typeof artifact.content === "string") await writeFile(temporaryPath, artifact.content, "utf8");
+      else await writeFile(temporaryPath, artifact.content);
       staged.push({ ...artifact, temporaryPath });
     }
     for (const artifact of staged) {
@@ -732,13 +734,22 @@ export async function generateLayoutSummary(options = {}) {
   ]);
   const [reportPath, outputPath] = paths;
   const posterPath = generatePoster ? paths[2] : undefined;
+  const surfaceAssetPath = generatePoster && theme === "frontier-signal"
+    ? resolve(dirname(posterPath), DIJIANG_SURFACE_FILENAME)
+    : undefined;
   await assertDistinctArtifactPaths([
     ["reportPath", reportPath],
     ["outputPath", outputPath],
     ...(generatePoster ? [["posterPath", posterPath]] : []),
+    ...(surfaceAssetPath ? [["surfaceAssetPath", surfaceAssetPath]] : []),
   ]);
   assertArtifactOutputPath(projectPath, outputPath, "outputPath", MARKDOWN_EXTENSIONS);
   if (generatePoster) assertArtifactOutputPath(projectPath, posterPath, "posterPath", HTML_EXTENSIONS);
+  if (surfaceAssetPath) {
+    if (!isInside(resolve(projectPath, ".showcase"), surfaceAssetPath) || extname(surfaceAssetPath).toLowerCase() !== ".webp") {
+      throw new Error("surfaceAssetPath must resolve to a WebP file inside the project's .showcase directory.");
+    }
+  }
   const { appPath, cssPath } = await discoverLayoutSources(projectPath, options);
   let report;
 
@@ -768,8 +779,11 @@ export async function generateLayoutSummary(options = {}) {
     // Static HTML projects often keep responsive rules in an inline <style>
     // block. Let that source feed breakpoint detection when no .css file exists.
     if (!css && appPath && [".html", ".htm"].includes(sourceExtension(appPath))) css = app;
-    if (generatePoster && theme === "blue-big-fish") {
-      posterImage = await readFile(new URL("./assets/whale-girl-keyvisual.webp", import.meta.url));
+    if (generatePoster) {
+      posterImage = await readFile(new URL(
+        theme === "blue-big-fish" ? "./assets/whale-girl-keyvisual.webp" : "./assets/dijiang-survey-surface.webp",
+        import.meta.url,
+      ));
     }
   } catch (error) {
     throw new Error(`Unable to read layout sources or poster asset: ${error instanceof Error ? error.message : String(error)}`);
@@ -886,6 +900,7 @@ export async function generateLayoutSummary(options = {}) {
   if (generatePoster) {
     const posterHtml = createStyledPosterHtml({
       image: posterImage.toString("base64"),
+      surfaceImage: surfaceAssetPath ? `./${DIJIANG_SURFACE_FILENAME}` : "",
       projectName,
       task: taskText,
       stages,
@@ -923,6 +938,7 @@ export async function generateLayoutSummary(options = {}) {
     sanitizedPoster = posterHtml.replaceAll(projectPath, "[PATH OMITTED]");
   }
   await writeArtifactFiles([
+    ...(surfaceAssetPath ? [{ path: surfaceAssetPath, content: posterImage }] : []),
     ...(generatePoster ? [{ path: posterPath, content: sanitizedPoster }] : []),
     { path: outputPath, content: sanitizedMarkdown },
   ]);

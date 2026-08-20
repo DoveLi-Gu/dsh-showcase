@@ -68,8 +68,15 @@ describe("generateLayoutSummary", () => {
     expect(poster).toContain("requestAnimationFrame(tick)");
     expect(poster).toContain("@keyframes field-loader-exit");
     expect(poster).toContain("@keyframes field-loader-anchor");
-    expect(poster).toContain("field-loader-exit-v3 3.8s");
-    expect(poster).toContain("field-loader-diagram-scan-mobile-v3");
+    expect(poster).toContain("dijiang-loader-exit-final 4.35s");
+    expect(poster).toContain("dijiang-loader-scan-final");
+    expect(poster).toContain("帝江号 / 交付拓扑 / 0017");
+    expect(poster).toContain('class="bp-stage bp-stage--five"');
+    expect(poster).toContain("EVIDENCE TOPOLOGY / 05 NODES / LINK 04");
+    expect(poster).toContain('viewBox="80 90 620 400" preserveAspectRatio="xMidYMid meet"');
+    expect(poster).toContain("M156 258L360 320");
+    expect(poster).toContain("./dsh-dijiang-survey.webp");
+    await expect(readFile(join(projectPath, ".showcase", "dsh-dijiang-survey.webp"))).resolves.toHaveLength(80_306);
     expect(poster).toContain('querySelector(".loader")');
     expect(poster).toContain("prefers-reduced-motion");
     expect(poster).not.toContain("未捕获");

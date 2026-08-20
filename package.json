@@ -5,7 +5,23 @@
   "type": "module",
   "main": "./plugin/client-host.js",
   "license": "MIT",
-  "keywords": ["deepseek-harness", "dsh-plugin", "coding-agent", "proof-of-work", "developer-tools"],
+  "author": "DoveLi-Gu",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DoveLi-Gu/dsh-showcase.git"
+  },
+  "homepage": "https://github.com/DoveLi-Gu/dsh-showcase#readme",
+  "bugs": {
+    "url": "https://github.com/DoveLi-Gu/dsh-showcase/issues"
+  },
+  "keywords": ["deepseek-harness", "dsh-plugin", "coding-agent", "delivery-evidence", "proof-of-work", "developer-tools"],
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@11.15.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./plugin/client-host.js",
     "./plugin": "./plugin/index.js",
@@ -34,10 +50,13 @@
     "plugin/layout-summary.js",
     "plugin/poster-html.js",
     "plugin/report-schema.js",
+    "plugin/assets/dijiang-survey-surface.webp",
     "plugin/assets/whale-girl-keyvisual.webp",
     "cordis.patch.yml",
     "README.md",
     "README.zh-CN.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
     "CHARACTER_ASSET_NOTICE.md",
     "LICENSE"
   ],
@@ -46,6 +65,9 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
+    "pack:check": "npm pack --dry-run --json --ignore-scripts",
+    "check": "npm run typecheck && npm test && npm run build && npm run pack:check",
+    "prepublishOnly": "npm run check",
     "cli": "tsx src/cli/index.ts",
     "init": "tsx src/cli/index.ts init",
     "capture": "tsx src/cli/index.ts capture"

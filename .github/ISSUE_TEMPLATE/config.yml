@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 私密安全报告
+    url: https://github.com/DoveLi-Gu/dsh-showcase/security/advisories/new
+    about: 密钥泄露、路径逃逸或其他安全问题请使用私密报告。

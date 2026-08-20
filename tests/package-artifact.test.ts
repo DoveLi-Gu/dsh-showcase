@@ -24,9 +24,11 @@ describe("published package artifact", () => {
     const paths = artifact.files.map((file) => file.path);
     const required = [
       "CHARACTER_ASSET_NOTICE.md",
+      "CHANGELOG.md",
       "LICENSE",
       "README.md",
       "README.zh-CN.md",
+      "SECURITY.md",
       "cordis.patch.yml",
       "package.json",
       "plugin/client-host.js",
@@ -40,6 +42,7 @@ describe("published package artifact", () => {
     ];
 
     expect(paths).toEqual(expect.arrayContaining(required));
+    expect(paths).toContain("plugin/assets/dijiang-survey-surface.webp");
     expect(paths).toContain("plugin/assets/whale-girl-keyvisual.webp");
     expect(paths).not.toContain("plugin/assets/dijiang-orbital-graphic.png");
     expect(paths).not.toContain("plugin/assets/frontier-industrial.webp");
