@@ -28,7 +28,7 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 <details>
 <summary>蓝色大肥鱼（浅蓝 / 钴蓝 / 角色主视觉）</summary>
 
-<p><img src="docs/assets/blue-big-fish-desktop-latest.png" alt="蓝色大肥鱼桌面 1K 预览，1024 x 640" width="680"></p>
+<p><img src="docs/assets/blue-big-fish-desktop-latest.png" alt="蓝色大肥鱼桌面 1K 预览，1000 x 900" width="680"></p>
 <p><img src="docs/assets/blue-big-fish-mobile-latest.png" alt="蓝色大肥鱼移动端 1K 预览，455 x 1024" width="220"></p>
 </details>
 
