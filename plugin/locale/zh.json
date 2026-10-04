@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "布局证据产物",
+    "description": "从项目交付证据生成 Markdown 摘要，并按需生成自包含 HTML 海报。"
+  }
+}

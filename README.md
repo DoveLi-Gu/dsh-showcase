@@ -193,15 +193,23 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 DeepSeek Harness 官方目前没有单独的插件提交审核页面；官方仓库建议插件作者给 GitHub 仓库添加 `dsh-plugin` Topic，用于社区发现。本仓库已经配置 `dsh-plugin`、`deepseek-harness`、`dsh` 和 `cordis` 等主题标签。
 
-部分社区插件目录会定期扫描 `dsh-plugin` Topic，并根据公开仓库的 `package.json`、`dsh.bundle.patch`、入口文件和版本信息生成卡片。收录通常存在延迟，目录属于社区项目，不代表 DeepSeek 官方背书；用户仍可直接使用 DSH 官方命令安装：
+本包已经补齐 DSH 目录通常需要的 `engines.dsh` 兼容范围、`package.json.icon`、中英文 `locale` 元数据和公开 npm 构建产物。部分社区插件目录会定期扫描 `dsh-plugin` Topic，并根据公开仓库的 `package.json`、`dsh.bundle.patch`、入口文件和版本信息生成卡片。收录通常存在延迟，目录属于社区项目，不代表 DeepSeek 官方背书；用户仍可直接使用 DSH 官方命令安装：
 
 ~~~powershell
 dsh plugin --profile web add dsh-showcase
 ~~~
 
 - 官方生态说明：[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
-- 社区目录示例：[DSH Plugins Marketplace](https://github.com/bradeGithub/DSH-Plugins-Marketplace)
+- 社区目录示例（均为非官方项目）：[dsh-market](https://github.com/dsh-market/dsh-market)、[dsh-plugin-marketplace](https://github.com/w2112515/dsh-plugin-marketplace)、[dsh-plugins-store](https://github.com/DshMarketPlace/dsh-plugins-store)
 - 社区展示与反馈：DeepSeek Harness 仓库的 **Show Your Plugins** Discussions
+
+想让更多人找到这个插件，建议按下面顺序维护：
+
+1. 保持 GitHub 仓库公开，并保留 `dsh-plugin` Topic、安装命令、兼容版本和真实截图。
+2. 每次发布同步更新 npm 包、`CHANGELOG.md` 和 GitHub tag；插件商店一般读取公开 npm 包和仓库元数据。
+3. 在官方 **Show Your Plugins** 讨论区发布一段简短介绍，或向对应的社区目录提交收录请求；目前没有统一的官方插件商店提交按钮。
+
+本项目不会声称已经被任何社区目录收录。目录由各自的扫描、审核和缓存策略决定，提交后可能需要等待下一次同步。
 
 ## 赞助商
 

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">DSH Showcase</title>
+  <desc id="desc">Industrial evidence mark with signal yellow calibration lines.</desc>
+  <rect width="128" height="128" fill="#101110"/>
+  <path d="M10 28h108M10 64h108M10 100h108" stroke="#e8e8e2" stroke-width="2" opacity=".32"/>
+  <path d="M18 18h92v92H18z" fill="none" stroke="#fff500" stroke-width="5"/>
+  <path d="M30 88V40h23c15 0 23 9 23 24s-8 24-23 24H30Zm13-12h9c7 0 11-4 11-12s-4-12-11-12h-9v24Zm40 12V40h13v48H83Z" fill="#e8e8e2"/>
+  <path d="M10 116h44M74 116h44" stroke="#fff500" stroke-width="4"/>
+</svg>

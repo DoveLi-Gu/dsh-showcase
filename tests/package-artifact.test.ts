@@ -33,6 +33,7 @@ describe("published package artifact", () => {
       "package.json",
       "plugin/client-host.js",
       "plugin/client.js",
+      "plugin/icon.svg",
       "plugin/index.d.ts",
       "plugin/index.js",
       "plugin/layout-summary.d.ts",
@@ -46,6 +47,10 @@ describe("published package artifact", () => {
       "plugin/project-io.js",
       "plugin/project-io.d.ts",
       "plugin/redaction.js",
+      "locale/en.json",
+      "locale/zh.json",
+      "plugin/locale/en.json",
+      "plugin/locale/zh.json",
     ];
 
     expect(paths).toEqual(expect.arrayContaining(required));
@@ -67,6 +72,27 @@ describe("published package artifact", () => {
     for (const dependency of ["@vitejs/plugin-react", "lucide-react", "react", "react-dom", "vite"]) {
       expect(manifest.dependencies).not.toHaveProperty(dependency);
       expect(manifest.devDependencies).toHaveProperty(dependency);
+    }
+  });
+
+  it("declares DSH discovery metadata in the published manifest", async () => {
+    const manifest = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")) as {
+      icon?: string;
+      engines?: Record<string, string>;
+      exports?: Record<string, string>;
+    };
+
+    expect(manifest.icon).toBe("./plugin/icon.svg");
+    expect(manifest.engines?.dsh).toBe(">=0.2.0-rc.2 <0.3.0");
+    expect(manifest.exports?.["./locale/*.json"]).toBe("./locale/*.json");
+    expect(manifest.exports?.["./plugin/locale/*.json"]).toBe("./plugin/locale/*.json");
+
+    for (const file of ["locale/en.json", "locale/zh.json", "plugin/locale/en.json", "plugin/locale/zh.json"]) {
+      const metadata = JSON.parse(await readFile(new URL(`../${file}`, import.meta.url), "utf8")) as {
+        meta?: { title?: string; description?: string };
+      };
+      expect(metadata.meta?.title).toBeTruthy();
+      expect(metadata.meta?.description).toBeTruthy();
     }
   });
 });

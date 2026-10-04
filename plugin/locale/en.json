@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Layout evidence artifacts",
+    "description": "Generate a Markdown summary and an optional self-contained HTML poster from a project's delivery evidence."
+  }
+}

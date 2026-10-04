@@ -17,6 +17,8 @@
 
 当前兼容 DSH `0.2.0-rc.2` 及同一 0.2 系列。安装后从 DSH 侧栏进入 **插件**，打开 `dsh-showcase`，在 `dsh-showcase/plugin` 行点击 **配置**；Node.js 使用 `22.19+` 或 `24+`。旧版 DSH 0.1 不属于本版本的兼容目标。
 
+插件已经包含 DSH 目录常用的 `engines.dsh` 兼容声明、工业风图标和中英文展示元数据。官方目前没有统一的插件商店提交页面；可通过 GitHub 的 `dsh-plugin` Topic、DeepSeek Harness 的 **Show Your Plugins** Discussions，以及非官方社区目录增加曝光。目录收录由各项目自行扫描或审核，可能存在延迟，不代表已自动收录。
+
 维护与发布相关文档：
 
 - [GitHub 上传与维护指南](docs/GITHUB_UPLOAD_GUIDE_ZH.md)

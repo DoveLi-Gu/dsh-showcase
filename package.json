@@ -1,6 +1,6 @@
 {
   "name": "dsh-showcase",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Local, verifiable delivery evidence reports for coding-agent work.",
   "type": "module",
   "main": "./plugin/client-host.js",
@@ -11,6 +11,7 @@
     "url": "git+https://github.com/DoveLi-Gu/dsh-showcase.git"
   },
   "homepage": "https://github.com/DoveLi-Gu/dsh-showcase#readme",
+  "icon": "./plugin/icon.svg",
   "bugs": {
     "url": "https://github.com/DoveLi-Gu/dsh-showcase/issues"
   },
@@ -23,7 +24,8 @@
     "developer-tools"
   ],
   "engines": {
-    "node": "^22.19.0 || >=24.0.0"
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.2.0-rc.2 <0.3.0"
   },
   "packageManager": "npm@11.15.0",
   "publishConfig": {
@@ -32,8 +34,11 @@
   "exports": {
     ".": "./plugin/client-host.js",
     "./plugin": "./plugin/index.js",
+    "./plugin/icon": "./plugin/icon.svg",
     "./client": "./plugin/client.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./plugin/locale/*.json": "./plugin/locale/*.json"
   },
   "dsh": {
     "bundle": {
@@ -51,6 +56,7 @@
   "files": [
     "plugin/client-host.js",
     "plugin/client.js",
+    "plugin/icon.svg",
     "plugin/index.d.ts",
     "plugin/index.js",
     "plugin/layout-summary.d.ts",
@@ -64,6 +70,8 @@
     "plugin/project-io.js",
     "plugin/project-io.d.ts",
     "plugin/redaction.js",
+    "locale/*.json",
+    "plugin/locale/*.json",
     "plugin/assets/dijiang-survey-surface.webp",
     "plugin/assets/whale-girl-keyvisual.webp",
     "cordis.patch.yml",
