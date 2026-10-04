@@ -15,6 +15,7 @@ export type LayoutSummaryResult = {
 
 export function generateLayoutSummary(options: {
   projectPath: string;
+  signal?: AbortSignal;
   reportPath?: string;
   /** Optional Markdown output under .showcase; must end in .md or .markdown. */
   outputPath?: string;

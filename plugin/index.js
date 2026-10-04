@@ -2,6 +2,7 @@ import z from "@deepseek-ai/schemastery";
 import { settingsNamespace } from "@deepseek-ai/dsh-settings";
 import { defineTool } from "@deepseek-ai/dsh-tools";
 import { generateLayoutSummary } from "./layout-summary.js";
+import { isAbsolute, resolve } from "node:path";
 
 export const name = "showcase-layout-summary";
 export const inject = ["tools", "settings", "connection"];
@@ -118,13 +119,18 @@ export function apply(ctx, config = {}) {
         return [{ type: "text", text: `${labels.heading}${punctuation}\n${labels.markdown}: ${value.outputPath}\n${labels.poster}: ${poster}\n${labels.freshness}: ${value.freshnessWarnings.length}${punctuation}\n${labels.sections}: ${value.sections.join(", ")}\n${labels.theme}: ${value.theme}\n${labels.stages}: ${value.stages.join(", ")}\n${labels.breakpoints}: ${value.breakpoints.join(", ")}\n${labels.tests}: ${value.testCount}; ${labels.redactions}: ${value.redactionCount}${punctuation}` }];
       },
     },
-    async execute({ projectPath, reportPath, outputPath, posterPath, appPath, cssPath, locale, generatePoster: requestedGeneratePoster }) {
+    async execute({ projectPath, reportPath, outputPath, posterPath, appPath, cssPath, locale, generatePoster: requestedGeneratePoster }, exec) {
       if (requestedGeneratePoster !== undefined && typeof requestedGeneratePoster !== "boolean") {
         throw new Error("generatePoster must be a boolean.");
       }
       const current = readSettings();
+      const sessionRoot = exec?.agent?.session?.meta?.cwd;
+      if (!isAbsolute(projectPath)) {
+        if (!sessionRoot) throw new Error("Relative projectPath requires a session workspace. Provide an absolute projectPath.");
+        projectPath = resolve(sessionRoot, projectPath);
+      }
       const shouldGeneratePoster = typeof requestedGeneratePoster === "boolean" ? requestedGeneratePoster : current.generatePoster;
-      return generateLayoutSummary({ projectPath, reportPath, outputPath, posterPath, appPath, cssPath, locale, theme: current.theme, generatePoster: shouldGeneratePoster });
+      return generateLayoutSummary({ projectPath, reportPath, outputPath, posterPath, appPath, cssPath, locale, theme: current.theme, generatePoster: shouldGeneratePoster, signal: exec?.signal });
     },
   }));
 }

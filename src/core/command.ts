@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import { StringDecoder } from "node:string_decoder";
 import type { TestReceipt } from "./report-schema";
 
 export type RunCommandOptions = {
@@ -57,13 +58,23 @@ export async function runCommand(command: string, options: RunCommandOptions): P
     });
     let output = "";
     let timedOut = false;
+    let outputTruncated = false;
+    child.stdin?.end();
 
     const append = (chunk: Buffer | string) => {
-      if (output.length >= maxOutputLength) return;
-      output += chunk.toString().slice(0, maxOutputLength - output.length);
+      output += chunk.toString();
+      if (output.length > maxOutputLength) {
+        outputTruncated = true;
+        const headLength = Math.ceil(maxOutputLength / 2);
+        const tailLength = maxOutputLength - headLength;
+        output = output.slice(0, headLength) + (tailLength ? output.slice(-tailLength) : "");
+      }
     };
-    child.stdout?.on("data", append);
-    child.stderr?.on("data", append);
+    for (const stream of [child.stdout, child.stderr]) {
+      const decoder = new StringDecoder("utf8");
+      stream?.on("data", (chunk) => append(decoder.write(chunk)));
+      stream?.on("end", () => append(decoder.end()));
+    }
 
     const timer = setTimeout(() => {
       timedOut = true;
@@ -76,6 +87,11 @@ export async function runCommand(command: string, options: RunCommandOptions): P
     });
     child.once("close", (code) => {
       clearTimeout(timer);
+      if (outputTruncated && maxOutputLength >= 64) {
+        const marker = "\n[output truncated]\n";
+        const headLength = Math.ceil((maxOutputLength - marker.length) / 2);
+        output = output.slice(0, headLength) + marker + output.slice(-(maxOutputLength - marker.length - headLength));
+      }
       if (timedOut) {
         const timeoutMessage = `Command timed out after ${timeoutMs}ms.`;
         const separator = output ? "\n" : "";
@@ -93,6 +109,7 @@ export async function runCommand(command: string, options: RunCommandOptions): P
         exitCode,
         status: exitCode === 0 ? "passed" : "failed",
         output,
+        ...(outputTruncated ? { outputTruncated: true } : {}),
       });
     });
   });

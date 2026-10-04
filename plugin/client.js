@@ -32,6 +32,7 @@ const messages = {
     failed: "保存失败，请重试。",
     loading: "正在读取插件设置…",
     unavailable: "插件设置服务当前不可用。",
+    retry: "重新连接",
   },
   en: {
     title: "Layout evidence artifacts",
@@ -51,6 +52,7 @@ const messages = {
     failed: "Could not save the setting. Try again.",
     loading: "Loading plugin settings…",
     unavailable: "Plugin settings are currently unavailable.",
+    retry: "Reconnect",
   },
 };
 
@@ -128,13 +130,15 @@ function createThemeCard(rpc) {
     const [generatePoster, setGeneratePoster] = useState(false);
     const [loadState, setLoadState] = useState("loading");
     const [saveState, setSaveState] = useState("idle");
+    const [loadAttempt, setLoadAttempt] = useState(0);
     const mountedRef = useRef(true);
     const savingRef = useRef(false);
     const choiceRefs = useRef({});
     useEffect(() => {
       let active = true;
       mountedRef.current = true;
-      rpc.call(RPC_CHANNEL, "get", {}).then((result) => {
+      setLoadState("loading");
+      Promise.resolve().then(() => rpc.call(RPC_CHANNEL, "get", {})).then((result) => {
         if (!active) return;
         const value = result.ok ? result.value : undefined;
         const validTheme = value?.theme === "frontier-signal" || value?.theme === "blue-big-fish";
@@ -153,7 +157,7 @@ function createThemeCard(rpc) {
         active = false;
         mountedRef.current = false;
       };
-    }, []);
+    }, [loadAttempt]);
 
     if (loadState !== "ready") {
       const loading = loadState === "loading";
@@ -168,7 +172,12 @@ function createThemeCard(rpc) {
             className: "dsh-showcase-settings__description",
             role: "status",
             "aria-live": "polite",
-          }, t(loadState))),
+          }, t(loadState)),
+          !loading && React.createElement("button", {
+            type: "button",
+            className: "dsh-showcase-settings__choice",
+            onClick: () => setLoadAttempt((attempt) => attempt + 1),
+          }, t("retry"))),
         loading && React.createElement("div", { className: "dsh-showcase-settings__body", "aria-hidden": true },
           React.createElement("div", { className: "dsh-showcase-settings__loading-choices" },
             ...THEME_VALUES.map((value) => React.createElement("div", {

@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -75,6 +75,38 @@ describe("collectGitChange", () => {
         expect.objectContaining({ path: "untracked.txt", status: "untracked", additions: 0, deletions: 0 }),
       ]),
     );
+  });
+
+  it("captures bounded real diffs with literal filenames, renames, binaries and untracked states", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "showcase-diff-"));
+    temporaryDirectories.push(cwd);
+    await git(cwd, ["init"]); await git(cwd, ["config", "user.email", "test@example.invalid"]); await git(cwd, ["config", "user.name", "Test"]);
+    await writeFile(join(cwd, "literal [a].txt"), "old\n");
+    await writeFile(join(cwd, "rename.txt"), "unchanged\n".repeat(20));
+    await writeFile(join(cwd, "binary.bin"), Buffer.from([0, 1, 2]));
+    await git(cwd, ["add", "."]); await git(cwd, ["commit", "-m", "base"]);
+    await writeFile(join(cwd, "literal [a].txt"), "new\n");
+    await writeFile(join(cwd, "binary.bin"), Buffer.from([0, 4, 5]));
+    await writeFile(join(cwd, "untracked.txt"), "not staged\n");
+    await git(cwd, ["mv", "rename.txt", "renamed.txt"]);
+    const change = await collectGitChange(cwd, { includeDiff: true });
+    expect(change.files.find(f => f.path === "literal [a].txt")?.diff).toContain("-old\n+new");
+    expect(change.files.find(f => f.path === "renamed.txt")?.diff).toContain("rename from rename.txt");
+    expect(change.files.find(f => f.path === "binary.bin")?.diffUnavailable).toBe("binary");
+    expect(change.files.find(f => f.path === "untracked.txt")?.diffUnavailable).toBe("untracked");
+    expect((await collectGitChange(cwd)).files.every(f => f.diff === undefined)).toBe(true);
+  });
+
+  it("retains subdirectory paths and marks long patches as truncated", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "showcase-diff-subdir-"));
+    temporaryDirectories.push(cwd);
+    await git(cwd, ["init"]); await mkdir(join(cwd, "app"));
+    await writeFile(join(cwd, "app", "code.txt"), "line\n".repeat(4000));
+    await git(cwd, ["add", "."]);
+    const change = await collectGitChange(join(cwd, "app"), { includeDiff: true });
+    expect(change.files[0].path).toBe("code.txt");
+    expect(change.files[0].diff).toHaveLength(16_000);
+    expect(change.files[0].diffTruncated).toBe(true);
   });
 
 });

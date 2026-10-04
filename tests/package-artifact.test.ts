@@ -38,7 +38,14 @@ describe("published package artifact", () => {
       "plugin/layout-summary.d.ts",
       "plugin/layout-summary.js",
       "plugin/poster-html.js",
+      "plugin/dijiang-layout.js",
+      "plugin/dijiang-style.js",
+      "plugin/dijiang-motion.js",
+      "plugin/report-content.js",
       "plugin/report-schema.js",
+      "plugin/project-io.js",
+      "plugin/project-io.d.ts",
+      "plugin/redaction.js",
     ];
 
     expect(paths).toEqual(expect.arrayContaining(required));

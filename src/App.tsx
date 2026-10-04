@@ -3,18 +3,10 @@ import {
   Check, ChevronDown, Code2, Download, FileCode2, FileJson2, GripVertical, Image, LockKeyhole,
   TerminalSquare, Timer, Upload, X,
 } from "lucide-react";
-import dijiangThemeHtml from "./dijiang-theme.html?raw";
 import { demoReport } from "./core/browser";
-import { hardenDijiangDocument } from "./dijiang-hardening";
+import { demoDiffs as diffs } from "./core/demo-fixture";
 
 type Theme = "dijiang" | "fish";
-
-const hardenedDijiangThemeHtml = hardenDijiangDocument(dijiangThemeHtml);
-
-const diffs: Record<string, string[]> = {
-  "src/App.tsx": ["@@ -1,8 +1,42 @@", "-export default function App() {", "-  return <main>Ready</main>;", "+export default function App() {", "+  return <ReportWorkspace report={demoReport} />;", "+}", "+", "+function ReportWorkspace() {", "+  return <main className=\"report-shell\">...</main>;", "+}"],
-  "src/styles.css": ["@@ -0,0 +1,96 @@", "+:root {", "+  --signal: #d7ef2f;", "+  --surface: #f0f2ed;", "+}", "+.poster-summary {", "+  isolation: isolate;", "+  overflow: hidden;", "+}"],
-};
 
 const showcaseStages = [
   { id: "PROMPT", label: "提示" },
@@ -32,16 +24,6 @@ function evidenceUrl(imagePath: string) {
   return `/${imagePath.replace(/^[/\\]+/, "").replaceAll("\\", "/")}`;
 }
 
-function escapeCoverHtml(value: string) {
-  return value.replace(/[&<>"']/g, (character) => {
-    if (character === "&") return "&amp;";
-    if (character === "<") return "&lt;";
-    if (character === ">") return "&gt;";
-    if (character === '"') return "&quot;";
-    return "&#39;";
-  });
-}
-
 function blobAsDataUrl(blob: Blob) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -56,19 +38,33 @@ function viewportText() {
   return demoReport.screenshots.map((shot) => `${labels[shot.viewport.name] ?? shot.viewport.name} ${shot.viewport.width}x${shot.viewport.height}`).join(" / ");
 }
 
-function createCoverHtml(theme: Theme, dataUrl: string, task: string, files: number, tests: string, redactions: number, viewports: string) {
-  const stages = showcaseStages.map((stage, index) => `<span><b>${String(index + 1).padStart(2, "0")}</b>${stage.label}</span>`).join("");
-  const safeTask = escapeCoverHtml(task);
-  const safeViewports = escapeCoverHtml(viewports);
-  const shared = `*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden}body{margin:0;font-family:"Microsoft YaHei UI","Noto Sans SC",sans-serif}.poster{position:relative;width:1600px;height:900px;overflow:hidden}.mono{font-family:"Cascadia Mono","Microsoft YaHei UI",monospace}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}}`;
-  const whaleSvg = '<path class="wb" d="M15 30C23 17 42 10 61 12c16 1 28 8 34 18-5 11-18 18-34 19-19 1-36-6-46-19Z"/><path class="wb" d="M91 28c8-8 17-11 25-7-1 6-5 10-12 13 7 1 11 5 12 11-10 2-18-1-25-8Z"/><path class="wb" d="M49 41c8 1 14 6 18 12-9 2-16-1-21-7Z"/><circle class="we" cx="35" cy="27" r="1.8"/><path class="ws" d="M54 10c-1-5 2-8 6-10m-5 10c4-4 8-4 11-2"/>';
+async function createCoverHtml(theme: Theme, dataUrl: string, task: string, files: number, tests: string, redactions: number) {
+  const { createStyledPosterHtml } = await import("../plugin/poster-html.js");
+  return createStyledPosterHtml({
+    locale: "zh-CN",
+    theme: theme === "fish" ? "blue-big-fish" : "frontier-signal",
+    image: dataUrl.split(",")[1] ?? "",
+    projectName: "dsh-showcase",
+    task, stages: showcaseStages.map((stage) => stage.label),
+    fileCount: files, passedTests: Number(tests.split("/")[0]), testCount: Number(tests.split("/")[1]),
+    redactionCount: redactions, taskStatus: demoReport.task.status,
+    gitFiles: demoReport.git.files, gitState: "changed",
+    gitRange: `${demoReport.git.baseRef}..${demoReport.git.headRef}`,
+    testReceipts: demoReport.tests.map((test) => ({ ...test, duration: `${test.durationMs}ms` })),
+    posterScreenshots: [], visualProject: true,
+    freshnessWarnings: ["演示数据：下载内容不是当前项目的实测报告。"],
+  });
+}
 
-  if (theme === "dijiang") {
-    return dijiangThemeHtml;
-  }
-
-  return `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>dsh-showcase 蓝色大肥鱼海报</title><style>${shared}
-body{background:#dcecff;color:#10245c}.poster{background:#eff7ff;box-shadow:inset 0 0 0 4px #0757cf}.current{position:absolute;z-index:0;left:-14%;width:112%;height:216px;clip-path:polygon(0 27%,92% 0,100% 71%,7% 100%);animation:tide 16s cubic-bezier(.22,1,.36,1) infinite alternate}.c1{top:-63px;background:#d2e8ff}.c2{top:243px;left:-19%;background:#c2e2ff;animation-duration:21s;animation-direction:alternate-reverse}.c3{bottom:-63px;left:-8%;background:#dcedff;animation-duration:18s}.portrait{position:absolute;z-index:1;top:-7%;right:-1%;width:45%;height:112%;opacity:.2;mix-blend-mode:multiply;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 31%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 31%,#000 100%);animation:portrait 10s cubic-bezier(.22,1,.36,1) infinite alternate}.art{width:100%;height:100%;object-fit:contain;object-position:right center;filter:saturate(.9) contrast(1.04)}.arc{position:absolute;z-index:0;border:3px solid #71c4e8;border-radius:50%;animation:spin 28s linear infinite}.a1{width:560px;height:560px;left:448px;top:-290px}.a2{width:430px;height:430px;right:-40px;bottom:-260px;border-color:#9bd9ef;animation-direction:reverse;animation-duration:34s}.school{position:absolute;z-index:3;inset:0;pointer-events:none}.whale{position:absolute;overflow:visible;color:#0a5fd2;filter:drop-shadow(3px 3px 0 rgba(255,255,255,.72));animation:whale 13s cubic-bezier(.22,1,.36,1) infinite alternate}.wb{fill:currentColor}.we{fill:#fff}.ws{fill:none;stroke:#48bfe9;stroke-width:2.2;stroke-linecap:round}.w1{top:12%;right:27%;width:132px;opacity:.38;transform:rotate(-5deg)}.w2{top:42%;right:4%;width:90px;color:#38b9c8;opacity:.32;animation-delay:-5s;animation-duration:17s;transform:rotate(4deg)}.w3{right:15%;bottom:7%;width:157px;opacity:.2;animation-delay:-8s;animation-duration:21s;transform:rotate(-3deg)}.copy{position:absolute;z-index:5;left:82px;top:74px;width:1040px}.kicker{display:inline-flex;background:#ffd24a;color:#10245c;padding:9px 14px;font:900 17px "Microsoft YaHei UI";transform:rotate(-1deg)}.title{margin:26px 0 14px;color:#0757cf;font:900 92px/.82 Impact,"Microsoft YaHei UI",sans-serif}.title span{display:block}.task{width:850px;margin:0;color:#172d66;font-size:27px;line-height:1.42;font-weight:800}.verified{display:inline-flex;margin-top:25px;border:5px solid #10245c;background:#fff;padding:10px 17px;color:#10245c;font:900 20px "Microsoft YaHei UI";box-shadow:9px 9px 0 #ffd24a;transform:rotate(1deg)}.pop{position:absolute;z-index:7;right:78px;top:75px;color:#10245c;background:#ffd24a;padding:12px 18px;font:900 20px "Microsoft YaHei UI";box-shadow:6px 6px 0 #0b6ca0;transform:rotate(4deg)}.metrics{position:absolute;z-index:6;left:83px;bottom:157px;display:flex;gap:18px}.metric{min-width:150px;border:4px solid #0757cf;background:#fff;padding:14px 17px;transform:rotate(-2deg)}.metric:nth-child(2){transform:rotate(2deg);background:#e8f1ff}.metric:nth-child(3){transform:rotate(-1deg);background:#ffd24a}.metric b{display:block;font:900 34px monospace}.metric small{font:900 13px "Microsoft YaHei UI"}.rail{position:absolute;z-index:6;left:72px;right:72px;bottom:52px;display:flex;gap:8px}.rail span{flex:1;background:#0757cf;color:#fff;padding:13px 15px;font-weight:900;clip-path:polygon(0 0,94% 0,100% 100%,6% 100%)}.rail span:last-child{background:#ffd24a;color:#10245c}.rail b{display:block;font:12px monospace;opacity:.72}.footer{position:absolute;z-index:5;right:75px;bottom:19px;color:#0757cf;font:800 14px monospace}@keyframes tide{to{transform:translate3d(112px,11px,0) scale(1.03)}}@keyframes portrait{to{transform:translate3d(24px,-7px,0) scale(1.015);opacity:.24}}@keyframes whale{to{translate:38px -10px;rotate:2deg}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes reduced{50%{opacity:.5}}@keyframes reducedPortrait{50%{opacity:.14}}@media(prefers-reduced-motion:reduce){.current,.whale{animation:reduced 8s ease-in-out infinite!important}.portrait{animation:reducedPortrait 8s ease-in-out infinite!important}.arc{animation:none!important}}</style></head><body><article class="poster"><div class="current c1"></div><div class="current c2"></div><div class="current c3"></div><div class="arc a1"></div><div class="arc a2"></div><div class="portrait"><img class="art" src="${dataUrl}" alt=""></div><div class="school"><svg class="whale w1" viewBox="0 0 122 56">${whaleSvg}</svg><svg class="whale w2" viewBox="0 0 122 56">${whaleSvg}</svg><svg class="whale w3" viewBox="0 0 122 56">${whaleSvg}</svg></div><div class="copy"><div class="kicker">蓝色大肥鱼 / 证据新鲜出炉</div><h1 class="title"><span>dsh</span><span>showcase</span></h1><p class="task">${safeTask}</p><div class="verified">✓ 全部验证完成</div></div><div class="pop">交付完成!</div><div class="metrics"><div class="metric"><b>${files}</b><small>改动文件</small></div><div class="metric"><b>${tests}</b><small>通过测试</small></div><div class="metric"><b>${redactions}</b><small>已脱敏</small></div></div><div class="rail">${stages}</div><div class="footer mono">${safeViewports}</div></article></body></html>`;
+function downloadText(content: string, mimeType: string, filename: string) {
+  const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 type PosterProps = {
@@ -185,10 +181,6 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
-  if (theme === "dijiang") {
-    return <iframe className="dijiang-theme-frame" title="终末地帝江号交付证据" srcDoc={hardenedDijiangThemeHtml} />;
-  }
-
   const formatDurationZh = (milliseconds: number) => {
     const minutes = Math.floor(milliseconds / 60000);
     const seconds = Math.floor((milliseconds % 60000) / 1000);
@@ -196,24 +188,18 @@ export default function App() {
   };
   const viewportName = (name: string) => ({ desktop: "桌面端", tablet: "平板端", mobile: "移动端" }[name] ?? name);
   const exportReport = (label: string) => {
-    setLoading(true);
-    window.setTimeout(() => { setLoading(false); setToast(`${label}已在本地准备完成`); }, 420);
+    if (label === "网页") { exportCover(); return; }
+    if (label === "数据") downloadText(JSON.stringify(report, null, 2), "application/json", "dsh-showcase-demo-report.json");
+    else downloadText(`# dsh-showcase 演示报告\n\n${report.task.goal}\n\n演示数据，不代表当前项目的验证结果。\n\n${report.tests.map((test) => `- ${test.command}: ${test.status} (exit ${test.exitCode})`).join("\n")}\n`, "text/markdown", "dsh-showcase-demo-summary.md");
+    setToast(`${label}已下载到本地`);
   };
-  const exportCover = () => {
+  const exportCover = async () => {
     setLoading(true);
     try {
       if (coverAssetError) { setToast(`海报导出失败：${coverAssetError}`); return; }
       if (!coverDataUrl) { setToast("本地海报素材正在准备中。"); return; }
-      const viewports = report.screenshots.map((shot) => `${viewportName(shot.viewport.name)} ${shot.viewport.width}x${shot.viewport.height}`).join(" / ");
-      const documentHtml = createCoverHtml(theme, coverDataUrl, report.task.goal, report.git.summary.changedFiles, `${passedTests}/${report.tests.length}`, report.redaction.totalReplacements, viewports);
-      const url = URL.createObjectURL(new Blob([documentHtml], { type: "text/html" }));
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `dsh-showcase-${theme}-cover.html`;
-      document.body.append(anchor);
-      anchor.click();
-      anchor.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const documentHtml = await createCoverHtml(theme, coverDataUrl, report.task.goal, report.git.summary.changedFiles, `${passedTests}/${report.tests.length}`, report.redaction.totalReplacements);
+      downloadText(documentHtml, "text/html", `dsh-showcase-${theme}-cover.html`);
       setToast("自包含海报已下载到本地");
     } catch (error) {
       setToast(`海报导出失败：${error instanceof Error ? error.message : "未知错误"}`);

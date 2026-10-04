@@ -1,3 +1,8 @@
+import { renderDijiangDocument } from "./dijiang-layout.js";
+import { findComparisonPair, formatReportDuration } from "./report-content.js";
+
+const POSTER_RECORD_LIMIT = 20;
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 }
@@ -501,9 +506,80 @@ function manifestEmptyMarkup(kind, title, detail) {
   ].join("");
 }
 
+function fishDetailLedgerMarkup(data, text) {
+  const en = data.locale === "en";
+  const files = (Array.isArray(data.gitFiles) ? data.gitFiles : []).slice(0, POSTER_RECORD_LIMIT);
+  const totals = {
+    additions: data.additions == null ? files.reduce((sum, file) => sum + (Number(file.additions) || 0), 0) : Number(data.additions) || 0,
+    deletions: data.deletions == null ? files.reduce((sum, file) => sum + (Number(file.deletions) || 0), 0) : Number(data.deletions) || 0,
+  };
+  const screenshots = posterScreenshotItems(data);
+  const pair = findComparisonPair(screenshots);
+  const redactionDetails = Array.isArray(data.redactionDetails) ? data.redactionDetails : [];
+  const copy = en ? {
+    label: "Evidence detail ledger",
+    summary: "Delivery summary",
+    duration: "Duration",
+    delta: "Line changes",
+    captures: "Captures",
+    diff: "Line diff",
+    diffMissing: "No line diff retained in this report.",
+    diffBinary: "Binary file; no text diff.",
+    diffUntracked: "Untracked file; not included in the Git patch.",
+    diffOmitted: "Patch omitted by capture limits.",
+    diffTruncated: "Only part of the diff is retained.",
+    privacy: "Privacy review",
+    noPrivacy: "No redaction breakdown recorded.",
+    compare: "Before / after comparison",
+    before: "Before",
+    after: "After",
+    noCompare: "No matching before and after viewport pair.",
+  } : {
+    label: "证据明细台账",
+    summary: "交付摘要",
+    duration: "任务耗时",
+    delta: "增删总量",
+    captures: "截图记录",
+    diff: "逐行差异",
+    diffMissing: "报告未保留逐行 Diff。",
+    diffBinary: "二进制文件，不展示文本 Diff。",
+    diffUntracked: "未跟踪文件，尚未纳入 Git 差异。",
+    diffOmitted: "受采集大小或数量限制，此文件未保留 Diff。",
+    diffTruncated: "仅保留部分 Diff，内容已截断。",
+    privacy: "隐私审查",
+    noPrivacy: "未记录脱敏分类明细。",
+    compare: "改版前后对比",
+    before: "改版前",
+    after: "改版后",
+    noCompare: "尚无相同页面、相同视口的改版前后截图。",
+  };
+  const diffPanels = files.length
+    ? files.map((file, index) => {
+      const unavailable = file.diffUnavailable === "binary"
+        ? copy.diffBinary
+        : file.diffUnavailable === "untracked"
+          ? copy.diffUntracked
+          : ["oversize", "limit"].includes(file.diffUnavailable)
+            ? copy.diffOmitted
+            : copy.diffMissing;
+      const diff = file.diff === undefined
+        ? '<p class="fish-detail-empty">' + escapeHtml(unavailable) + '</p>'
+        : '<pre class="fish-detail-diff">' + escapeHtml(file.diff) + '</pre>';
+      return '<details class="fish-detail-file"' + (index === 0 ? ' open' : '') + '><summary><span>' + escapeHtml(file.path) + '</span><b>+' + (Number(file.additions) || 0) + ' / -' + (Number(file.deletions) || 0) + '</b></summary>' + diff + (file.diffTruncated ? '<small>' + escapeHtml(copy.diffTruncated) + '</small>' : '') + '</details>';
+    }).join("")
+    : '<p class="fish-detail-empty">' + escapeHtml(copy.diffMissing) + '</p>';
+  const privacy = redactionDetails.length
+    ? redactionDetails.map((item) => '<li><span>' + escapeHtml(item.name) + '</span><b>' + (Number(item.count) || 0) + '</b></li>').join("")
+    : '<li class="fish-detail-empty">' + escapeHtml(copy.noPrivacy) + '</li>';
+  const comparison = pair
+    ? '<div class="fish-detail-comparison" data-fish-comparison><header><b>' + escapeHtml(copy.compare) + '</b><small>' + escapeHtml(pair.after.label || pair.before.label || "") + '</small></header><div><figure><img src="data:' + escapeHtml(pair.before.mimeType) + ';base64,' + pair.before.image + '" alt="' + escapeHtml(copy.before) + '"><figcaption>' + escapeHtml(copy.before) + '</figcaption></figure><figure><img src="data:' + escapeHtml(pair.after.mimeType) + ';base64,' + pair.after.image + '" alt="' + escapeHtml(copy.after) + '"><figcaption>' + escapeHtml(copy.after) + '</figcaption></figure></div></div>'
+    : '<div class="fish-detail-comparison fish-detail-comparison--empty"><header><b>' + escapeHtml(copy.compare) + '</b></header><p>' + escapeHtml(copy.noCompare) + '</p></div>';
+  return '<section class="fish-detail-ledger" aria-label="' + escapeHtml(copy.label) + '"><header class="fish-detail-ledger__head"><span>' + escapeHtml(copy.label) + '</span><b>' + escapeHtml(copy.summary) + '</b></header><dl class="fish-detail-overview"><div><dt>' + escapeHtml(copy.duration) + '</dt><dd>' + escapeHtml(formatReportDuration(data.durationMs, data.locale)) + '</dd></div><div><dt>' + escapeHtml(copy.delta) + '</dt><dd><strong>+' + totals.additions + '</strong><i>−' + totals.deletions + '</i></dd></div><div><dt>' + escapeHtml(copy.captures) + '</dt><dd>' + screenshots.length + '</dd></div></dl><div class="fish-detail-columns"><section><h3>' + escapeHtml(copy.diff) + '</h3>' + diffPanels + '</section><section><h3>' + escapeHtml(copy.privacy) + '</h3><ul class="fish-detail-privacy">' + privacy + '</ul></section></div>' + comparison + '</section>';
+}
+
 function deliveryManifestMarkup(data, text) {
   const status = statusPresentation(data, text);
-  const rawGitFiles = (Array.isArray(data.gitFiles) ? data.gitFiles : []).slice(0, 5);
+  const rawGitFiles = (Array.isArray(data.gitFiles) ? data.gitFiles : []).slice(0, POSTER_RECORD_LIMIT);
   const untrackedDirectories = rawGitFiles.filter((file) => String(file.path ?? "").endsWith("/") && !(Number(file.additions) || Number(file.deletions)));
   const changedGitFiles = rawGitFiles.filter((file) => !untrackedDirectories.includes(file));
   const inferredGitState = String(data.gitRange ?? "").includes("NO_GIT") ? "unavailable" : rawGitFiles.length ? "changed" : "clean";
@@ -523,15 +599,19 @@ function deliveryManifestMarkup(data, text) {
       : changedGitItems || manifestEmptyMarkup("git-details-missing", text.gitChangedMissingTitle, text.gitChangedMissingDetail);
   const gitMeta = gitState === "unavailable" ? text.gitUnavailableMeta : String(data.gitRange ?? "");
 
-  const rawReceipts = (Array.isArray(data.testReceipts) ? data.testReceipts : []).slice(0, 3);
+  const rawReceipts = (Array.isArray(data.testReceipts) ? data.testReceipts : []).slice(0, POSTER_RECORD_LIMIT);
   const inferredTestState = rawReceipts.length ? "configured" : "unconfigured";
   const testState = ["unconfigured", "failed", "configured"].includes(data.testState) ? data.testState : inferredTestState;
   const receiptItems = rawReceipts.map((receipt) => {
     const receiptState = receiptPresentation(receipt, text);
     const exitCode = Number(receipt.exitCode) || 0;
     const ariaLabel = String(receipt.command ?? "") + ": " + receiptState.label + ", " + text.exit + " " + exitCode;
+    const output = String(receipt.output ?? "");
+    const outputDetails = output
+      ? '<details class="manifest-receipt-output"><summary>' + escapeHtml(data.locale === "en" ? "View output" : "查看输出") + '</summary><pre>' + escapeHtml(output) + '</pre>' + (receipt.outputTruncated ? '<small>' + escapeHtml(data.locale === "en" ? "Output truncated." : "输出已截断。") + '</small>' : '') + '</details>'
+      : '';
     return [
-      '<li data-status="', receiptState.key, '" aria-label="', escapeHtml(ariaLabel), '"><span>', escapeHtml(receipt.command), '</span><b><span aria-hidden="true">', escapeHtml(receiptState.symbol), '</span> ', escapeHtml(receiptState.label), ' · ', escapeHtml(receipt.duration), ' · ', escapeHtml(text.exit), ' ', exitCode, '</b></li>',
+      '<li data-status="', receiptState.key, '" aria-label="', escapeHtml(ariaLabel), '"><span>', escapeHtml(receipt.command), '</span><b><span aria-hidden="true">', escapeHtml(receiptState.symbol), '</span> ', escapeHtml(receiptState.label), ' · ', escapeHtml(receipt.duration), ' · ', escapeHtml(text.exit), ' ', exitCode, '</b>', outputDetails, '</li>',
     ].join("");
   }).join("");
   const receipts = receiptItems || (testState === "unconfigured"
@@ -575,7 +655,8 @@ function deliveryManifestMarkup(data, text) {
     '<div class="manifest-grid"><article class="manifest-block" data-block-state="', gitState, '"><div class="manifest-block__head"><span>', escapeHtml(text.manifestChanges), '</span><small>', escapeHtml(gitMeta), '</small></div><ul data-empty="', changedGitItems ? 'false' : 'true', '">', gitItems, '</ul></article>',
     '<article class="manifest-block" data-block-state="', testState, '"><div class="manifest-block__head"><span>', escapeHtml(text.manifestReceipts), '</span><small>', escapeHtml(testMeta), '</small></div><ul data-empty="', rawReceipts.length ? 'false' : 'true', '">', receipts, '</ul></article></div>',
     '<div class="manifest-scope"><small>', escapeHtml(text.manifestScope), '</small><div>', scope, '</div></div>',
-    '<footer class="manifest-output" data-status="', status.key, '" data-output-state="', outputState, '"><div class="manifest-output__meta"><div class="manifest-output__label"><span>', escapeHtml(text.manifestOutput), '</span><small data-status="', status.key, '" aria-label="', escapeHtml(statusAriaLabel(data.locale, outputLine ? status.output : text.outputsMissingTitle)), '">', escapeHtml(outputLine ? status.output : text.outputsMissingTitle), '</small></div><small class="manifest-output__privacy">', Number(data.redactionCount) || 0, ' ', escapeHtml(text.manifestRedactions), ' / ', escapeHtml(text.manifestLocal), '</small></div><div class="manifest-output__path">', outputSteps, '</div></footer></section>',
+    '<footer class="manifest-output" data-status="', status.key, '" data-output-state="', outputState, '"><div class="manifest-output__meta"><div class="manifest-output__label"><span>', escapeHtml(text.manifestOutput), '</span><small data-status="', status.key, '" aria-label="', escapeHtml(statusAriaLabel(data.locale, outputLine ? status.output : text.outputsMissingTitle)), '">', escapeHtml(outputLine ? status.output : text.outputsMissingTitle), '</small></div><small class="manifest-output__privacy">', Number(data.redactionCount) || 0, ' ', escapeHtml(text.manifestRedactions), ' / ', escapeHtml(text.manifestLocal), '</small></div><div class="manifest-output__path">', outputSteps, '</div></footer>',
+    fishDetailLedgerMarkup(data, text), '</section>',
   ].join("");
 }
 
@@ -780,7 +861,7 @@ function dijiangLoaderMarkup(text, stages, locale, projectName, statusKey = "com
     '<div class="field-loader-stages" aria-hidden="true">', stageItems, '</div><span class="field-loader-anchor" aria-hidden="true"></span>',
     '<span class="field-loader-release" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></footer></section>',
     '<div class="field-loader-scan" aria-hidden="true"></div>',
-     '<script>(function(){var node=document.querySelector(".loader");if(!node)return;var done=false;var root=document.documentElement;root.dataset.loaderReady="false";node.setAttribute("aria-busy","true");var started=performance.now();var duration=2750;var fill=node.querySelector("[data-loader-fill]");var percent=node.querySelector("[data-loader-percent]");var status=node.querySelector("[data-loader-status]");var stages=[].slice.call(node.querySelectorAll("[data-loader-stage]"));var locale=node.getAttribute("data-loader-locale");var outcome=node.getAttribute("data-loader-outcome")||"completed";var finalMessage=locale==="en"?({completed:"DELIVERY READY",partial:"REVIEW REQUIRED",failed:"DELIVERY BLOCKED"})[outcome]:({completed:"交付链路就绪",partial:"等待复核",failed:"交付链路阻断"})[outcome];var messages=locale==="en"?["LINK BEACON","VERIFY INDEX","BUILD TOPOLOGY","SYNC EVIDENCE",finalMessage]:["接入帝江号信标","校验证据索引","重建交付拓扑","同步主题证据",finalMessage];function tick(now){var raw=Math.min(1,(now-started)/duration);var messageIndex=raw<.2?0:raw<.42?1:raw<.65?2:raw<.97?3:4;if(fill)fill.style.transform="scaleX("+raw+")";if(percent)percent.textContent=String(Math.round(raw*100)).padStart(2,"0")+"%";if(status)status.textContent=messages[messageIndex];stages.forEach(function(stage,index){var start=index*.18;var finish=index===4?.96:(index+1)*.18;stage.classList.toggle("is-live",raw>=start);stage.classList.toggle("is-done",raw>=finish)});if(raw<1)requestAnimationFrame(tick)}function remove(){if(done)return;done=true;node.dataset.loaderState="complete";node.setAttribute("aria-busy","false");root.dataset.loaderReady="true";node.remove()}function fallbackDelay(){var style=getComputedStyle(node);var animationDuration=parseFloat(style.animationDuration)||0;var animationDelay=parseFloat(style.animationDelay)||0;return Math.max(5000,Math.ceil((animationDuration+animationDelay)*1000)+600)}requestAnimationFrame(tick);node.addEventListener("animationend",function(event){if(event.target===node)remove()},{once:true});setTimeout(remove,fallbackDelay())})()</script>',
+     '<script>(function(){var node=document.querySelector(".loader");if(!node)return;var done=false;var root=document.documentElement;root.dataset.loaderReady="false";node.setAttribute("aria-busy","true");var started=performance.now();var duration=2750;var fill=node.querySelector("[data-loader-fill]");var percent=node.querySelector("[data-loader-percent]");var status=node.querySelector("[data-loader-status]");var stages=[].slice.call(node.querySelectorAll("[data-loader-stage]"));var locale=node.getAttribute("data-loader-locale");var outcome=node.getAttribute("data-loader-outcome")||"completed";var finalMessage=locale==="en"?({completed:"DELIVERY READY",partial:"REVIEW REQUIRED",failed:"DELIVERY BLOCKED"})[outcome]:({completed:"交付链路就绪",partial:"等待复核",failed:"交付链路阻断"})[outcome];var messages=locale==="en"?["LINK BEACON","VERIFY INDEX","PREPARE RECEIPTS","SYNC EVIDENCE",finalMessage]:["接入帝江号信标","校验证据索引","整理验证回执","同步主题证据",finalMessage];function tick(now){if(done)return;var raw=Math.min(1,(now-started)/duration);var messageIndex=raw<.2?0:raw<.42?1:raw<.65?2:raw<.97?3:4;if(fill)fill.style.transform="scaleX("+raw+")";if(percent)percent.textContent=String(Math.round(raw*100)).padStart(2,"0")+"%";if(status)status.textContent=messages[messageIndex];stages.forEach(function(stage,index){var start=index*.18;var finish=index===4?.96:(index+1)*.18;stage.classList.toggle("is-live",raw>=start);stage.classList.toggle("is-done",raw>=finish)});if(raw<1)requestAnimationFrame(tick)}function remove(){if(done)return;done=true;node.dataset.loaderState="complete";node.setAttribute("aria-busy","false");root.dataset.loaderReady="true";node.remove()}function fallbackDelay(){var style=getComputedStyle(node);var animationDuration=parseFloat(style.animationDuration)||0;var animationDelay=parseFloat(style.animationDelay)||0;return Math.max(5000,Math.ceil((animationDuration+animationDelay)*1000)+600)}requestAnimationFrame(tick);function onExit(event){if(event.target===node){node.removeEventListener("animationend",onExit);remove()}}node.addEventListener("animationend",onExit);setTimeout(remove,fallbackDelay())})()</script>',
     '</div>',
   ].join("");
 }
@@ -939,23 +1020,11 @@ const dijiangLoaderCompactCss = `
 function createDijiangPoster(data) {
   const text = posterText(data.locale);
   const status = statusPresentation(data, text);
-  const posterCss = dijiangCss.replace("data:image/webp;base64,__DIJIANG_IMAGE__", "about:blank");
-  const surfaceCss = data.surfaceImage
-    ? `.field-blueprint{background-image:linear-gradient(rgba(13,17,20,.36),rgba(13,17,20,.58)),url('${data.surfaceImage}');background-position:center;background-size:auto,cover}`
-    : "";
-  return [
-    '<!doctype html><html lang="', data.locale, '"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>', escapeHtml(text.title), '</title><style>', sharedCss, evidenceIntegrityCss, posterCss, dijiangCompactCss, surfaceCss, dijiangTopologyCss, dijiangMaterialCss, dijiangLoaderCompactCss, manifestStateCss, dijiangReportContentCss, statusCss, '</style></head><body>', dijiangLoaderMarkup(text, data.stages, data.locale, data.projectName, status.key),
-    '<article class="poster dijiang-poster" data-theme="frontier-signal" data-status="', status.key, '"><div class="field-topband"></div><div class="field-sheet"></div>', dijiangContoursMarkup("field-contours"),
-    dijiangSlashedWordMarkup("field-topmark"), '<div class="field-safety-slab" aria-hidden="true"></div>', dijiangBlueprintMarkup(), '<div class="field-copy-panel" aria-hidden="true"></div>',
-    '<div class="mast"><span>DSH / ', escapeHtml(text.title), '</span><span>0017 / ', escapeHtml(text.local), '</span></div>',
-    '<div class="copy"><div class="kicker">', escapeHtml(text.fieldTheme), ' / ', escapeHtml(status.fieldKicker), '</div><h1 class="title">', escapeHtml(data.projectName), '</h1><p class="task">', escapeHtml(data.task), '</p><div class="verified" data-status="', status.key, '" role="status" aria-label="', escapeHtml(statusAriaLabel(data.locale, status.badge)), '"><span aria-hidden="true">', escapeHtml(status.symbol), '</span> ', escapeHtml(status.badge), '</div><div class="field-calibration" aria-hidden="true"><i></i><i></i><i></i></div></div>', dijiangReadoutMarkup(data, status),
-    '<div class="stamp" data-status="', status.key, '" aria-label="', escapeHtml(statusAriaLabel(data.locale, status.deliverable)), '">', escapeHtml(status.deliverable), '</div><div class="metrics">', posterMetricsMarkup(data, text), '</div>',
-    '<div class="rail">', stageMarkup(data.stages), '</div><div class="footer mono">', escapeHtml(posterFooterText(data, text)), '</div></article>',
-    currentRouteMarkup(data.stages, text),
-    deliveryManifestMarkup(data, text),
-    evidencePageMarkup(data, text),
-    '</body></html>',
-  ].join("");
+  return renderDijiangDocument(data, text, status, {
+    instrument: dijiangLoaderInstrumentMarkup(),
+    metrics: posterMetricsMarkup(data, text),
+    integrity: evidenceIntegrityMarkup(data, text),
+  });
 }
 
 function createFieldPoster(data) {
@@ -986,6 +1055,9 @@ function createFieldPoster(data) {
 }
 
 const fishManifestHardeningCss = "@media(max-width:35rem){.delivery-manifest{min-width:0;overflow:hidden}.delivery-manifest .manifest-block li{align-items:flex-start;flex-wrap:wrap;gap:.2rem .45rem}.delivery-manifest .manifest-block li span{flex:1 1 9rem;max-width:100%;overflow:hidden;overflow-wrap:anywhere;white-space:normal;text-overflow:clip}.delivery-manifest .manifest-block li b{flex:0 1 auto;max-width:100%;white-space:normal;overflow-wrap:anywhere}.delivery-manifest .manifest-output,.delivery-manifest .manifest-output__meta,.delivery-manifest .manifest-output__label,.delivery-manifest .manifest-output__path{width:100%;min-width:0;max-width:100%}.delivery-manifest .manifest-output{overflow:hidden}.delivery-manifest .manifest-output__meta{display:grid;grid-template-columns:minmax(0,1fr);gap:.3rem}.delivery-manifest .manifest-output__label{display:grid;grid-template-columns:minmax(0,1fr);gap:.15rem}.delivery-manifest .manifest-output__label span,.delivery-manifest .manifest-output__label small,.delivery-manifest .manifest-output__privacy{min-width:0;max-width:100%;overflow:hidden;overflow-wrap:anywhere;white-space:normal}.delivery-manifest .manifest-output__path{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:.4rem}.delivery-manifest .manifest-output__path span{display:grid;grid-template-columns:auto minmax(0,1fr);width:100%;min-width:0;max-width:100%;padding:0;overflow:visible}.delivery-manifest .manifest-output__path strong{min-width:0;max-width:100%;overflow:hidden;overflow-wrap:anywhere;white-space:normal;text-overflow:clip}.delivery-manifest .manifest-output__privacy{text-align:left;line-height:1.35}}";
+
+const fishReceiptCss = ".manifest-receipt-output{flex:1 1 100%;min-width:0;margin-top:.2rem}.manifest-receipt-output summary{cursor:pointer;list-style:none;color:#0757cf;font:800 .7rem/1.35 'Cascadia Mono','Microsoft YaHei UI',monospace}.manifest-receipt-output summary::-webkit-details-marker{display:none}.manifest-receipt-output summary:before{content:'+';display:inline-block;width:1.2em}.manifest-receipt-output[open] summary:before{content:'−'}.manifest-receipt-output pre{max-height:12rem;margin:.35rem 0 0;padding:.55rem;background:rgba(7,87,207,.08);color:#10245c;white-space:pre-wrap;overflow:auto;overflow-wrap:anywhere;font:700 .7rem/1.45 'Cascadia Mono','Microsoft YaHei UI',monospace}.manifest-receipt-output>small{display:block;margin-top:.25rem;color:#2865ad;font:700 .65rem/1.3 'Cascadia Mono','Microsoft YaHei UI',monospace}";
+const fishDetailCss = ".fish-detail-ledger{position:relative;z-index:1;margin:clamp(.7rem,1vw,1rem) 0 0;padding:clamp(.75rem,1.1vw,1rem);color:#10245c;background:rgba(255,255,255,.76);border-top:.14rem solid #0757cf}.fish-detail-ledger__head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding-bottom:.5rem;border-bottom:.12rem solid #8bd8f8}.fish-detail-ledger__head span{color:#0757cf;font:900 .75rem/1.2 'Cascadia Mono','Microsoft YaHei UI',monospace;text-transform:uppercase}.fish-detail-ledger__head b{font-size:clamp(1rem,1.2vw,1.25rem)}.fish-detail-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin:.7rem 0 0}.fish-detail-overview div{min-width:0;padding:.55rem .65rem;background:#eaf7ff;border-left:.2rem solid #48bfe9}.fish-detail-overview dt{color:#2865ad;font:800 .65rem/1.2 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-overview dd{margin:.2rem 0 0;font:900 clamp(.9rem,1vw,1.1rem)/1.2 'Bahnschrift','Microsoft YaHei UI',sans-serif;overflow-wrap:anywhere}.fish-detail-overview dd strong{color:#087f77}.fish-detail-overview dd i{margin-left:.45rem;color:#d44a62;font-style:normal}.fish-detail-columns{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(10rem,.65fr);gap:clamp(.75rem,1.2vw,1.2rem);margin-top:1rem}.fish-detail-columns>section{min-width:0}.fish-detail-columns h3{margin:0 0 .4rem;color:#0757cf;font:900 .85rem/1.2 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-file{border-top:1px solid rgba(7,87,207,.2)}.fish-detail-file:last-child{border-bottom:1px solid rgba(7,87,207,.2)}.fish-detail-file summary{display:flex;align-items:baseline;justify-content:space-between;gap:.7rem;min-width:0;padding:.42rem 0;cursor:pointer;color:#1b3470;font:800 .76rem/1.25 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-file summary span{min-width:0;overflow-wrap:anywhere}.fish-detail-file summary b{flex:0 0 auto;color:#0757cf;white-space:nowrap}.fish-detail-diff{max-height:12rem;margin:0 0 .4rem;padding:.55rem;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:#10245c;background:#eef7ff;border-left:.2rem solid #48bfe9;font:700 .68rem/1.4 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-file>small{display:block;margin:0 0 .4rem;color:#2865ad;font:700 .65rem/1.3 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-empty{margin:.35rem 0;color:#2865ad;font:700 .7rem/1.4 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-privacy{display:grid;gap:.35rem;margin:0;padding:0;list-style:none}.fish-detail-privacy li{display:flex;justify-content:space-between;gap:.6rem;padding:.4rem .5rem;background:#eaf7ff;border-bottom:1px solid rgba(7,87,207,.17);font:800 .72rem/1.25 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-privacy b{color:#087f77}.fish-detail-comparison{margin-top:1rem;padding-top:.7rem;border-top:.12rem solid #8bd8f8}.fish-detail-comparison header{display:flex;align-items:baseline;justify-content:space-between;gap:.7rem}.fish-detail-comparison header b{color:#0757cf;font:900 .85rem/1.2 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-comparison header small{color:#2865ad;font:700 .68rem/1.2 'Cascadia Mono','Microsoft YaHei UI',monospace;overflow-wrap:anywhere}.fish-detail-comparison>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem;margin-top:.55rem}.fish-detail-comparison figure{min-width:0;margin:0}.fish-detail-comparison img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid #8bd8f8;background:#eaf7ff}.fish-detail-comparison figcaption{margin-top:.25rem;color:#2865ad;font:800 .66rem/1.2 'Cascadia Mono','Microsoft YaHei UI',monospace}.fish-detail-comparison--empty p{margin:.5rem 0 0;color:#2865ad;font:700 .7rem/1.35 'Cascadia Mono','Microsoft YaHei UI',monospace}@media(max-width:56.249rem){.fish-detail-overview{grid-template-columns:1fr}.fish-detail-columns{grid-template-columns:1fr;gap:1rem}.fish-detail-comparison>div{grid-template-columns:1fr}.fish-detail-ledger__head{align-items:flex-start;flex-direction:column;gap:.25rem}}";
 
 const manifestStateCss = [
   ".manifest-block ul[data-empty='true']{align-content:stretch}.manifest-block:last-child ul[data-empty='true']:after{display:none}.manifest-block .manifest-empty{display:block;min-height:4.25rem;padding:clamp(.55rem,.75vw,.75rem);border:.08rem solid rgba(7,87,207,.2);background:rgba(255,255,255,.42)}.manifest-block .manifest-empty>span{display:grid;gap:.22rem;max-width:100%;overflow:visible;white-space:normal}.manifest-block .manifest-empty strong{color:#0757cf;font-family:'Bahnschrift','Microsoft YaHei UI',sans-serif;font-size:clamp(.875rem,.98vw,1rem);font-weight:900;line-height:1.2}.manifest-block .manifest-empty small{color:#2865ad;font-size:clamp(.6875rem,.76vw,.8125rem);font-weight:750;line-height:1.35;white-space:normal}.manifest-empty[data-empty-state='git-unavailable']{border-color:rgba(8,127,119,.35);background:rgba(220,250,247,.54)}.manifest-empty[data-empty-state='tests-unconfigured']{border-color:rgba(255,210,74,.58);background:rgba(255,246,207,.6)}",
@@ -1033,7 +1105,7 @@ function createFishPoster(data) {
     "@keyframes current-drift{to{transform:translate3d(7vw,1.2vh,0) scale(1.03)}}@keyframes ripple-spin{to{transform:rotate(360deg)}}@keyframes portrait-tide{to{transform:translate3d(1.2vw,-.55vh,0) scale(1.015);opacity:.76}}@keyframes portrait-current{to{transform:translate3d(7%,0,0)}}@keyframes whale-drift{to{translate:7vw -2vh;rotate:4deg}}@keyframes light-sweep{from{transform:translate3d(-6vw,0,0) rotate(16deg)}to{transform:translate3d(10vw,0,0) rotate(16deg)}}@keyframes bubble-rise{0%{opacity:0;translate:0 0;scale:.65}12%{opacity:.8}78%{opacity:.38}100%{opacity:0;translate:2vw -108vh;scale:1.35}}@keyframes sparkle{50%{transform:scale(1.35) rotate(45deg);opacity:.55}}@keyframes route-swell{to{stroke-dashoffset:-176}}@keyframes evidence-current{to{transform:translate3d(12%,-4%,0) scale(1.06)}}@keyframes evidence-scan{to{transform:translateX(78vw) skewX(-10deg)}}@media(max-height:48rem) and (min-width:56.25rem){.poster-layout{padding-block:1.5rem .8rem;grid-template-rows:auto auto auto minmax(10rem,1fr) auto;row-gap:.42rem}.title{font-size:clamp(3.25rem,4.9vw,4.35rem)}.task{font-size:clamp(1rem,1.25vw,1.1875rem);line-height:1.3}.verified{margin-top:.62rem;padding:.38rem .65rem}.portrait-field{min-height:14rem}.current-route{min-height:3.7rem}.route-proofs{height:calc(100% - 3.3rem)}.metric{padding:.45rem .7rem}.route-evidence{padding:.7rem .85rem}}@media(max-width:56.249rem){.poster{height:auto;min-height:0}.poster-layout{width:auto;height:auto;margin:0;padding:4.75rem 1rem 1.25rem;grid-template-columns:1fr;grid-template-areas:'copy' 'portrait' 'route' 'metrics' 'evidence' 'footer';grid-template-rows:auto 15rem auto auto auto auto;row-gap:.85rem}.copy{max-width:100%}.title{font-size:clamp(3rem,12vw,4.25rem)}.task{font-size:1.0625rem}.portrait-field{min-height:0;height:15rem}.portrait-field:before{inset:4% 0 0 10%}.portrait-field .art{inset:0;width:100%;height:100%;object-position:50% 0%}.portrait-field:after{bottom:14%}.current-route{min-height:12.25rem;padding:.2rem 0 0}.current-route header{align-items:flex-start;flex-direction:column;gap:.2rem}.route-swell{display:none}.route-nodes{min-height:0;grid-template-columns:1fr;gap:.25rem;padding:.65rem 0 .1rem 1.1rem;border-left:.18rem solid #48bfe9}.route-nodes span,.route-nodes span:nth-child(2),.route-nodes span:nth-child(4){display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:.65rem;transform:none}.route-nodes em{font-size:1rem}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}.metric{min-width:0;display:grid;align-content:center;gap:.15rem;padding:.55rem .6rem}.metric b{font-size:1.6rem}.metric small{font-size:.8125rem;line-height:1.15}.route-evidence{min-height:0;padding:.85rem}.route-evidence header{align-items:flex-start;flex-direction:column;gap:.3rem}.route-proofs{height:auto;display:grid;grid-template-columns:1fr;gap:.8rem;padding-top:.8rem}.route-proof{min-height:0}.route-proof__frame{aspect-ratio:16/10}.route-proof:nth-child(2) .route-proof__frame{aspect-ratio:4/3}.route-proof:nth-child(3) .route-proof__frame{aspect-ratio:10/11}.route-proof:nth-child(2) .route-proof__frame,.route-proof:nth-child(3) .route-proof__frame{transform:none}.footer{padding-top:.15rem}.whale-one{right:13%;top:37%;width:17vw}.whale-two{right:4%;top:64%;width:13vw}.whale-three{display:none}}@media(min-width:35rem) and (max-width:56.249rem){.poster-layout{padding-inline:2rem;grid-template-rows:auto 22rem auto auto auto auto}.portrait-field{height:22rem}.current-route{min-height:12rem}.route-proofs{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}.route-proof:first-child{grid-column:1/-1}.route-proof:first-child .route-proof__frame{aspect-ratio:16/8}.route-proof:nth-child(2) .route-proof__frame{aspect-ratio:4/3}.route-proof:nth-child(3) .route-proof__frame{aspect-ratio:4/5}}@media(prefers-reduced-motion:reduce){.loader{animation-duration:.01ms}.current,.ripple,.light,.whale,.spark,.bubbles i,.portrait-field:after,.portrait-field .art,.route-evidence:after{animation:current-breathe 7s ease-in-out infinite alternate}.route-swell path{animation:none;stroke-dashoffset:0}@keyframes current-breathe{to{opacity:.72}}}",
   ].join("");
   return [
-    '<!doctype html><html lang="', data.locale, '"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>', escapeHtml(text.title), '</title><style>', sharedCss, evidenceIntegrityCss, css, fishManifestHardeningCss, manifestStateCss, fishGlassCss, fishVisualHardeningCss, statusCss, '</style></head><body>', loadingMarkup(text, "fish", status.key, data.projectName),
+    '<!doctype html><html lang="', data.locale, '"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>', escapeHtml(text.title), '</title><style>', sharedCss, evidenceIntegrityCss, css, fishManifestHardeningCss, fishReceiptCss, fishDetailCss, manifestStateCss, fishGlassCss, fishVisualHardeningCss, statusCss, '</style></head><body>', loadingMarkup(text, "fish", status.key, data.projectName),
     '<article class="poster" data-theme="blue-big-fish" data-status="', status.key, '"><div class="current current-one"></div><div class="current current-two"></div><div class="current current-three"></div><div class="ripple ripple-one"></div><div class="ripple ripple-two"></div><div class="light light-one"></div><div class="light light-two"></div>', bubbleMarkup(), whaleSchoolMarkup(), '<i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i>',
     '<div class="poster-layout"><section class="copy"><div class="kicker">', escapeHtml(text.fishTheme), ' / ', escapeHtml(status.fishKicker), '</div><h1 class="title">', escapeHtml(data.projectName), '</h1><p class="task">', escapeHtml(data.task), '</p><div class="verified" data-status="', status.key, '" role="status" aria-label="', escapeHtml(statusAriaLabel(data.locale, status.badge)), '"><span aria-hidden="true">', escapeHtml(status.symbol), '</span> ', escapeHtml(status.summary), '</div></section>',
     '<aside class="portrait-field" aria-hidden="true"><img class="art" src="data:image/webp;base64,', data.image, '" alt=""></aside>',
@@ -1045,5 +1117,26 @@ function createFishPoster(data) {
 
 export function createStyledPosterHtml(data) {
   const normalizedData = normalizePosterData(data);
-  return normalizedData.theme === "blue-big-fish" ? createFishPoster(normalizedData) : createDijiangPoster(normalizedData);
+  if (normalizedData.theme !== "blue-big-fish") return createDijiangPoster(normalizedData);
+  const html = createFishPoster(normalizedData);
+  const warnings = Array.isArray(data?.freshnessWarnings) ? data.freshnessWarnings : [];
+  const notice = warnings.length ? `<aside class="evidence-warnings" role="status"><strong>${normalizedData.locale === "en" ? "Evidence needs review" : "证据需要复核"}</strong><ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></aside>` : "";
+  return html.replace("</style>", `${responsiveEvidenceCss}</style>`).replace('<article class="poster', `${notice}<article class="poster`);
 }
+
+const responsiveEvidenceCss = `
+.evidence-warnings{position:relative;padding:1rem 5%;background:#fff2cc;color:#402f0a;border-bottom:2px solid #c79708;font:1rem/1.5 sans-serif;overflow-wrap:anywhere}.evidence-warnings ul{margin:.4rem 0 0;padding-left:1.3rem}
+.poster{height:auto;min-height:min(100svh,72rem)}
+.poster .title{font-size:3.5rem;line-height:1.04;overflow-wrap:anywhere}.poster .task{font-size:1.125rem;line-height:1.5}
+.poster-layout{height:auto;min-height:inherit;grid-template-rows:auto auto auto auto auto}
+.poster-layout .current-route{min-height:7rem;height:auto;overflow:visible}.poster-layout .route-nodes{min-height:4.5rem}
+.delivery-manifest{grid-template-rows:auto auto auto auto}.manifest-block:last-child ul:after{content:none}
+.poster-layout .delivery-manifest{overflow:hidden}.poster-layout .manifest-grid{min-height:0}
+.poster-layout .current-route>svg{top:25%;height:70%}
+.dijiang-poster{height:auto;min-height:min(100svh,72rem);display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);grid-template-areas:'copy scene' 'metrics scene' 'rail rail' 'footer footer';grid-template-rows:minmax(24rem,auto) auto auto auto;gap:1.25rem 3%;padding:6rem 5.1% 1rem;align-content:start}
+.dijiang-poster>.copy{position:relative;inset:auto;grid-area:copy;align-self:start;width:auto;max-width:100%;padding:1rem;background:#f8f9f6}.dijiang-poster>.field-copy-panel{display:none}
+.dijiang-poster>.metrics{position:relative;inset:auto;grid-area:metrics;width:100%;margin:0}.dijiang-poster>.rail{position:relative;inset:auto;grid-area:rail;width:auto}.dijiang-poster>.footer{position:relative;inset:auto;grid-area:footer;width:auto;margin:0}
+.dijiang-poster>.field-blueprint{top:7rem;bottom:12rem;left:51%;right:4%;width:auto;min-height:18rem}.dijiang-poster>.field-readout{left:65%;top:40%;width:25%;max-width:20rem}
+@media(max-width:56.249rem){.poster .title{font-size:2.5rem}.poster .task{font-size:1rem}.poster-layout{grid-template-rows:auto 17.5rem auto auto auto auto}.poster-layout .current-route{min-height:0}.poster-layout .route-nodes{min-height:0}.dijiang-poster{grid-template-columns:1fr;grid-template-areas:'copy' 'metrics' 'rail' 'footer';grid-template-rows:auto auto auto auto;gap:1rem;padding:6rem 1rem 1.25rem;min-height:100svh}.dijiang-poster>.field-blueprint,.dijiang-poster>.field-readout{display:none}.dijiang-poster>.copy{margin:0;width:100%}.dijiang-poster>.rail{grid-template-columns:repeat(5,minmax(0,1fr))}.dijiang-poster>.footer{font-size:.75rem;overflow-wrap:anywhere}}
+@media print{.loader{display:none!important}*,*:before,*:after{animation:none!important}.poster{break-after:page}}
+`;

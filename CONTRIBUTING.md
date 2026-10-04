@@ -4,7 +4,7 @@
 
 ## 开发环境
 
-- Node.js 20 或更高版本
+- 本地构建使用 Node.js 20.19+、22.12+ 或 24+，建议使用 Node.js 24；插件运行时仍支持 Node.js 20+
 - npm 10 或更高版本
 - Windows、macOS 或 Linux
 

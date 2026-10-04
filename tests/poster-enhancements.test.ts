@@ -59,17 +59,17 @@ describe("poster material and empty-state enhancements", () => {
     expect(dijiang).toContain('class="field-loader-instrument"');
     expect(dijiang).toContain("instrument-tick--major");
     expect(dijiang).toContain("dijiang-loader-sweep-rotate");
-    expect(dijiang).toContain("dijiang-loader-scan-final");
+    expect(dijiang).toContain("ed-lateral-reveal");
     expect(dijiang).toContain("dijiang-yellow-transfer");
-    expect(dijiang).toContain("clip-path:polygon(0 0,92% 0,100% 100%,8% 100%)");
-    expect(dijiang).toContain("DIJIANG INDUSTRIES");
+    expect(dijiang).toContain("skewX(-14deg)");
+    expect(dijiang).toContain("DSH / DIJIANG");
     expect(dijiang).toContain("dijiang-reference-reduced-exit");
     expect(dijiang).toContain('data-dijiang-motion="full"');
-    expect(dijiang).toContain("dijiang-progress-head");
+    expect(dijiang).toContain("height:20px;background:var(--inset)");
     expect(dijiang).toContain("dijiang-instrument-core-spin");
-    expect(dijiang).toContain("background:#0b0f0d");
+    expect(dijiang).toContain("--paper:#fff;--ink:#191919");
     expect(dijiang).toContain("@media(prefers-reduced-motion:reduce)");
-    expect(dijiang).toContain("@media(max-height:48rem) and (min-width:56.25rem){.dijiang-poster{min-height:0}");
+    expect(dijiang).toContain("@media(min-width:761px) and (max-height:650px)");
     expect(dijiang).not.toContain(".loader.loader--fish .field-loader-instrument");
     expect(fish).not.toContain("field-loader-instrument");
     expect(fish).not.toContain("dijiang-loader-sweep-rotate");
@@ -94,9 +94,10 @@ describe("poster material and empty-state enhancements", () => {
     const poster = await renderPoster({ theme: "frontier-signal", evidenceThemeName: "终末地帝江号" });
 
     expect(poster).toContain('data-theme="frontier-signal"');
-    expect(poster).toContain('class="field-readout"');
-    expect(poster).toContain("LOCAL / VERIFIED");
-    expect(poster).toContain(".manifest-block .manifest-empty{display:block");
+    expect(poster).toContain('class="ed-station field-readout"');
+    expect(poster).toContain("DIJIANG / LOCAL");
+    expect(poster).toContain('data-status="partial"');
+    expect(poster).toContain('data-empty-state="git-clean"');
     expect(poster).not.toContain("backdrop-filter");
     expect(poster).not.toContain("fish-glass-flow");
   });
@@ -114,7 +115,7 @@ describe("poster material and empty-state enhancements", () => {
       gitFileCount: 1,
       gitFiles: [{ path: "src/App.tsx", additions: 24, deletions: 6 }],
       testState: "passed",
-      testReceipts: [{ command: "npm test", exitCode: 0, status: "passed" }],
+      testReceipts: [{ command: "npm test", exitCode: 0, status: "passed", output: "12 tests passed" }],
       reportPath: ".showcase/report.json",
       summaryPath: ".showcase/layout-summary.md",
       posterPath: ".showcase/layout-poster.html",
@@ -125,19 +126,67 @@ describe("poster material and empty-state enhancements", () => {
     ]);
 
     for (const poster of posters) {
-      expect(poster).toContain('class="current-route"');
-      expect(poster).toContain('class="route-evidence delivery-manifest"');
-      expect(poster).toContain('class="evidence-page"');
+      expect(poster).toMatch(/class="[^"]*\bcurrent-route\b[^"]*"/);
+      expect(poster).toMatch(/class="[^"]*\bdelivery-manifest\b[^"]*"/);
+      expect(poster).toMatch(/class="[^"]*\bevidence-page\b[^"]*"/);
       expect(poster).toContain("alpha-app");
       expect(poster).toContain("完成 alpha-app 的交付");
       expect(poster).toContain("src/App.tsx");
       expect(poster).toContain("npm test");
+      expect(poster).toContain("12 tests passed");
       expect(poster).toContain(".showcase/report.json");
       expect(poster).toContain(".showcase/layout-summary.md");
       expect(poster).toContain(".showcase/layout-poster.html");
       expect(poster).toContain("7");
       expect(poster).not.toContain("dsh-showcase");
     }
+  });
+
+  it("keeps long project evidence visible in the fish theme without theme-specific truncation", async () => {
+    const files = Array.from({ length: 6 }, (_, index) => ({
+      path: `src/file-${String(index + 1).padStart(2, "0")}.ts`,
+      additions: index + 1,
+      deletions: index,
+      diff: `@@ -1 +1 @@\n- before-${index + 1}\n+ after-${index + 1}`,
+    }));
+    const receipts = Array.from({ length: 4 }, (_, index) => ({
+      command: `npm test -- suite-${index + 1}`,
+      exitCode: 0,
+      status: "passed",
+      output: `suite-${index + 1} passed`,
+    }));
+    const poster = await renderPoster({
+      theme: "blue-big-fish",
+      fileCount: files.length,
+      gitFileCount: files.length,
+      gitState: "changed",
+      gitFiles: files,
+      testState: "configured",
+      testCount: receipts.length,
+      passedTests: receipts.length,
+      testReceipts: receipts,
+      durationMs: 65000,
+      additions: 21,
+      deletions: 15,
+      redactionCount: 3,
+      redactionDetails: [{ name: "API Key", count: 3 }],
+      posterScreenshots: [
+        { kind: "before", label: "桌面端改版前", theme: "blue-big-fish", viewport: { width: 1440, height: 900 }, url: "http://localhost/app", mimeType: "image/png", image: "a" },
+        { kind: "after", label: "桌面端改版后", theme: "blue-big-fish", viewport: { width: 1440, height: 900 }, url: "http://localhost/app", mimeType: "image/png", image: "b" },
+      ],
+    });
+
+    expect(poster).toContain("src/file-06.ts");
+    expect(poster).toContain("npm test -- suite-4");
+    expect(poster).toContain("证据明细台账");
+    expect(poster).toContain("任务耗时");
+    expect(poster).toContain("1 分 5 秒");
+    expect(poster).toContain("逐行差异");
+    expect(poster).toContain("after-6");
+    expect(poster).toContain("隐私审查");
+    expect(poster).toContain("API Key");
+    expect(poster).toContain("改版前后对比");
+    expect(poster).toContain('data-fish-comparison');
   });
 
   it("uses localized neutral defaults when direct poster data is incomplete", async () => {
@@ -148,8 +197,8 @@ describe("poster material and empty-state enhancements", () => {
 
     expect(dijiang).toContain("未命名项目");
     expect(dijiang).toContain("任务未记录");
-    expect(dijiang).toContain("<em>提示</em>");
-    expect(dijiang).toContain('class="route-evidence delivery-manifest"');
+    expect(dijiang).toContain("<span>提示</span>");
+    expect(dijiang).toContain('class="route-evidence delivery-manifest ed-ledger"');
     expect(dijiang).not.toContain("dsh-showcase");
     expect(fish).toContain("未命名项目");
     expect(fish).toContain("任务未记录");
@@ -175,9 +224,10 @@ describe("poster material and empty-state enhancements", () => {
     expect(poster).toContain('data-metric-state="unconfigured"><b>--</b><small>测试未配置');
     expect(poster).toContain('data-capture-state="optional"');
     expect(poster).toContain("此项目无需界面截图");
-    expect(poster).toContain("@media(max-width:56.249rem){.evidence-page__guard");
-    expect(poster).toContain(".evidence-page__guard-empty{grid-template-columns:1fr;grid-template-areas:'slot' 'title' 'detail'");
-    expect(poster).toContain("overflow-wrap:anywhere;word-break:break-all");
+    expect(poster).toContain("@media(max-width:760px)");
+    expect(poster).toContain(".ed-visual .evidence-page__guard{display:block;min-height:0");
+    expect(poster).toContain(".ed-workspace{padding:0 0 24px;display:flex;flex-direction:column");
+    expect(poster).toContain("overflow-wrap:anywhere");
     expect(poster).not.toContain("重新采集当前主题");
     expect(poster).not.toContain(">可交付<");
   });

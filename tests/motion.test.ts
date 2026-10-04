@@ -36,7 +36,7 @@ describe("persistent theme motion", () => {
     expect(app).toContain("window.setTimeout(() => setShowIntro(false), 1500)");
   });
 
-  it("hands the document to the approved Dijiang artifact verbatim and keeps fish as the other public theme", async () => {
+  it("uses the shared Dijiang renderer by default and preserves the approved legacy artifact and fish theme", async () => {
     const [app, main, dijiang, hardening] = await Promise.all([
       readFile(appUrl, "utf8"),
       readFile(mainUrl, "utf8"),
@@ -48,6 +48,12 @@ describe("persistent theme motion", () => {
     expect(app).toContain('type Theme = "dijiang" | "fish"');
     expect(main).toContain('import dijiangThemeHtml from "./dijiang-theme.html?raw"');
     expect(main).toContain('selectedTheme !== "fish"');
+    expect(main).toContain('params.get("legacy") === "1"');
+    expect(main).toContain('import("./dijiang-preview")');
+    expect(main).toContain("createDijiangDemoDocument()");
+    const preview = await readFile(new URL("../src/dijiang-preview.ts", import.meta.url), "utf8");
+    expect(preview).toContain("createStyledPosterHtml");
+    expect(preview).toContain("demo: true");
     expect(main).toContain("document.open()");
     expect(main).toContain("document.write(dijiangThemeHtml)");
     expect(main).toContain("document.close()");
@@ -65,7 +71,7 @@ describe("persistent theme motion", () => {
     expect(hardening).toContain("height: clamp(0.48rem, 0.74vw, 0.76rem)");
     expect(hardening).toContain("01   EVIDENCE / CONNECTED");
     expect(hardening).toContain("DSH DELIVERY SYSTEM");
-    expect(app).toContain("return dijiangThemeHtml");
+    expect(app).toContain("return createStyledPosterHtml(");
     expect(createHash("sha256").update(dijiang).digest("hex")).toBe("2756ad6f3925dfcfa991a7d5df524cff3d3079843b29e70a0ef7a091e89f7a6a");
     expect(dijiang).toContain("终末地帝江号 / 正在汇聚交付证据");
     expect(dijiang).toContain("终末地帝江号 / 任务完成 / 交付通告");

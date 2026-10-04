@@ -170,8 +170,8 @@ describe("showcase_layout_summary cross-project compatibility", () => {
     expect(markdown).toContain("`pytest -q`");
     expect(markdown).toContain("## 截图视口\n- 未捕获");
     expect(poster).toContain("ledger-api / Python 服务");
-    expect(poster).toContain('class="current-route"');
-    expect(poster).toContain('class="route-evidence delivery-manifest"');
+    expect(poster).toMatch(/class="[^"]*\bcurrent-route\b[^"]*"/);
+    expect(poster).toMatch(/class="[^"]*\bdelivery-manifest\b[^"]*"/);
     expect(poster).toContain("src/main.py");
     expect(poster).toContain("pytest -q");
     expect(poster).toContain(".showcase/report.json");

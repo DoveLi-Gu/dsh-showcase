@@ -2,6 +2,7 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { collectGitChange, redact, reportSchema, runCommand, type RedactionSummary } from "../core";
+import { atomicProjectWrite, parseJson, projectFile, readBoundedFile, withProjectLock } from "../../plugin/project-io.js";
 
 type TestConfig = string | { command: string; timeoutMs?: number };
 type ShowcaseConfig = {
@@ -24,7 +25,7 @@ function configPath(cwd: string) {
 }
 
 function assertConfig(value: unknown): asserts value is ShowcaseConfig {
-  if (!value || typeof value !== "object") throw new Error("Invalid .showcase/config.json: expected an object.");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid .showcase/config.json: expected an object.");
   const config = value as ShowcaseConfig;
   if (config.task !== undefined && (typeof config.task !== "string" || !config.task.trim())) {
     throw new Error("Invalid .showcase/config.json: task must be a non-empty string.");
@@ -43,12 +44,12 @@ function assertConfig(value: unknown): asserts value is ShowcaseConfig {
 async function readConfig(cwd: string): Promise<ShowcaseConfig> {
   let source: string;
   try {
-    source = await readFile(configPath(cwd), "utf8");
+    source = (await readBoundedFile(await projectFile(cwd, ".showcase/config.json"), 2 * 1024 * 1024)).toString("utf8");
   } catch (error) {
     throw new Error(`Unable to read ${configPath(cwd)}. Run \"dsh-showcase init\" first. ${error instanceof Error ? error.message : String(error)}`);
   }
   try {
-    const config: unknown = JSON.parse(source);
+    const config: unknown = parseJson(source);
     assertConfig(config);
     return config;
   } catch (error) {
@@ -58,17 +59,18 @@ async function readConfig(cwd: string): Promise<ShowcaseConfig> {
 
 async function readExistingReport(cwd: string) {
   try {
-    const source = await readFile(join(cwd, ".showcase", REPORT_FILE), "utf8");
-    return reportSchema.parse(JSON.parse(source));
-  } catch {
-    return undefined;
+    const source = await readBoundedFile(await projectFile(cwd, ".showcase/report.json"), 2 * 1024 * 1024);
+    return reportSchema.parse(parseJson(source));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+    throw new Error(`Existing report could not be read; it was not overwritten. ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 async function resolveProjectName(cwd: string, existingName?: string) {
   try {
-    const source = await readFile(join(cwd, "package.json"), "utf8");
-    const packageJson: unknown = JSON.parse(source);
+    const source = await readBoundedFile(await projectFile(cwd, "package.json"), 2 * 1024 * 1024);
+    const packageJson: unknown = parseJson(source);
     if (packageJson && typeof packageJson === "object" && "name" in packageJson) {
       const name = (packageJson as { name?: unknown }).name;
       if (typeof name === "string" && name.trim()) return name.trim();
@@ -118,56 +120,66 @@ async function hasProjectFile(cwd: string, name: string) {
 }
 
 async function defaultTestCommands(cwd: string): Promise<TestConfig[]> {
+  const commands: TestConfig[] = [];
   if (await hasProjectFile(cwd, "package.json")) {
     try {
-      const source = await readFile(join(cwd, "package.json"), "utf8");
-      const packageJson: unknown = JSON.parse(source);
+      const source = await readBoundedFile(await projectFile(cwd, "package.json"), 2 * 1024 * 1024);
+      const packageJson: unknown = parseJson(source);
       if (packageJson && typeof packageJson === "object" && "scripts" in packageJson) {
         const scripts = (packageJson as { scripts?: unknown }).scripts;
         if (scripts && typeof scripts === "object" && "test" in scripts) {
           const test = (scripts as { test?: unknown }).test;
-          if (typeof test === "string" && test.trim()) return ["npm test"];
+          if (typeof test === "string" && test.trim()) {
+            const runner = await hasProjectFile(cwd, "pnpm-lock.yaml") ? "pnpm" : await hasProjectFile(cwd, "yarn.lock") ? "yarn" : (await hasProjectFile(cwd, "bun.lock") || await hasProjectFile(cwd, "bun.lockb")) ? "bun run" : "npm";
+            commands.push(`${runner} test`);
+          }
         }
       }
     } catch {
       // Invalid or incomplete package metadata should not create a guaranteed failing default.
     }
-    return [];
   }
   const pythonMarkers = await Promise.all(
     ["pyproject.toml", "pytest.ini", "setup.cfg", "requirements.txt"].map((name) => hasProjectFile(cwd, name)),
   );
   if (pythonMarkers.some(Boolean)) {
-    return ["pytest -q"];
+    commands.push("pytest -q");
   }
-  if (await hasProjectFile(cwd, "Cargo.toml")) return ["cargo test"];
-  if (await hasProjectFile(cwd, "go.mod")) return ["go test ./..."];
-  if (await hasProjectFile(cwd, "pom.xml")) return ["mvn test"];
-  if (await hasProjectFile(cwd, "gradlew.bat")) return ["gradlew.bat test"];
-  return [];
+  if (await hasProjectFile(cwd, "Cargo.toml")) commands.push("cargo test");
+  if (await hasProjectFile(cwd, "go.mod")) commands.push("go test ./...");
+  if (await hasProjectFile(cwd, "pom.xml")) commands.push("mvn test");
+  if (process.platform !== "win32" && await hasProjectFile(cwd, "gradlew")) commands.push("./gradlew test");
+  else if (await hasProjectFile(cwd, "gradlew.bat")) commands.push("gradlew.bat test");
+  return commands;
 }
 
 export async function init(cwd = process.cwd()): Promise<string> {
-  const directory = join(cwd, ".showcase");
-  const config: ShowcaseConfig = {
-    task: "Capture verifiable delivery evidence.",
-    tests: await defaultTestCommands(cwd),
-    timeoutMs: 120000,
-  };
-  await mkdir(directory, { recursive: true });
-  const destination = join(directory, CONFIG_FILE);
-  try {
-    await writeFile(destination, `${JSON.stringify(config, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
-      throw new Error(`${destination} already exists. Edit it directly or remove it before re-running init.`);
+  return withProjectLock(cwd, async () => {
+    const directory = await projectFile(cwd, ".showcase");
+    const config: ShowcaseConfig = {
+      task: "Capture verifiable delivery evidence.",
+      tests: await defaultTestCommands(cwd),
+      timeoutMs: 120000,
+    };
+    await mkdir(directory, { recursive: true });
+    const destination = await projectFile(cwd, ".showcase/config.json");
+    try {
+      await writeFile(destination, `${JSON.stringify(config, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+        throw new Error(`${destination} already exists. Edit it directly or remove it before re-running init.`);
+      }
+      throw error;
     }
-    throw error;
-  }
-  return destination;
+    return destination;
+  });
 }
 
 export async function capture(cwd = process.cwd()): Promise<string> {
+  return withProjectLock(cwd, () => captureLocked(cwd));
+}
+
+async function captureLocked(cwd: string): Promise<string> {
   const startedAt = new Date();
   const startedMs = Date.now();
   const [config, existingReport] = await Promise.all([
@@ -175,28 +187,42 @@ export async function capture(cwd = process.cwd()): Promise<string> {
     readExistingReport(cwd),
   ]);
   const projectName = await resolveProjectName(cwd, existingReport?.project?.name);
-  const git = await collectGitChange(cwd, { baseRef: config.baseRef });
+  await projectFile(cwd, ".showcase/report.json");
+  const normalizedTests = (config.tests ?? []).map((test, index) => normalizeTest(test, index, config.timeoutMs));
+  const gitBefore = await collectGitChange(cwd, { baseRef: config.baseRef });
   const receipts = [];
   const redactions: RedactionSummary[] = [];
 
-  for (const [index, test] of (config.tests ?? []).entries()) {
-    const normalized = normalizeTest(test, index, config.timeoutMs);
-    const receipt = await runCommand(normalized.command, { cwd, id: normalized.id, timeoutMs: normalized.timeoutMs });
-    const result = redact(receipt.output);
-    receipts.push({ ...receipt, output: result.text });
+  const sanitize = (text: string) => {
+    const result = redact(text);
     redactions.push(result.summary);
+    return result.text;
+  };
+  for (const normalized of normalizedTests) {
+    const receipt = await runCommand(normalized.command, { cwd, id: normalized.id, timeoutMs: normalized.timeoutMs });
+    receipts.push({ ...receipt, command: sanitize(receipt.command), output: sanitize(receipt.output) });
   }
 
+  const git = await collectGitChange(cwd, { baseRef: config.baseRef, includeDiff: true });
+  for (const file of git.files) {
+    if (file.diff !== undefined) {
+      const diff = sanitize(file.diff);
+      file.diffTruncated ||= diff.length > 16_000;
+      file.diff = diff.slice(0, 16_000);
+    }
+  }
+  const changedDuringTests = gitBefore.fingerprint !== git.fingerprint;
+  const warnings = changedDuringTests ? ["Workspace changed while verification ran; review the new changes and rerun capture."] : [];
   const hasFailedTest = receipts.some((receipt) => receipt.status === "failed");
   const gitUnavailable = git.baseRef === "NO_GIT" && git.headRef === "NO_GIT";
-  const status = hasFailedTest ? "failed" : receipts.length === 0 || gitUnavailable ? "partial" : "completed";
+  const status = hasFailedTest ? "failed" : receipts.length === 0 || gitUnavailable || changedDuringTests ? "partial" : "completed";
   const report = reportSchema.parse({
     version: 1,
     generatedAt: new Date().toISOString(),
-    project: { name: projectName },
+    project: { name: sanitize(projectName) },
     task: {
       id: `capture-${startedMs}`,
-      goal: config.task ?? "Capture verifiable delivery evidence.",
+      goal: sanitize(config.task ?? "Capture verifiable delivery evidence."),
       status,
       startedAt: startedAt.toISOString(),
       completedAt: new Date().toISOString(),
@@ -205,11 +231,14 @@ export async function capture(cwd = process.cwd()): Promise<string> {
     git,
     tests: receipts,
     screenshots: existingReport?.screenshots ?? [],
+    warnings,
     redaction: combineRedaction(redactions),
   });
   const destination = join(cwd, ".showcase", REPORT_FILE);
   await mkdir(join(cwd, ".showcase"), { recursive: true });
-  await writeFile(destination, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+  const json = `${JSON.stringify(report, null, 2)}\n`;
+  if (Buffer.byteLength(json) > 2 * 1024 * 1024) throw new Error("Report exceeds 2 MiB; reduce retained evidence before retrying. Existing report was preserved.");
+  await atomicProjectWrite(cwd, ".showcase/report.json", json);
   return destination;
 }
 

@@ -12,3 +12,5 @@ plugin/assets/dijiang-orbital-graphic.png
 tmp/
 .impeccable/
 .codex-tmp/
+*.mp4
+videos/

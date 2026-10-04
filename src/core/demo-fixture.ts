@@ -1,5 +1,10 @@
 import { reportSchema, type Report } from "./report-schema";
 
+export const demoDiffs: Record<string, string[]> = {
+  "src/App.tsx": ["@@ -1,8 +1,42 @@", "-export default function App() {", "-  return <main>Ready</main>;", "+export default function App() {", "+  return <ReportWorkspace report={demoReport} />;", "+}", "+", "+function ReportWorkspace() {", "+  return <main className=\"report-shell\">...</main>;", "+}"],
+  "src/styles.css": ["@@ -0,0 +1,96 @@", "+:root {", "+  --signal: #d7ef2f;", "+  --surface: #f0f2ed;", "+}", "+.poster-summary {", "+  isolation: isolate;", "+  overflow: hidden;", "+}"],
+};
+
 const fixture = {
   version: 1,
   generatedAt: "2026-08-16T14:30:00.000Z",
@@ -15,8 +20,8 @@ const fixture = {
     baseRef: "main",
     headRef: "HEAD",
     files: [
-      { path: "src/App.tsx", status: "modified", additions: 48, deletions: 12 },
-      { path: "src/styles.css", status: "added", additions: 96, deletions: 0 },
+      { path: "src/App.tsx", status: "modified", additions: 48, deletions: 12, diff: demoDiffs["src/App.tsx"].join("\n"), diffTruncated: true },
+      { path: "src/styles.css", status: "added", additions: 96, deletions: 0, diff: demoDiffs["src/styles.css"].join("\n"), diffTruncated: true },
     ],
     summary: { changedFiles: 2, additions: 144, deletions: 12 },
   },

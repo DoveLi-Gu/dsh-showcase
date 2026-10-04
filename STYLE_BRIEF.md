@@ -4,19 +4,20 @@
 
 Build a working, local-first showcase report generator for coding-agent work. The interface must present verifiable evidence rather than a marketing landing page.
 
-The same report data and functionality must work in two switchable themes. Theme changes must not alter content hierarchy, interaction behavior, accessibility, or layout stability.
+The same evidence and status semantics must work in both themes. Themed layouts may differ, but must not drop evidence, invent results, break keyboard access, or reuse another project's demo content.
 
 ## Theme A: Dijiang
 
-Inspired by a cold industrial science-fiction delivery relay, without copying any game logo, character, illustration, icon, proprietary layout, or named faction.
+Current direction (2026-09-28): industrial editorial, checked against the live official Endfield site styles and loading screen, without copying game logos, characters, screenshots or proprietary panels. See VISUAL_RESEARCH_ZH.md for sources and verification limits.
 
-- Tone: remote industrial facility, field engineering, tactical telemetry, precise machinery.
-- Palette: carbon black, cold white, mineral gray, safety yellow, signal orange, restrained cyan.
-- Geometry: hard edges, clipped corners used sparingly, thin rules, calibration marks, asymmetric grid.
-- Typography: condensed display face paired with a highly readable technical sans and monospace data face.
-- Motion: scan progression, measurement ticks, staged evidence reveal, no decorative floating blobs.
-- Signature element: a stable `PROMPT -> PLAN -> BUILD -> VERIFY -> SHIP` operations rail.
-- Avoid: copied Endfield logos, characters, screenshots, exact UI panels, or recognizable proprietary symbols.
+- Palette: neutral white `#fff`, light gray `#f2f2f2`, ink `#191919`, and signal yellow `#fffa00`, observed in the official site CSS. Use a dark `#141414` loader. The optional cyan `#14d0d0` and dark report mode are project adaptations, not claims about an official color standard.
+- Geometry: square edges, 1px rules, a restrained dot grid and localized terrain contours. Keep text on legible surfaces; do not spread texture over the evidence body or return to green-black terminal defaults.
+- Typography: Arial / Helvetica Neue / PingFang SC / Microsoft YaHei, tabular numbers, a strong announcement heading, compact record labels and monospace code. Font sizes use fixed responsive steps, not viewport scaling.
+- Shell: white topbar and one narrow left rail with a gray active area and ink edge marker; on mobile, navigation moves to the bottom edge. Separate the light-gray project heading, dark outcome instrument and white evidence body. Keep content clear of both fixed edges.
+- Hierarchy: project and outcome, compact review metadata, delivery summary, changes and tests, visual evidence, privacy and exports. Avoid a long empty sidebar beside the report.
+- Motion: masked lateral reveal, rotating calibrated loader instrument, thick progress strip and a full-height signal-color sweep. The loader opens retained evidence; it must not imply that tests are running or passing.
+- Controls: persisted light/dark and accent selection, full-motion toggle, contour toggle, background frame cap (24/60/120) and speed. Frame cap is not a guaranteed rendering FPS. Pause backgrounds while hidden or offscreen.
+- Use one standalone renderer for the plugin and current preview. Preserve the legacy comparison and the fish theme independently.
 
 ## Theme B: Blue Big Fish
 
@@ -49,7 +50,7 @@ A playful deep-sea operations console centered on an original round blue fish ma
 - Use Lucide icons where available.
 - No nested cards and no oversized marketing hero.
 - Stable responsive dimensions at desktop and mobile widths.
-- Respect `prefers-reduced-motion`.
+- Retain the explicitly requested full-motion Dijiang default, with a working persisted motion-off control and `?motion=accessible`; do not remove accessible alternatives.
 - Keyboard-accessible controls and visible focus treatment.
-- English primary README plus a complete Chinese README.
-- Include realistic demo fixture data so the UI is useful immediately after install.
+- Chinese primary README with current screenshots and clear per-project setup instructions.
+- Demo data belongs only to the preview. Installed reports must use the target project's records and honest empty states.

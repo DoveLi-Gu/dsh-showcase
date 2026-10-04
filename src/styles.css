@@ -341,7 +341,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .export-actions .publish { color: var(--ground); background: var(--accent); border-color: var(--accent); }
 .theme-fish .export-actions .publish { color: #fff; }
 .toast { position: fixed; z-index: 50; right: 24px; bottom: 24px; max-width: min(420px, calc(100vw - 32px)); padding: 12px 15px; color: #fff; background: var(--ink); border: 3px solid var(--accent); font-weight: 800; }
-.reveal-band { opacity: .001; transform: translateY(15px); transition: opacity .5s ease-out, transform .5s ease-out; }
+.reveal-band { opacity: 1; transform: none; transition: opacity .5s ease-out, transform .5s ease-out; }
 .reveal-band.is-visible { opacity: 1; transform: translateY(0); }
 
 @keyframes loading-curtain-exit { 0%, 66% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
@@ -500,3 +500,16 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .fish-poster__arc { animation: fish-arc 38s linear infinite; }
   .export-actions button { transition-duration: .2s; }
 }
+
+/* Keep content in normal flow; illustrations remain in the background. */
+.fish-poster { height: auto; min-height: 0; aspect-ratio: auto; padding: 3rem 5.4% 1rem; display: grid; gap: 1.5rem; }
+.fish-poster__copy { position: relative; inset: auto; width: 66%; }
+.fish-poster h2 { font-size: 4rem; line-height: .9; }
+.fish-poster__metrics { position: relative; inset: auto; width: min(100%, 35rem); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fish-poster__metrics div { min-width: 0; }
+.fish-poster__metrics span { font-size: .8125rem; }
+.fish-poster__rail { position: relative; inset: auto; width: 100%; }
+.fish-poster__footer { position: relative; inset: auto; overflow-wrap: anywhere; }
+.fish-poster__pop.pop-two { right: 5%; bottom: 28%; }
+@media (max-width: 900px) { .fish-poster__copy { width: 100%; } .fish-poster__pop.pop-two { display: none; } .fish-poster__pop.pop-one { top: 1rem; right: 1rem; } .fish-poster { padding-top: 5rem; } }
+@media (max-width: 560px) { .fish-poster h2 { font-size: 3rem; } .fish-poster__metrics { gap: .5rem; } .fish-poster__metrics div { padding: .65rem; } .fish-poster__rail span { padding-inline: .4rem; } }

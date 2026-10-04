@@ -1,8 +1,14 @@
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile, utimes } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { generateLayoutSummary } from "../plugin/layout-summary.js";
+import { solidPng } from "./png-fixture";
+
+const capturePng = solidPng(1440, 3120);
+function fixtureJson(report: { screenshots: Array<Record<string, unknown>> }) {
+  return JSON.stringify({ ...report, screenshots: report.screenshots.map((shot) => ({ capturedAt: "2026-08-18T09:55:00.000Z", ...shot })) });
+}
 
 const temporaryDirectories: string[] = [];
 
@@ -16,7 +22,7 @@ async function createProject() {
   await mkdir(join(projectPath, "src"), { recursive: true });
   await mkdir(join(projectPath, ".showcase"), { recursive: true });
   await mkdir(join(projectPath, "evidence"), { recursive: true });
-  await writeFile(join(projectPath, "evidence", "mobile.png"), Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64"));
+  await writeFile(join(projectPath, "evidence", "mobile.png"), capturePng);
   await writeFile(join(projectPath, "src", "App.tsx"), 'const showcaseStages = [{ id: "PROMPT", label: "提示" }, { id: "BUILD", label: "构建" }, { id: "TEST", label: "测试" }, { id: "CAPTURE", label: "捕获" }, { id: "SHIP", label: "交付" }];\nconst theme = "终末地帝江号 蓝色大肥鱼";\nconst controls = "theme-switch type=\\"range\\" export-actions setSelectedFile";\n<details />;\n', "utf8");
   await writeFile(join(projectPath, "src", "styles.css"), "@media (max-width: 980px) {}\n@media (max-width: 640px) {}\n", "utf8");
   await writeFile(join(projectPath, ".showcase", "report.json"), JSON.stringify({
@@ -29,6 +35,9 @@ async function createProject() {
     screenshots: [{ id: "mobile-after", label: "移动端界面证据", theme: "frontier-signal", viewport: { name: "mobile", width: 390, height: 844 }, url: "http://localhost:5173/?theme=frontier-signal", imagePath: "evidence/mobile.png", capturedAt: "2026-08-18T09:55:00.000Z", kind: "after" }],
     redaction: { originalLength: 120, redactedLength: 100, totalReplacements: 2, replacements: { token: 2 } },
   }, null, 2), "utf8");
+  for (const path of ["evidence/mobile.png", "src/App.tsx", "src/styles.css"]) {
+    await utimes(join(projectPath, path), new Date("2026-08-18T09:54:00Z"), new Date("2026-08-18T09:54:00Z"));
+  }
   return projectPath;
 }
 
@@ -54,30 +63,33 @@ describe("generateLayoutSummary", () => {
     expect(markdown).toContain("令牌: 2");
     expect(markdown).not.toContain("secret-value");
     expect(markdown).not.toContain(projectPath);
-    expect(poster).toContain('<html lang="zh-CN">');
+    expect(poster).toContain('<html lang="zh-CN" data-dijiang-motion="full">');
     expect(poster).toContain("已验证");
     expect(poster).toContain("提示");
     expect(poster).toContain('data-theme="frontier-signal"');
     expect(poster).toContain("data:image/png;base64,");
     expect(poster).toMatch(/class="loader loader--(?:fish|field)"/);
-    expect(poster).toContain('class="field-loader-diagram"');
+    expect(poster).toContain('class="field-loader-instrument"');
     expect(poster).toContain('class="field-loader-statusbar"');
-    expect(poster).toContain('<strong title="layout-fixture">layout-fixture</strong>');
+    expect(poster).toContain('<span class="field-loader-project">layout-fixture</span>');
     expect(poster).toContain("data-loader-percent");
-    expect(poster).toContain("data-loader-stage");
+    expect(poster).toContain("field-loader-stages");
     expect(poster).toContain("requestAnimationFrame(tick)");
-    expect(poster).toContain("@keyframes field-loader-exit");
-    expect(poster).toContain("@keyframes field-loader-anchor");
-    expect(poster).toContain("dijiang-loader-exit-final 4.35s");
-    expect(poster).toContain("dijiang-loader-scan-final");
-    expect(poster).toContain("帝江号 / 交付拓扑 / 0017");
-    expect(poster).toContain('class="bp-stage bp-stage--five"');
-    expect(poster).toContain("EVIDENCE TOPOLOGY / 05 NODES / LINK 04");
-    expect(poster).toContain('viewBox="80 90 620 400" preserveAspectRatio="xMidYMid meet"');
-    expect(poster).toContain("M156 258L360 320");
-    expect(poster).toContain("./dsh-dijiang-survey.webp");
+    expect(poster).toContain("@keyframes ed-loader-sheet-exit");
+    expect(poster).toContain("@keyframes dijiang-yellow-transfer");
+    expect(poster).toContain("dijiang-reference-exit 2.4s");
+    expect(poster).toContain("ed-lateral-reveal");
+    expect(poster).toContain('class="poster dijiang-console"');
+    expect(poster).toContain('class="ed-stages current-route"');
+    expect(poster).toContain('id="ed-changes"');
+    expect(poster).toContain('id="ed-tests"');
+    expect(poster).toContain('id="ed-captures"');
+    expect(poster).toContain('class="ed-station field-readout"');
+    expect(poster).not.toContain('class="bp-stage bp-stage--five"');
+    expect(poster).toContain('<canvas class="ed-contours" aria-hidden="true"></canvas>');
+    expect(poster).not.toContain("url('./dsh-dijiang-survey.webp')");
     await expect(readFile(join(projectPath, ".showcase", "dsh-dijiang-survey.webp"))).resolves.toHaveLength(80_306);
-    expect(poster).toContain('querySelector(".loader")');
+    expect(poster).toContain("querySelector('.loader')");
     expect(poster).toContain("prefers-reduced-motion");
     expect(poster).not.toContain("未捕获");
     expect(poster).not.toContain("secret-value");
@@ -97,18 +109,41 @@ describe("generateLayoutSummary", () => {
     await expect(readFile(join(projectPath, ".showcase", "layout-poster.html"), "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("passes complete sanitized report details and comparison metadata into Dijiang exports", async () => {
+    const projectPath = await createProject();
+    const path = join(projectPath, ".showcase/report.json");
+    const report = JSON.parse(await readFile(path, "utf8"));
+    report.git.files[0].diff = "@@ -1 +1 @@\n-old\n+token=patch-secret";
+    report.tests[0].output = "first line\nsecond line token=output-secret";
+    report.screenshots.push({ ...report.screenshots[0], id: "mobile-before", kind: "before" });
+    await writeFile(path, fixtureJson(report), "utf8");
+    const result = await generateLayoutSummary({ projectPath });
+    const html = await readFile(join(projectPath, result.posterPath!), "utf8");
+    expect(html).toContain('data-ed-comparison data-before');
+    expect(html).toContain('class="ed-diff-line deletion"');
+    expect(html).toContain("first line\nsecond line");
+    expect(html).not.toContain("patch-secret");
+    expect(html).not.toContain("output-secret");
+    const payload = JSON.parse(html.match(/<script id="ed-export-data" type="application\/json">([\s\S]*?)<\/script>/)![1]);
+    expect(payload.report.task.durationMs).toBe(3600000);
+    expect(payload.report.redaction.totalReplacements).toBe(2);
+    expect(payload.report.git.files[0].diff).toContain("-old");
+    expect(payload.report.screenshots).toHaveLength(2);
+    expect(payload.markdown).toContain("# 布局摘要");
+  });
+
   it("validates Markdown-only screenshots instead of trusting missing files", async () => {
     const projectPath = await createProject();
     const reportPath = join(projectPath, ".showcase", "report.json");
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.screenshots[0].imagePath = "evidence/missing.png";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, generatePoster: false });
     const markdown = await readFile(join(projectPath, result.outputPath), "utf8");
 
     expect(markdown).toContain("## 截图视口\n- 未捕获");
-    expect(markdown).not.toContain("移动端: 390 x 844");
+    expect(markdown.split("## 截图视口")[1].split("## Git 改动")[0]).not.toContain("移动端: 390 x 844");
   });
 
   it("keeps verified report screenshots in Markdown-only mode regardless of poster theme", async () => {
@@ -126,7 +161,7 @@ describe("generateLayoutSummary", () => {
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.generatedAt = "1970-01-01T00:00:00.000Z";
     report.screenshots[0].capturedAt = "2026-08-18T00:00:00.000Z";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, generatePoster: false });
     const markdown = await readFile(join(projectPath, result.outputPath), "utf8");
@@ -142,7 +177,7 @@ describe("generateLayoutSummary", () => {
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.generatedAt = "2099-01-01T00:00:00.000Z";
     report.screenshots[0].capturedAt = "2000-01-01T00:00:00.000Z";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, generatePoster: false });
     const markdown = await readFile(join(projectPath, result.outputPath), "utf8");
@@ -162,7 +197,7 @@ describe("generateLayoutSummary", () => {
       await writeFile(join(projectPath, path), `export const value${index} = ${index};\n`, "utf8");
       report.git.files.push({ path, status: "modified", additions: 1, deletions: 0 });
     }
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, generatePoster: false });
 
@@ -174,7 +209,7 @@ describe("generateLayoutSummary", () => {
     const reportPath = join(projectPath, ".showcase", "report.json");
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.screenshots[0].theme = "blue-big-fish";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
     const result = await generateLayoutSummary({
       projectPath,
       locale: "en",
@@ -280,9 +315,9 @@ describe("generateLayoutSummary", () => {
           report.screenshots[0].theme = theme;
           report.tests = [
             { ...report.tests[0], status: item.receiptStatus, exitCode: item.exitCode, output: item.status },
-            { ...report.tests[0], id: "test-skipped", command: "npm run optional", status: "skipped", exitCode: 0, output: "skipped" },
+            { ...report.tests[0], id: "test-optional", command: "npm run optional", status: item.status === "completed" ? "passed" : "skipped", exitCode: 0, output: item.status === "completed" ? "ok" : "skipped" },
           ];
-          await writeFile(reportPath, JSON.stringify(report), "utf8");
+          await writeFile(reportPath, fixtureJson(report), "utf8");
 
           const result = await generateLayoutSummary({
             projectPath,
@@ -311,8 +346,10 @@ describe("generateLayoutSummary", () => {
           expect(article).toContain('aria-label="' + ariaPrefix + outcomeLabel + '"');
           expect(article).toContain('aria-hidden="true">' + item.symbol + "</span>");
           if (theme === "blue-big-fish") {
-            expect(article).toContain('<li data-status="skipped"');
-            expect(article).toContain(locale === "zh-CN" ? "已跳过" : "SKIPPED");
+            if (item.status !== "completed") {
+              expect(article).toContain('<li data-status="skipped"');
+              expect(article).toContain(locale === "zh-CN" ? "已跳过" : "SKIPPED");
+            }
             if (item.status === "completed") {
               expect(article).toContain('<li data-status="passed"');
               expect(article).toContain(locale === "zh-CN" ? "✓</span> 已通过" : "✓</span> PASSED");
@@ -341,7 +378,7 @@ describe("generateLayoutSummary", () => {
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     delete report.screenshots[0].theme;
     report.screenshots[0].url = "http://127.0.0.1:4175/?theme=fish";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, theme: "frontier-signal" });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
@@ -371,33 +408,31 @@ describe("generateLayoutSummary", () => {
       viewport: { name: "desktop", width: 1440, height: 900 },
       imagePath: "evidence/mobile.png",
     });
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, theme: "frontier-signal" });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
 
     expect(poster).toContain("data:image/png;base64,");
     expect(poster).toContain("跨主题截图已隔离");
-    expect(poster).toContain("evidence-page__guard--compact");
+    expect(poster).toContain('data-state="isolated"');
     expect(poster).toContain("01 / 02 主题匹配");
   });
 
-  it("distinguishes unclassified screenshots from known cross-theme captures", async () => {
+  it("accepts ordinary project screenshots without a report-theme annotation", async () => {
     const projectPath = await createProject();
     const reportPath = join(projectPath, ".showcase", "report.json");
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     delete report.screenshots[0].theme;
     delete report.screenshots[0].url;
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, theme: "frontier-signal" });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
 
-    expect(poster).toContain("未标注主题的截图未嵌入");
-    expect(poster).toContain('data-state="unclassified"');
-    expect(poster).toContain("待标注 / 图像未嵌入");
+    expect(poster).not.toContain('data-state="unclassified"');
+    expect(poster).toContain("data:image/png;base64,");
     expect(poster).not.toContain("跨主题截图已隔离");
-    expect(poster).not.toContain("data:image/png;base64,");
   });
 
   it("uses at most three successfully loaded theme captures across every output", async () => {
@@ -410,7 +445,7 @@ describe("generateLayoutSummary", () => {
       { theme: "frontier-signal", viewport: { name: "mobile", width: 390, height: 844 }, imagePath: "evidence/mobile.png" },
       { theme: "frontier-signal", viewport: { name: "desktop", width: 1280, height: 720 }, imagePath: "evidence/mobile.png" },
     ];
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, theme: "frontier-signal" });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
@@ -434,7 +469,7 @@ describe("generateLayoutSummary", () => {
       { theme: "blue-big-fish", viewport: { name: "desktop", width: 1440, height: 900 }, imagePath: "evidence/mobile.png" },
       { viewport: { name: "tablet", width: 800, height: 1000 }, imagePath: "evidence/mobile.png" },
     ];
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, theme: "frontier-signal" });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
@@ -442,14 +477,13 @@ describe("generateLayoutSummary", () => {
     const primaryPoster = poster.slice(0, poster.indexOf('<section class="evidence-page"'));
 
     expect((poster.match(/data:image\/png;base64,/g) ?? [])).toHaveLength(3);
-    expect(poster).toContain("03 / 05 主题匹配");
-    expect(poster).toContain("非匹配截图未嵌入");
+    expect(poster).toContain("03 / 04 主题匹配");
     expect(poster).toContain("跨主题截图已隔离");
     expect(poster).toContain("桌面端: 1440 x 900");
     expect(poster).toContain("平板端: 834 x 1112");
     expect(poster).toContain("移动端: 390 x 844");
     expect(poster).not.toContain("桌面端: 1280 x 720");
-    expect(poster).toContain("平板端: 800 x 1000");
+    expect(poster).not.toContain("平板端: 800 x 1000");
     expect(primaryPoster).not.toContain("桌面端: 1280 x 720");
     expect(primaryPoster).not.toContain("平板端: 800 x 1000");
     expect(markdown).toContain("桌面端: 1440 x 900");
@@ -463,7 +497,7 @@ describe("generateLayoutSummary", () => {
     const reportPath = join(projectPath, ".showcase", "report.json");
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.screenshots[0].imagePath = "evidence/missing.png";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, theme: "frontier-signal" });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
@@ -491,7 +525,7 @@ describe("generateLayoutSummary", () => {
     const reportPath = join(projectPath, ".showcase", "report.json");
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.screenshots[0].imagePath = "evidence/broken.png";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, theme: "frontier-signal" });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
@@ -515,7 +549,7 @@ describe("generateLayoutSummary", () => {
     const reportPath = join(projectPath, ".showcase", "report.json");
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.screenshots[0].imagePath = "evidence/linked.png";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     await expect(generateLayoutSummary({ projectPath })).rejects.toThrow("screenshot imagePath must resolve inside projectPath");
   });
@@ -534,7 +568,7 @@ describe("generateLayoutSummary", () => {
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.screenshots[0].theme = "blue-big-fish";
     report.screenshots[0].imagePath = "evidence/linked-markdown.png";
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath, theme: "frontier-signal", generatePoster: false });
     const markdown = await readFile(join(projectPath, result.outputPath), "utf8");
@@ -567,7 +601,7 @@ describe("generateLayoutSummary", () => {
     const report = JSON.parse(await readFile(reportPath, "utf8"));
     report.project = { name: longText };
     report.task.goal = `${secret} C:\\Users\\victim\\My Secret\\token.txt ${longText}`;
-    await writeFile(reportPath, JSON.stringify(report), "utf8");
+    await writeFile(reportPath, fixtureJson(report), "utf8");
 
     const result = await generateLayoutSummary({ projectPath });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
@@ -578,9 +612,10 @@ describe("generateLayoutSummary", () => {
     expect(poster).not.toContain("victim");
     expect(markdown).not.toContain("victim");
     expect(poster).toContain("...");
-    // The complete two-theme report includes route and manifest evidence in
-    // addition to the bounded project copy.
-    expect(poster.length).toBeLessThan(110_000);
+    // Visible copy stays bounded; the export payload also retains sanitized report data.
+    const visibleReport = poster.slice(poster.indexOf('<article class="poster'), poster.indexOf("</article>"));
+    expect(visibleReport).not.toContain(longText);
+    expect(poster.length).toBeLessThan(300_000);
   });
 
   it("rejects unsupported locales", async () => {

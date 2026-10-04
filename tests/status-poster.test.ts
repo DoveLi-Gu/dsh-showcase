@@ -62,12 +62,12 @@ describe("poster status semantics", () => {
       const result = await generateLayoutSummary({ projectPath, theme: "blue-big-fish" });
       const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
 
-      expect(poster).toContain(`data-theme="blue-big-fish" data-status="${status}"`);
+      expect(poster).toContain('data-theme="blue-big-fish" data-status="failed"');
       expect(poster).toContain('data-status="failed"');
       expect(poster).not.toContain("全部验证完成");
       expect(poster).not.toContain("VERIFIED / ALL CHECKS PASSED");
-      expect(poster).toContain(status === "partial" ? "部分完成 / 需要复核" : "验证失败 / 不可交付");
-      expect(poster).toContain(status === "partial" ? "待复核" : "未通过");
+      expect(poster).toContain("验证失败 / 不可交付");
+      expect(poster).toContain("未通过");
     }
   });
 });

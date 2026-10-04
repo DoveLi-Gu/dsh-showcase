@@ -58,7 +58,14 @@
     "plugin/layout-summary.d.ts",
     "plugin/layout-summary.js",
     "plugin/poster-html.js",
+    "plugin/dijiang-layout.js",
+    "plugin/dijiang-style.js",
+    "plugin/dijiang-motion.js",
+    "plugin/report-content.js",
     "plugin/report-schema.js",
+    "plugin/project-io.js",
+    "plugin/project-io.d.ts",
+    "plugin/redaction.js",
     "plugin/assets/dijiang-survey-surface.webp",
     "plugin/assets/whale-girl-keyvisual.webp",
     "cordis.patch.yml",
@@ -84,7 +91,7 @@
   "dependencies": {
     "@deepseek-ai/dsh-settings": "^0.1.0-rc.6",
     "@deepseek-ai/schemastery": "^3.18.1",
-    "zod": "latest"
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
@@ -97,13 +104,12 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
-    "jsdom": "latest",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
     "tsx": "latest",
     "typescript": "latest",
     "vite": "latest",
-    "vitest": "latest"
+    "vitest": "^4.1.11"
   }
 }

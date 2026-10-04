@@ -1,7 +1,10 @@
 import { mkdir, readFile, readdir, realpath, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { createStyledPosterHtml } from "./poster-html.js";
+import { findComparisonPair, sanitizeReportExport } from "./report-content.js";
 import { formatReportIssues, reportSchema } from "./report-schema.js";
+import { withProjectLock, readBoundedFile, parseJson } from "./project-io.js";
+import { redact } from "./redaction.js";
 
 const DEFAULT_REPORT_PATH = ".showcase/report.json";
 const DEFAULT_OUTPUT_PATH = ".showcase/layout-summary.md";
@@ -380,7 +383,7 @@ function truncateText(value, maxLength = MAX_TEXT_LENGTH) {
 }
 
 function safeText(value, maxLength = MAX_TEXT_LENGTH) {
-  const redacted = String(value ?? "")
+  const redacted = redact(String(value ?? "")).text
     .replace(/\b(?:authorization|api\s*[_-]?key|access\s*[_-]?token|token)\s*[:=]\s*(?:bearer\s+)?[^\s,;]+/gi, "[REDACTED]")
     .replace(/\b(?:sk-(?:proj-|ant-|or-v1-)?[A-Za-z0-9_-]{16,}|AIza[0-9A-Za-z_-]{20,}|xai-[A-Za-z0-9_-]{16,}|pplx-[A-Za-z0-9_-]{16,}|hf_[A-Za-z0-9_-]{16,})\b/g, "[REDACTED]")
     .replace(/\bgh[pousr]_[A-Za-z0-9_]{20,}\b/g, "[REDACTED]")
@@ -389,6 +392,10 @@ function safeText(value, maxLength = MAX_TEXT_LENGTH) {
     .replace(/[\x60\r\n]+/g, " ")
     .trim();
   return truncateText(redacted, maxLength);
+}
+
+function safeBlock(value, maxLength = 16_000) {
+  return truncateText(redact(String(value ?? "")).text, maxLength);
 }
 
 function safeRelativePath(value, maxLength = 240) {
@@ -547,12 +554,17 @@ function imageInfo(image) {
 
 // Keep one bounded, verified set for both Markdown and poster output. The
 // Markdown-only path validates bytes without retaining a base64 copy.
-async function collectVerifiedScreenshots(projectPath, screenshots, locale, { embed = false, strictPaths = embed } = {}) {
+async function collectVerifiedScreenshots(projectPath, screenshots, locale, { embed = false, strictPaths = embed, generatedAt = Infinity, sourceTime = 0, fingerprint, signal } = {}) {
   const mimeTypes = new Map([[".png", "image/png"], [".webp", "image/webp"], [".jpg", "image/jpeg"], [".jpeg", "image/jpeg"]]);
   const posterScreenshots = [];
   const verifiedEvidenceViewports = [];
   const invalidEvidenceViewports = [];
-  for (const shot of screenshots) {
+  let currentCaptureCount = 0;
+  const pair = findComparisonPair(screenshots);
+  const ordered = [...screenshots].sort((a, b) => (a.kind === "before" ? 1 : 0) - (b.kind === "before" ? 1 : 0));
+  if (pair) ordered.splice(0, ordered.length, pair.after, pair.before, ...ordered.filter((shot) => shot !== pair.after && shot !== pair.before));
+  for (const shot of ordered) {
+    signal?.throwIfAborted();
     if (verifiedEvidenceViewports.length >= 3) break;
     const label = screenshotLabel(shot, locale);
     if (!shot?.imagePath || typeof shot.imagePath !== "string") {
@@ -566,7 +578,16 @@ async function collectVerifiedScreenshots(projectPath, screenshots, locale, { em
         invalidEvidenceViewports.push(label);
         continue;
       }
-      const image = await readFile(fullPath);
+      const details = await stat(fullPath);
+      const capturedAt = Date.parse(shot.capturedAt);
+      if (!Number.isFinite(capturedAt) || capturedAt <= 0 || capturedAt > generatedAt + FRESHNESS_CLOCK_SKEW_MS
+        || details.mtimeMs > capturedAt + FRESHNESS_CLOCK_SKEW_MS
+        || (shot.kind !== "before" && (sourceTime > capturedAt + FRESHNESS_CLOCK_SKEW_MS
+          || (shot.sourceFingerprint && fingerprint && shot.sourceFingerprint !== fingerprint)))) {
+        invalidEvidenceViewports.push(`${label} (${locale === "zh-CN" ? "过期或时间未验证" : "stale or unverified timestamp"})`);
+        continue;
+      }
+      const image = await readBoundedFile(fullPath, MAX_IMAGE_BYTES, signal);
       const info = imageInfo(image);
       if (!info) {
         invalidEvidenceViewports.push(label);
@@ -575,16 +596,35 @@ async function collectVerifiedScreenshots(projectPath, screenshots, locale, { em
       const name = viewportLabel(safeText(shot.viewport?.name), locale);
       const width = Number(shot.viewport?.width) || 0;
       const height = Number(shot.viewport?.height) || 0;
-      const verifiedLabel = `${name}: ${width} x ${height}`;
+      const scale = shot.deviceScaleFactor ?? info.width / width;
+      const region = shot.captureMode === "region";
+      if (!region && (!(scale >= (shot.deviceScaleFactor ? 0 : 1) && scale <= 8)
+        || Math.abs(info.width - width * scale) > 1
+        || info.height < height * scale - 1
+        || (shot.captureMode === "viewport" && Math.abs(info.height - height * scale) > 1))) {
+        invalidEvidenceViewports.push(`${label} (${locale === "zh-CN" ? "图片尺寸不匹配" : "pixel dimensions mismatch"})`);
+        continue;
+      }
+      const kind = shot.kind === "before" ? (locale === "zh-CN" ? "改版前" : "Before") : (locale === "zh-CN" ? "改版后" : "After");
+      const verifiedLabel = `${kind} / ${name}: ${width} x ${height}${region ? ` / region ${info.width} x ${info.height}` : ""}`;
       verifiedEvidenceViewports.push(verifiedLabel);
+      if (shot.kind !== "before" && !region) currentCaptureCount += 1;
       if (embed) {
         posterScreenshots.push({
           image: image.toString("base64"),
           mimeType: info.mimeType,
           label: verifiedLabel,
+          kind: shot.kind,
+          viewport: { name: shot.viewport.name, width, height },
+          captureMode: shot.captureMode,
+          imageWidth: info.width,
+          imageHeight: info.height,
+          url: safeText(shot.url),
+          comparisonId: shot.comparisonId ? safeText(shot.comparisonId) : undefined,
         });
       }
     } catch (error) {
+      signal?.throwIfAborted();
       // Embedded poster bytes must never cross the project boundary. A
       // Markdown-only summary does not read or expose the outside file, so an
       // obsolete or cross-theme symlink is recorded as invalid and skipped.
@@ -592,7 +632,7 @@ async function collectVerifiedScreenshots(projectPath, screenshots, locale, { em
       invalidEvidenceViewports.push(label);
     }
   }
-  return { posterScreenshots, verifiedEvidenceViewports, invalidEvidenceViewports };
+  return { posterScreenshots, verifiedEvidenceViewports, invalidEvidenceViewports, currentCaptureCount };
 }
 
 function formatList(items, emptyLabel) {
@@ -662,6 +702,19 @@ async function collectFreshnessWarnings(projectPath, report, sourcePaths, screen
   return [...new Set(warnings)].slice(0, MAX_FRESHNESS_WARNINGS);
 }
 
+async function latestSourceTime(projectPath, sourcePaths, files) {
+  let latest = 0;
+  for (const path of new Set([...sourcePaths.filter(Boolean), ...files.filter((file) => file.status !== "deleted").map((file) => file.path)])) {
+    try {
+      const details = await stat(await insideProjectRealpath(projectPath, path, "Source path"));
+      if (details.isFile()) latest = Math.max(latest, details.mtimeMs);
+    } catch (error) {
+      if (!isMissingSourceError(error) && !error.message?.includes("must resolve inside projectPath")) throw error;
+    }
+  }
+  return latest;
+}
+
 function localeText(locale) {
   return locale === "zh-CN" ? {
     title: "布局摘要", projectTask: "项目与任务", task: "任务", status: "状态", version: "报告版本", poster: "海报产物", posterNotGenerated: "本次未生成", freshness: "时效审查", freshnessOk: "报告、源文件和截图的时间顺序未发现明显冲突", theme: "主题系统", rail: "交付轨道", main: "主页面区段", breakpoints: "响应式断点", screenshots: "截图视口", git: "Git 改动", range: "范围", receipts: "测试回执", privacy: "隐私审查", redactions: "已脱敏值", interactions: "交互控件", notRecorded: "未记录", untitledProject: "未命名项目", unknown: "未知", notCaptured: "未捕获", exit: "退出码", conclusion: "根据报告和布局源文件在本地生成。未上传任何内容。", empty: "未记录", posterTitle: "布局证据海报", kicker: "交付证据 / 本地报告", verified: "已验证", files: "改动文件", tests: "通过测试", redaction: "已脱敏", footer: "仅在本地生成 / 不会上传",
@@ -715,6 +768,11 @@ function durationLabel(value) {
 }
 
 export async function generateLayoutSummary(options = {}) {
+  if (!options.projectPath || typeof options.projectPath !== "string") throw new Error("projectPath is required.");
+  return withProjectLock(options.projectPath, () => generateLockedSummary(options), options.signal);
+}
+
+async function generateLockedSummary(options) {
   if (!options.projectPath || typeof options.projectPath !== "string") {
     throw new Error("projectPath is required.");
   }
@@ -759,7 +817,7 @@ export async function generateLayoutSummary(options = {}) {
     if (reportDetails.size > MAX_REPORT_BYTES) {
       throw new Error(`reportPath exceeds the ${MAX_REPORT_BYTES} byte safety limit.`);
     }
-    const rawReport = JSON.parse(await readFile(reportPath, "utf8"));
+    const rawReport = parseJson(await readBoundedFile(reportPath, MAX_REPORT_BYTES, options.signal));
     report = reportSchema.parse(rawReport);
   } catch (error) {
     if (Array.isArray(error?.issues)) {
@@ -793,12 +851,13 @@ export async function generateLayoutSummary(options = {}) {
   const stages = collectStages(app, locale);
   const breakpoints = collectBreakpoints(css);
   const screenshots = Array.isArray(report.screenshots) ? report.screenshots : [];
+  const sourceTime = await latestSourceTime(projectPath, [appPath, cssPath], report.git.files);
   const matchingScreenshots = [];
   const isolatedScreenshots = [];
   const unclassifiedScreenshots = [];
   for (const screenshot of screenshots) {
     const captureTheme = screenshotTheme(screenshot);
-    if (captureTheme === theme) matchingScreenshots.push(screenshot);
+    if (captureTheme === theme || !captureTheme) matchingScreenshots.push(screenshot);
     else if (captureTheme) isolatedScreenshots.push(screenshot);
     else unclassifiedScreenshots.push(screenshot);
   }
@@ -806,15 +865,28 @@ export async function generateLayoutSummary(options = {}) {
     projectPath,
     generatePoster ? matchingScreenshots : screenshots,
     locale,
-    { embed: generatePoster },
+    { embed: generatePoster, generatedAt: Date.parse(report.generatedAt), sourceTime, fingerprint: report.git.fingerprint, signal: options.signal },
   );
   const posterScreenshots = collectedEvidence.posterScreenshots;
   const invalidEvidenceViewports = collectedEvidence.invalidEvidenceViewports;
   const evidenceViewports = collectedEvidence.verifiedEvidenceViewports;
   const files = Array.isArray(report.git?.files) ? report.git.files : [];
-  const tests = Array.isArray(report.tests) ? report.tests : [];
-  const freshnessWarnings = await collectFreshnessWarnings(projectPath, report, [appPath, cssPath], screenshots, locale);
-  const taskStatus = taskStatusModel(report.task?.status, locale);
+  const tests = report.tests.map((test) => ({ ...test, status: test.exitCode !== 0 ? "failed" : test.status }));
+  const visualProject = Boolean(
+    cssPath
+      || (appPath && VISUAL_SOURCE_EXTENSIONS.has(sourceExtension(appPath)))
+      || /<(?:html|body|main|section|article|div|button|form|canvas|svg)\b|React\.createElement\s*\(|document\.(?:querySelector|getElementById|createElement)\s*\(/i.test(app),
+  );
+  const freshnessWarnings = [
+    ...(report.warnings ?? []).map((warning) => safeText(warning)),
+    ...await collectFreshnessWarnings(projectPath, report, [appPath, cssPath], screenshots, locale),
+    ...invalidEvidenceViewports.map((label) => locale === "zh-CN" ? `截图证据不可用: ${label}` : `Capture evidence unavailable: ${label}`),
+    ...(visualProject && !collectedEvidence.currentCaptureCount ? [locale === "zh-CN" ? "尚无有效的改版后整屏截图，视觉验收未完成。" : "No valid after viewport capture; visual acceptance is incomplete."] : []),
+  ].slice(0, MAX_FRESHNESS_WARNINGS);
+  const failed = tests.some((test) => test.status === "failed");
+  const incomplete = !tests.length || tests.some((test) => test.status !== "passed") || freshnessWarnings.length > 0
+    || (report.git.baseRef === "NO_GIT" && report.git.headRef === "NO_GIT");
+  const taskStatus = taskStatusModel(failed || report.task.status === "failed" ? "failed" : incomplete ? "partial" : report.task.status, locale);
   const redaction = report.redaction ?? {};
   const sections = locale === "zh-CN" ? ["项目与任务", "主题系统", "交付轨道", "证据带", "响应式采集", "变更清单", "验证回执", "时效审查", "隐私审查", "本地导出控件"] : ["Project and task", "Theme system", "Operations rail", "Evidence bands", "Responsive capture", "Change set", "Verification receipts", "Freshness review", "Privacy review", "Local export controls"];
   // A poster is scoped to one visual theme. Keep its textual viewport claims
@@ -827,23 +899,25 @@ export async function generateLayoutSummary(options = {}) {
   const gitUnavailable = report.git?.baseRef === "NO_GIT" && report.git?.headRef === "NO_GIT";
   const gitState = gitUnavailable ? "unavailable" : files.length ? "changed" : "clean";
   const testState = tests.length ? (tests.some((test) => test.status === "failed") ? "failed" : "configured") : "unconfigured";
-  const visualProject = Boolean(
-    cssPath
-      || (appPath && VISUAL_SOURCE_EXTENSIONS.has(sourceExtension(appPath)))
-      || /<(?:html|body|main|section|article|div|button|form|canvas|svg)\b|React\.createElement\s*\(|document\.(?:querySelector|getElementById|createElement)\s*\(/i.test(app),
-  );
   const gitRange = truncateText(`${safeText(report.git?.baseRef) || text.unknown}..${safeText(report.git?.headRef) || text.unknown}`, 180);
-  const gitFiles = files.slice(0, 5).map((file) => ({
+  const gitFiles = files.slice(0, 20).map((file) => ({
     path: safeRelativePath(file.path),
     additions: Number(file.additions) || 0,
     deletions: Number(file.deletions) || 0,
+    status: file.status,
+    previousPath: file.previousPath ? safeRelativePath(file.previousPath) : undefined,
+    diff: file.diff === undefined ? undefined : safeBlock(file.diff),
+    diffTruncated: Boolean(file.diffTruncated || (file.diff?.length ?? 0) > 16_000),
+    diffUnavailable: file.diffUnavailable,
   }));
-  const testReceipts = tests.slice(0, 3).map((test) => ({
+  const testReceipts = tests.slice(0, 20).map((test) => ({
     command: truncateText(safeText(test.command), 240),
     duration: durationLabel(test.durationMs),
     exitCode: Number(test.exitCode) || 0,
     status: safeText(test.status),
     statusLabel: statusLabel(test.status, locale),
+    output: safeBlock(test.output, 4000),
+    outputTruncated: Boolean(test.outputTruncated || test.output.length > 4000),
   }));
   const changes = files.map((file) => `\`${safeRelativePath(file.path)}\` (${statusLabel(file.status, locale)}, +${Number(file.additions) || 0} / -${Number(file.deletions) || 0})`);
   const receipts = tests.map((test) => `\`${truncateText(safeText(test.command), 240)}\` (${statusLabel(test.status, locale)}, ${text.exit} ${Number(test.exitCode) || 0})`);
@@ -855,7 +929,7 @@ export async function generateLayoutSummary(options = {}) {
     "",
     `## ${text.projectTask}`,
     `- ${text.task}: ${taskText}`,
-    `- ${text.status}: ${statusLabel(report.task?.status, locale) || text.notRecorded}`,
+    `- ${text.status}: ${taskStatus.label}`,
     `- ${text.version}: ${safeText(report.version) || text.notRecorded}`,
     `- ${text.poster}: ${posterReference}`,
     "",
@@ -902,12 +976,20 @@ export async function generateLayoutSummary(options = {}) {
       image: posterImage.toString("base64"),
       surfaceImage: surfaceAssetPath ? `./${DIJIANG_SURFACE_FILENAME}` : "",
       projectName,
+      generatedAt: safeText(report.generatedAt),
       task: taskText,
       stages,
       fileCount: files.length,
       passedTests,
       testCount: tests.length,
       redactionCount: Number(redaction.totalReplacements) || 0,
+      redactionDetails: Object.entries(redaction.replacements ?? {}).map(([name, count]) => ({ name: redactionLabel(name, locale), count })),
+      durationMs: report.task.durationMs,
+      additions: report.git.summary.additions,
+      deletions: report.git.summary.deletions,
+      reportData: sanitizeReportExport({ ...report, task: { ...report.task, status: taskStatus.key }, tests, warnings: freshnessWarnings,
+        evidenceReview: { theme, matched: evidenceViewports, excluded: invalidEvidenceViewports } }),
+      summaryMarkdown: sanitizedMarkdown,
       // Keep the filtered poster set available to the renderer as the source of
       // truth; legacy fields remain populated for callers that already consume
       // them.
@@ -925,7 +1007,7 @@ export async function generateLayoutSummary(options = {}) {
       visualProject,
       taskStatus: taskStatus.key,
       taskStatusLabel: taskStatus.label,
-      gitFileCount: Number(report.git?.summary?.changedFiles) || files.length,
+      gitFileCount: files.length,
       gitFiles,
       testReceipts,
       freshnessWarnings,
@@ -937,6 +1019,7 @@ export async function generateLayoutSummary(options = {}) {
     });
     sanitizedPoster = posterHtml.replaceAll(projectPath, "[PATH OMITTED]");
   }
+  options.signal?.throwIfAborted();
   await writeArtifactFiles([
     ...(surfaceAssetPath ? [{ path: surfaceAssetPath, content: posterImage }] : []),
     ...(generatePoster ? [{ path: posterPath, content: sanitizedPoster }] : []),
