@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/DoveLi-Gu/dsh-showcase/actions/workflows/ci.yml/badge.svg)](https://github.com/DoveLi-Gu/dsh-showcase/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-111115.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-2f855a.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22.19%2B%20%7C%2024%2B-2f855a.svg)](https://nodejs.org/)
 
 **把编程 Agent 的改动和测试结果，整理成可核验的中文交付报告。**
 
@@ -36,8 +36,8 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 
 ## 你需要什么
 
-- **必须**：已经可以运行的 DSH Web 环境；
-- **必须**：Node.js 20+ 和 npm，用于安装本仓库及运行采集 CLI；
+- **必须**：已经可以运行的 DSH Web 环境（当前插件兼容 DSH `0.2.0-rc.2` 及同一 0.2 系列）；
+- **必须**：Node.js `22.19+` 或 `24+` 和 npm，用于安装本仓库及运行采集 CLI；
 - **可选**：Git。没有 Git 时仍会生成报告，但状态会明确标为 `partial`；
 - **可选**：Playwright 或其他浏览器验收工具。截图不是后端、CLI、库项目的必需项。
 
@@ -88,7 +88,7 @@ dsh plugin --profile web add "C:\tools\dsh-showcase"
 
 然后重启 `dsh web`，再新建一个会话。若命令提示 `dsh` 不存在，先安装并确认 DSH CLI 已加入 `PATH`；这不是本插件自身的安装错误。
 
-打开 DSH 的插件设置，找到 **布局证据产物**。这里可以选择：
+打开 DSH 侧栏的 **插件**，进入 `dsh-showcase`，点击组件 `dsh-showcase/plugin` 的 **配置**，找到 **布局证据产物**。这里可以选择：
 
 - **终末地帝江号**：机械工业、密集等高线和黄黑校准色；
 - **蓝色大肥鱼**：浅蓝背景、角色主视觉和钴蓝强调；
@@ -436,7 +436,7 @@ CLI 会保留 `report.json` 中已经存在的截图记录，但不会自动启�
 
 ## 从源码开发
 
-构建工具要求 Node.js 20.19+、22.12+ 或 24+，建议使用 Node.js 24。安装到 DSH 的插件运行时要求仍为 Node.js 20+。
+构建工具和 DSH `0.2` 插件运行时要求 Node.js `22.19+` 或 `24+`；建议使用 Node.js 24。DSH `0.1` 旧版运行时不再作为本版本的兼容目标。
 
 ~~~powershell
 npm ci

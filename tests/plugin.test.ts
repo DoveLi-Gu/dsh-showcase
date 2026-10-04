@@ -5,13 +5,12 @@ import { apply, Config } from "../plugin/index.js";
 const clientUrl = new URL("../plugin/client.js", import.meta.url);
 
 describe("showcase layout summary plugin", () => {
-  it("registers the rc.6 tool definition with renderable content blocks", async () => {
+  it("registers the 0.2 tool definition with strict renderable output", async () => {
     const definitions: unknown[] = [];
     apply({
-      connection: { rpc: { handle() {} } },
       settings: {
-        register(_namespace, _schema, options) {
-          return { get: () => options.base, async update() {} };
+        describe() {
+          return [{ ns: "showcase-layout-summary", value: { theme: "blue-big-fish", generatePoster: true }, revision: 0 }];
         },
       },
       tools: { register(definition) { definitions.push(definition); } },
@@ -22,11 +21,12 @@ describe("showcase layout summary plugin", () => {
       name: string;
       parameters: { properties: { locale: { enum: string[]; default: string }; generatePoster: { type: string } } };
       execute: (args: { projectPath: string; generatePoster?: boolean }) => Promise<unknown>;
-      output: { render: (args: unknown, value: { locale: "zh-CN" | "en"; outputPath: string; posterPath?: string; posterGenerated: boolean; sections: string[]; theme: string; themeKey: string; freshnessWarnings: string[]; breakpoints: string[]; stages: string[]; testCount: number; redactionCount: number }) => Array<{ type: string; text: string }> };
+      output: { schema: { required: string[] }; render: (args: unknown, value: { locale: "zh-CN" | "en"; outputPath: string; posterPath?: string; posterGenerated: boolean; sections: string[]; theme: string; themeKey: string; freshnessWarnings: string[]; breakpoints: string[]; stages: string[]; testCount: number; redactionCount: number }) => Array<{ type: string; text: string }> };
     };
     expect(tool.name).toBe("showcase_layout_summary");
     expect(tool.parameters.properties.locale).toMatchObject({ enum: ["zh-CN", "en"], default: "zh-CN" });
     expect(tool.parameters.properties.generatePoster).toMatchObject({ type: "boolean" });
+    expect(tool.output.schema.required).toContain("posterGenerated");
 
     const blocks = tool.output.render({}, {
       locale: "zh-CN",
@@ -65,56 +65,28 @@ describe("showcase layout summary plugin", () => {
   });
 
   it("exposes a single theme choice in plugin settings", () => {
-    expect(Config({})).toMatchObject({ theme: "frontier-signal", generatePoster: false });
-    expect(Config({ theme: "blue-big-fish", generatePoster: true })).toMatchObject({ theme: "blue-big-fish", generatePoster: true });
+    expect(Config({}).theme.get()).toBe("frontier-signal");
+    expect(Config({}).generatePoster.get()).toBe(false);
+    expect(Config({ theme: "blue-big-fish", generatePoster: true })).toMatchObject({ theme: expect.objectContaining({ get: expect.any(Function) }), generatePoster: expect.objectContaining({ get: expect.any(Function) }) });
+    expect(Config({ theme: "blue-big-fish", generatePoster: true }).theme.get()).toBe("blue-big-fish");
   });
 
-  it("persists the selected theme through the loopback settings RPC", async () => {
+  it("reads the active 0.2 SettingsForms descriptor without a private RPC", () => {
     let current: { theme: "frontier-signal" | "blue-big-fish"; generatePoster: boolean } = { theme: "frontier-signal", generatePoster: false };
-    let handler: ((endpoint: string, payload: unknown) => Promise<{ ok: boolean; value?: { theme: string; generatePoster: boolean } }>) | undefined;
     apply({
-      connection: {
-        rpc: {
-          handle(_channel, registered) {
-            handler = registered as typeof handler;
-          },
-        },
-      },
       settings: {
-        register() {
-          return {
-            get: () => current,
-            async update(patch) {
-              current = { ...current, ...patch };
-            },
-          };
+        describe() {
+          return [{ ns: "showcase-layout-summary", value: current, revision: 4 }];
         },
       },
       tools: { register() {} },
     });
-
-    expect(handler).toBeTypeOf("function");
-    expect(await handler?.("get", {})).toMatchObject({ ok: true, value: { theme: "frontier-signal", generatePoster: false } });
-    expect(await handler?.("set", { theme: "blue-big-fish" })).toMatchObject({ ok: true, value: { theme: "blue-big-fish" } });
-    expect(current).toMatchObject({ theme: "blue-big-fish", generatePoster: false });
-    expect(await handler?.("set", { generatePoster: true })).toMatchObject({ ok: true, value: { theme: "blue-big-fish", generatePoster: true } });
-    expect(current).toMatchObject({ theme: "blue-big-fish", generatePoster: true });
-    expect(await handler?.("set", { generatePoster: "yes" })).toMatchObject({ ok: false, error: { code: "bad-request" } });
-    expect(await handler?.("set", { theme: "frontier-signal", extra: true })).toMatchObject({ ok: false, error: { code: "bad-request" } });
-    expect(await handler?.("set", {})).toMatchObject({ ok: false, error: { code: "bad-request" } });
+    expect(current).toMatchObject({ theme: "frontier-signal", generatePoster: false });
   });
 
   it("keeps the tool available when persisted settings cannot be registered", async () => {
     const definitions: unknown[] = [];
-    let handler: ((endpoint: string, payload: unknown) => Promise<{ ok: boolean; value?: { theme: string; generatePoster: boolean }; error?: { code: string } }>) | undefined;
     apply({
-      connection: {
-        rpc: {
-          handle(_channel, registered) {
-            handler = registered as typeof handler;
-          },
-        },
-      },
       settings: {
         register() {
           throw new Error("persisted generatePoster must be a boolean");
@@ -124,20 +96,12 @@ describe("showcase layout summary plugin", () => {
     });
 
     expect(definitions).toHaveLength(1);
-    expect(await handler?.("get", {})).toMatchObject({
-      ok: true,
-      value: { theme: "frontier-signal", generatePoster: false },
-    });
-    expect(await handler?.("set", { generatePoster: true })).toMatchObject({
-      ok: false,
-      error: { code: "settings-rejected" },
-    });
+    expect(definitions).toHaveLength(1);
   });
 
   it("renders a clear Markdown-only status when the poster is disabled", () => {
     const definitions: unknown[] = [];
     apply({
-      connection: { rpc: { handle() {} } },
       settings: { register(_namespace, _schema, options) { return { get: () => options.base, async update() {} }; } },
       tools: { register(definition) { definitions.push(definition); } },
     });
@@ -170,6 +134,10 @@ describe("showcase layout summary plugin", () => {
   it("adds stateful micro-interactions without changing layout or using glass effects", async () => {
     const client = await readFile(clientUrl, "utf8");
 
+    expect(client).toContain('ctx.slots.inject("plugins.row.config"');
+    expect(client).toContain('key: "dsh-showcase#showcase-layout-summary"');
+    expect(client).toContain("form?.state");
+    expect(client).not.toContain('settings.plugin.item');
     expect(client).toContain('choice("frontier-signal", "dijiang", "dijiangHint")');
     expect(client).not.toContain('choice("frontier-signal", "field", "fieldHint")');
     expect(client).toContain('"data-save-state": saveState');

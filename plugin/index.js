@@ -1,19 +1,22 @@
 import z from "@deepseek-ai/schemastery";
-import { settingsNamespace } from "@deepseek-ai/dsh-settings";
 import { defineTool } from "@deepseek-ai/dsh-tools";
 import { generateLayoutSummary } from "./layout-summary.js";
 import { isAbsolute, resolve } from "node:path";
 
 export const name = "showcase-layout-summary";
-export const inject = ["tools", "settings", "connection"];
-export const SETTINGS_NAMESPACE = settingsNamespace("showcase-layout-summary");
-export const SETTINGS_RPC_CHANNEL = "/showcase-layout-summary";
+export const inject = ["tools", "settings"];
+// The settings service addresses forms by the profile entry id declared in
+// cordis.patch.yml. Keep this stable across plugin releases so old profiles
+// keep their selected theme and poster preference.
+export const SETTINGS_NAMESPACE = "showcase-layout-summary";
 export const Config = z.object({
   theme: z.union(["frontier-signal", "blue-big-fish"])
     .default("frontier-signal")
+    .volatile()
     .description("生成 HTML 海报时使用的视觉风格：终末地帝江号或蓝色大肥鱼。主题只从插件设置读取。"),
   generatePoster: z.boolean()
     .default(false)
+    .volatile()
     .description("是否生成自包含 HTML 海报。关闭时只生成 Markdown 摘要。"),
 });
 
@@ -21,81 +24,63 @@ const outputSchema = {
   type: "object",
   additionalProperties: false,
   properties: {
-    locale: { type: "string", required: true, enum: ["zh-CN", "en"] },
-    outputPath: { type: "string", required: true, description: "Project-relative path to the generated Markdown file." },
+    locale: { type: "string", enum: ["zh-CN", "en"], required: true },
+    outputPath: { type: "string", description: "Project-relative path to the generated Markdown file.", required: true },
     posterPath: { type: "string", description: "Project-relative path to the self-contained evidence poster when generated." },
-    posterGenerated: { type: "boolean", required: true, description: "Whether this call wrote a self-contained HTML poster." },
-    sections: { type: "array", required: true, items: { type: "string" } },
+    posterGenerated: { type: "boolean", description: "Whether this call wrote a self-contained HTML poster.", required: true },
+    sections: { type: "array", items: { type: "string" }, required: true },
     theme: { type: "string", required: true },
-    themeKey: { type: "string", required: true, enum: ["frontier-signal", "blue-big-fish"] },
-    breakpoints: { type: "array", required: true, items: { type: "string" } },
-    stages: { type: "array", required: true, items: { type: "string" } },
-    freshnessWarnings: { type: "array", required: true, items: { type: "string" } },
+    themeKey: { type: "string", enum: ["frontier-signal", "blue-big-fish"], required: true },
+    breakpoints: { type: "array", items: { type: "string" }, required: true },
+    stages: { type: "array", items: { type: "string" }, required: true },
+    freshnessWarnings: { type: "array", items: { type: "string" }, required: true },
     testCount: { type: "integer", required: true },
     redactionCount: { type: "integer", required: true },
   },
 };
 
 export function apply(ctx, config = {}) {
-  const entry = Config(config);
-  let settings;
-  let settingsRegistrationError;
-  try {
-    settings = ctx.settings.register(SETTINGS_NAMESPACE, Config, { base: entry });
-  } catch (error) {
-    // A malformed value left by an older plugin version should not prevent the
-    // tool itself from registering. Keep defaults readable and make writes
-    // fail explicitly until the host-side setting is repaired or cleared.
-    settingsRegistrationError = error instanceof Error ? error.message : String(error);
-    settings = {
-      get: () => entry,
-      async update() {
-        throw new Error(`Stored plugin settings could not be loaded: ${settingsRegistrationError}`);
-      },
-    };
+  // Cordis supplies a parsed Config whose volatile fields are stable refs. The
+  // plain-object branch keeps direct consumers and older test harnesses useful.
+  const entry = hasVolatileFields(config) ? config : Config(config);
+  const initial = {
+    theme: readConfigValue(entry.theme, "frontier-signal"),
+    generatePoster: readConfigValue(entry.generatePoster, false),
+  };
+  const legacySettings = typeof ctx.settings?.register === "function";
+  let legacyRegistrationError;
+  let legacy;
+  if (legacySettings) {
+    try {
+      legacy = ctx.settings.register(SETTINGS_NAMESPACE, Config, { base: initial });
+    } catch (error) {
+      // Keep the tool available when an older host has an invalid persisted
+      // section; the new SettingsForms service rejects the same write itself.
+      legacyRegistrationError = error instanceof Error ? error.message : String(error);
+      legacy = { get: () => initial, async update() { throw new Error(`Stored plugin settings could not be loaded: ${legacyRegistrationError}`); } };
+    }
+  }
+  if (!legacySettings && typeof ctx.inject === "function") {
+    // This plugin owns a custom Plugins-page form. Disable the generic form so
+    // DSH does not render a second, competing editor for the same fields.
+    ctx.inject(["settings"], (child) => {
+      child.effect(() => child.settings.configure({ auto: false }, ctx.fiber));
+    });
   }
   const readSettings = () => {
-    const value = settings.get?.() ?? entry;
+    const descriptor = !legacySettings && typeof ctx.settings?.describe === "function"
+      ? ctx.settings.describe().find((candidate) => candidate.ns === SETTINGS_NAMESPACE)
+      : undefined;
+    const value = legacySettings ? legacy.get?.() ?? initial : descriptor?.value ?? {
+      theme: readConfigValue(entry.theme, initial.theme),
+      generatePoster: readConfigValue(entry.generatePoster, initial.generatePoster),
+    };
     return {
-      theme: value.theme === "blue-big-fish" || value.theme === "frontier-signal" ? value.theme : entry.theme,
-      generatePoster: typeof value.generatePoster === "boolean" ? value.generatePoster : entry.generatePoster,
+      theme: value.theme === "blue-big-fish" || value.theme === "frontier-signal" ? value.theme : initial.theme,
+      generatePoster: typeof value.generatePoster === "boolean" ? value.generatePoster : initial.generatePoster,
+      revision: descriptor?.revision,
     };
   };
-  ctx.connection.rpc.handle(SETTINGS_RPC_CHANNEL, async (endpoint, payload) => {
-    if (endpoint === "get") {
-      return { ok: true, value: readSettings() };
-    }
-    if (endpoint !== "set" || typeof payload !== "object" || payload === null || Array.isArray(payload)) {
-      return { ok: false, error: { code: "bad-request", message: "Expected get or set with theme or generatePoster.", details: { issues: [] } } };
-    }
-    const unknownKeys = Object.keys(payload).filter((key) => key !== "theme" && key !== "generatePoster");
-    if (unknownKeys.length) {
-      return { ok: false, error: { code: "bad-request", message: `Unsupported settings fields: ${unknownKeys.join(", ")}.`, details: { issues: [] } } };
-    }
-    const patch = {};
-    if ("theme" in payload) {
-      const theme = payload.theme;
-      if (theme !== "frontier-signal" && theme !== "blue-big-fish") {
-        return { ok: false, error: { code: "bad-request", message: "Unsupported showcase theme.", details: { issues: [] } } };
-      }
-      patch.theme = theme;
-    }
-    if ("generatePoster" in payload) {
-      if (typeof payload.generatePoster !== "boolean") {
-        return { ok: false, error: { code: "bad-request", message: "generatePoster must be a boolean.", details: { issues: [] } } };
-      }
-      patch.generatePoster = payload.generatePoster;
-    }
-    if (!Object.keys(patch).length) {
-      return { ok: false, error: { code: "bad-request", message: "Provide theme or generatePoster to update.", details: { issues: [] } } };
-    }
-    try {
-      await settings.update(patch);
-    } catch (error) {
-      return { ok: false, error: { code: "settings-rejected", message: error instanceof Error ? error.message : String(error), details: { ns: SETTINGS_NAMESPACE } } };
-    }
-    return { ok: true, value: readSettings() };
-  }, { authority: "loopback" });
   ctx.tools.register(defineTool({
     name: "showcase_layout_summary",
     description: "Generate a local Markdown layout summary from the current .showcase/report.json checkpoint. For visual UI projects, call it once after responsive captures are ready; for non-visual projects, call it after the report and tests are ready. Partial or failed reports are valid review checkpoints, but do not call after every code edit, status check, or intermediate tweak. Markdown is the lightweight default; generate an HTML poster only when the plugin setting allows it or the user explicitly requests a poster for this call. Reads only project files, writes only inside the project, and never uploads content.",
@@ -133,4 +118,17 @@ export function apply(ctx, config = {}) {
       return generateLayoutSummary({ projectPath, reportPath, outputPath, posterPath, appPath, cssPath, locale, theme: current.theme, generatePoster: shouldGeneratePoster, signal: exec?.signal });
     },
   }));
+}
+
+function hasVolatileFields(value) {
+  return value !== null && typeof value === "object" && hasVolatile(value.theme) && hasVolatile(value.generatePoster);
+}
+
+function hasVolatile(value) {
+  return value !== null && typeof value === "object" && typeof value.get === "function";
+}
+
+function readConfigValue(value, fallback) {
+  const current = hasVolatile(value) ? value.get() : value;
+  return current === undefined ? fallback : current;
 }

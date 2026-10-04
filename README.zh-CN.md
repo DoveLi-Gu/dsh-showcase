@@ -15,6 +15,8 @@
 
 主题只在 DSH 插件设置里选择，目标项目不需要增加 `theme` 字段。
 
+当前兼容 DSH `0.2.0-rc.2` 及同一 0.2 系列。安装后从 DSH 侧栏进入 **插件**，打开 `dsh-showcase`，在 `dsh-showcase/plugin` 行点击 **配置**；Node.js 使用 `22.19+` 或 `24+`。旧版 DSH 0.1 不属于本版本的兼容目标。
+
 维护与发布相关文档：
 
 - [GitHub 上传与维护指南](docs/GITHUB_UPLOAD_GUIDE_ZH.md)

@@ -6,9 +6,7 @@ window.__ModuleLoader__.load({
     const React = require("react");
     const { useEffect, useRef, useState } = React;
 
-const inject = ["slots", "locale", "connection"];
-
-const RPC_CHANNEL = "/showcase-layout-summary";
+const inject = ["slots", "locale"];
 const LOCALE_NAMESPACE = "showcase.layoutSummary.settings";
 const STYLE_ID = "dsh-showcase-settings-style";
 const THEME_VALUES = ["frontier-signal", "blue-big-fish"];
@@ -16,6 +14,7 @@ const THEME_VALUES = ["frontier-signal", "blue-big-fish"];
 const messages = {
   zh: {
     title: "布局证据产物",
+    summary: "配置布局证据产物的海报主题与生成策略。",
     description: "先完成采集与测试，再在交付或视觉审核节点生成摘要；海报是可选的重产物。",
     legend: "海报风格",
     dijiang: "终末地帝江号",
@@ -36,6 +35,7 @@ const messages = {
   },
   en: {
     title: "Layout evidence artifacts",
+    summary: "Configure the poster theme and generation policy for layout evidence.",
     description: "Capture and test first, then generate at the delivery or visual-review checkpoint. The poster is optional and heavier.",
     legend: "Poster theme",
     dijiang: "Dijiang",
@@ -124,13 +124,15 @@ function installStyles() {
   document.head.append(tag);
 }
 
-function createThemeCard(rpc) {
-  return function ThemeCard({ t }) {
+function createThemeCard() {
+  return function ThemeCard({ t, form, view }) {
+    if (view === "summary") return React.createElement("span", { className: "dsh-showcase-settings__summary" }, t("summary"));
     const [theme, setTheme] = useState();
     const [generatePoster, setGeneratePoster] = useState(false);
     const [loadState, setLoadState] = useState("loading");
     const [saveState, setSaveState] = useState("idle");
     const [loadAttempt, setLoadAttempt] = useState(0);
+    const [writable, setWritable] = useState(false);
     const mountedRef = useRef(true);
     const savingRef = useRef(false);
     const choiceRefs = useRef({});
@@ -138,30 +140,32 @@ function createThemeCard(rpc) {
       let active = true;
       mountedRef.current = true;
       setLoadState("loading");
-      Promise.resolve().then(() => rpc.call(RPC_CHANNEL, "get", {})).then((result) => {
+      const sync = () => {
         if (!active) return;
-        const value = result.ok ? result.value : undefined;
+        const snapshot = form?.state;
+        const value = snapshot?.value;
         const validTheme = value?.theme === "frontier-signal" || value?.theme === "blue-big-fish";
         const validPosterSetting = value?.generatePoster === undefined || typeof value?.generatePoster === "boolean";
         if (validTheme && validPosterSetting) {
           setTheme(value.theme);
           if (typeof value.generatePoster === "boolean") setGeneratePoster(value.generatePoster);
-          setLoadState("ready");
+          setWritable(snapshot.writable === true);
+          setLoadState(snapshot.status === "ready" ? "ready" : "unavailable");
         } else {
+          setWritable(false);
           setLoadState("unavailable");
         }
-      }).catch(() => {
-        if (active) setLoadState("unavailable");
-      });
+      };
+      sync();
       return () => {
         active = false;
         mountedRef.current = false;
       };
-    }, [loadAttempt]);
+    }, [form, form?.state, loadAttempt]);
 
     if (loadState !== "ready") {
       const loading = loadState === "loading";
-      return React.createElement("li", {
+      return React.createElement("div", {
         className: "dsh-showcase-settings",
         "data-load-state": loadState,
         "aria-busy": loading,
@@ -193,25 +197,18 @@ function createThemeCard(rpc) {
             React.createElement("div", { className: "dsh-showcase-settings__loading-switch" }))));
     }
 
-    const disabled = saveState === "saving";
+    const disabled = saveState === "saving" || !writable;
     const save = async (patch, rollback = () => {}) => {
-      if (savingRef.current) return;
+      if (savingRef.current || !form?.mutate) return;
       savingRef.current = true;
       setSaveState("saving");
       try {
-        const result = await rpc.call(RPC_CHANNEL, "set", patch);
+        const snapshot = form.state;
+        const operations = Object.entries(patch).map(([path, value]) => ({ op: "set", path: [path], value }));
+        const accepted = await form.mutate(operations, snapshot.revision);
         if (!mountedRef.current) return;
-        const value = result.ok ? result.value : undefined;
-        const validTheme = value?.theme === "frontier-signal" || value?.theme === "blue-big-fish";
-        const validPosterSetting = value?.generatePoster === undefined || typeof value?.generatePoster === "boolean";
-        if (validTheme && validPosterSetting) {
-          setTheme(value.theme);
-          if (typeof value.generatePoster === "boolean") setGeneratePoster(value.generatePoster);
-          setSaveState("saved");
-        } else {
-          rollback();
-          setSaveState("failed");
-        }
+        if (!accepted) throw new Error("The configuration was rejected.");
+        setSaveState("saved");
       } catch {
         if (mountedRef.current) {
           rollback();
@@ -271,7 +268,7 @@ function createThemeCard(rpc) {
             ? t("failed")
             : "";
 
-    return React.createElement("li", {
+    return React.createElement("div", {
       className: "dsh-showcase-settings",
       "data-save-state": saveState,
       "aria-busy": disabled,
@@ -321,11 +318,10 @@ function createThemeCard(rpc) {
 function apply(ctx) {
   installStyles();
   ctx.effect(() => ctx.locale.register(LOCALE_NAMESPACE, messages), "dsh-showcase: settings locale");
-  const ThemeCard = createThemeCard(ctx.get("connection").rpc);
-  ctx.slots.inject("settings.plugin.item", () => ctx.slots.register({
-    name: "settings.plugin.item",
-    id: "showcase-layout-summary",
-    order: 30,
+  const ThemeCard = createThemeCard();
+  ctx.slots.inject("plugins.row.config", () => ctx.slots.register({
+    name: "plugins.row.config",
+    key: "dsh-showcase#showcase-layout-summary",
     locale: LOCALE_NAMESPACE,
   }, ThemeCard));
 }

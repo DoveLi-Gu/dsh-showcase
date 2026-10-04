@@ -4,8 +4,15 @@
 
 ## [Unreleased]
 
+后续变更将在下一版本发布前继续记录在这里。
+
+## [0.1.4] - 2026-10-04
+
 ### Fixed
 
+- 迁移到 DSH `0.2.0-rc.2` 的 SettingsForms 与 Plugins 配置槽位：主题和海报开关改用 `.volatile()` 配置及官方行配置页，保留现有 profile 选择并支持修订号冲突保护。
+- 适配 DSH `0.2` 的严格工具输出 JSON Schema，移除旧版属性级 `required` 写法；插件不再抢占 Connection 的私有 RPC 通道，避免 Web/API Gateway 冲突。
+- 将客户端入口从旧 Settings 列表迁移到 `plugins.row.config`，在 summary/page 两种视图下均保持单一、可用的配置卡。
 - Markdown-only 摘要遇到项目外部 symlink 时静默跳过越界记录，不再把外部视口标签写入文档；海报生成仍严格拒绝越界路径。
 - GitHub Actions 改用兼容 Node 24 的官方 Action 版本，避免旧运行时弃用提醒。
 - 浏览器拒绝本地存储或偏好 JSON 损坏时，离线报告保留导出时的明暗、强调色和动效设置；无效设置不会覆盖有效值。
