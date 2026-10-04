@@ -6,7 +6,7 @@
 
 [打开 README.md](README.md)
 
-赞助商：**鸽子中转站（Pigeon API Relay）**。它兼容 OpenAI API 格式，提供 GPT-5.6 全系列、Claude Opus 5、Fable 5 等重点模型和多种国产模型，并支持余额按量、日卡/月卡订阅及统一权益管理；详情见主 README 快速开始后的赞助商区域。
+赞助商：**鸽子中转站（Pigeon API Relay）**。它兼容 OpenAI API 格式，当前重点覆盖 GPT-6、GPT-5.6、Claude Opus/Fable/Sonnet 5、DeepSeek V4、Gemini、Grok 及多种国产模型，并支持余额按量、日卡/月卡订阅及统一权益管理。站长还会不定期组织抽奖，赠送 Token、体验额度等福利；模型与活动详情以站内实时信息为准，完整介绍见主 README 快速开始后的赞助商区域。
 
 本项目提供两套主题：
 

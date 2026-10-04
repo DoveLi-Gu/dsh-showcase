@@ -200,12 +200,14 @@ $showcaseRepo = "C:\tools\dsh-showcase"
   <p><strong>稳定、透明、易接入的 AI API 中转服务</strong></p>
 </div>
 
-鸽子中转站（Pigeon API Relay）兼容 OpenAI API 格式，重点提供 GPT-5.6 全系列、Claude Opus 5、Fable 5 等模型，同时覆盖多种国产模型，适用于 AI 编程、客户端接入、日常对话、内容创作和图像生成等场景。
+鸽子中转站（Pigeon API Relay）兼容 OpenAI API 格式，持续跟进主流模型与可用线路。当前重点覆盖 GPT-6.1 Sol、GPT-6 Astra / Sol / Luna、GPT-5.6 全系列、GPT-5.5 / 5.4，Claude Opus 5、Fable 5、Sonnet 5，DeepSeek V4 Pro / Flash、Gemini、Grok，以及 Qwen、Kimi、GLM 等国产模型，适用于 AI 编程、Agent 工具调用、客户端接入、日常对话、内容创作和图像生成等场景。
 
-平台支持余额按量与订阅套餐两种方式，包含灵活的日卡、月卡方案；模型价格和套餐权益清晰可查。你可以在一个控制台中统一管理 API Key、模型调用、余额、用量和订阅权益，并查看服务状态与详细接入文档。具体模型、价格及套餐权益以鸽子中转站站内实时信息为准。
+平台支持余额按量与订阅套餐两种方式，提供灵活的日卡、月卡方案；你可以在一个控制台中统一管理 API Key、模型调用、余额、用量和订阅权益，并查看模型价格、服务状态与详细接入文档。模型列表、可用线路、价格和套餐权益会随站内运营持续更新，最终以鸽子中转站实时信息为准。
+
+站长也会不定期组织抽奖和用户福利，赠送 Token、体验额度或其他使用权益。活动时间、参与方式与发放规则以鸽子中转站公告为准，欢迎关注站内动态。
 
 <p align="center">
-  <code>兼容 OpenAI API</code> · <code>GPT-5.6 全系列</code> · <code>余额按量</code> · <code>日卡/月卡订阅</code>
+  <code>兼容 OpenAI API</code> · <code>GPT-6 / GPT-5.6</code> · <code>DeepSeek V4</code> · <code>余额按量</code> · <code>日卡/月卡订阅</code> · <code>不定期抽奖送 Token</code>
 </p>
 
 <p align="center">
@@ -233,8 +235,9 @@ $showcaseRepo = "C:\tools\dsh-showcase"
       </td>
       <td>
         <p><strong>稳定、透明、易接入的 AI API 中转服务，兼容 OpenAI API 格式。</strong></p>
-        <p>重点提供 GPT-5.6 全系列、Claude Opus 5、Fable 5 等模型，同时覆盖多种国产模型，适用于 AI 编程、客户端接入、日常对话、内容创作和图像生成等场景。</p>
-        <p>平台支持余额按量与订阅套餐两种方式，包含灵活的日卡、月卡方案；用户可以统一管理 API Key、模型调用、余额、用量和订阅权益，并查看模型价格、套餐权益、服务状态和详细接入文档。具体模型、价格及套餐权益以站内实时信息为准。</p>
+        <p>当前重点覆盖 GPT-6.1 Sol、GPT-6 Astra / Sol / Luna、GPT-5.6 全系列、GPT-5.5 / 5.4，Claude Opus 5、Fable 5、Sonnet 5，DeepSeek V4 Pro / Flash、Gemini、Grok，以及 Qwen、Kimi、GLM 等国产模型，适用于 AI 编程、Agent 工具调用、客户端接入、日常对话、内容创作和图像生成等场景。</p>
+        <p>平台支持余额按量与订阅套餐，提供日卡、月卡等灵活方案；用户可以统一管理 API Key、模型调用、余额、用量和订阅权益，并查看模型价格、服务状态与详细接入文档。模型列表、线路、价格和套餐权益会持续更新，最终以站内实时信息为准。</p>
+        <p><strong>不定期福利：</strong>站长会组织抽奖并赠送 Token、体验额度或其他使用权益，活动时间和参与规则以站内公告为准。</p>
       </td>
     </tr>
   </tbody>
