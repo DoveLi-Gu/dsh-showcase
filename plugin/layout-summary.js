@@ -625,10 +625,15 @@ async function collectVerifiedScreenshots(projectPath, screenshots, locale, { em
       }
     } catch (error) {
       signal?.throwIfAborted();
+      const outsideProject = error instanceof Error && error.message.includes("must resolve inside projectPath.");
       // Embedded poster bytes must never cross the project boundary. A
       // Markdown-only summary does not read or expose the outside file, so an
-      // obsolete or cross-theme symlink is recorded as invalid and skipped.
-      if (strictPaths && error instanceof Error && error.message.includes("must resolve inside projectPath.")) throw error;
+      // obsolete or cross-theme symlink is skipped without echoing its
+      // viewport label into the generated document.
+      if (outsideProject) {
+        if (strictPaths) throw error;
+        continue;
+      }
       invalidEvidenceViewports.push(label);
     }
   }
