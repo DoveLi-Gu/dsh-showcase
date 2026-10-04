@@ -189,6 +189,20 @@ $showcaseRepo = "C:\tools\dsh-showcase"
 
 </details>
 
+## 在 DSH 生态中被发现
+
+DeepSeek Harness 官方目前没有单独的插件提交审核页面；官方仓库建议插件作者给 GitHub 仓库添加 `dsh-plugin` Topic，用于社区发现。本仓库已经配置 `dsh-plugin`、`deepseek-harness`、`dsh` 和 `cordis` 等主题标签。
+
+部分社区插件目录会定期扫描 `dsh-plugin` Topic，并根据公开仓库的 `package.json`、`dsh.bundle.patch`、入口文件和版本信息生成卡片。收录通常存在延迟，目录属于社区项目，不代表 DeepSeek 官方背书；用户仍可直接使用 DSH 官方命令安装：
+
+~~~powershell
+dsh plugin --profile web add dsh-showcase
+~~~
+
+- 官方生态说明：[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
+- 社区目录示例：[DSH Plugins Marketplace](https://github.com/bradeGithub/DSH-Plugins-Marketplace)
+- 社区展示与反馈：DeepSeek Harness 仓库的 **Show Your Plugins** Discussions
+
 ## 赞助商
 
 <div align="center">
