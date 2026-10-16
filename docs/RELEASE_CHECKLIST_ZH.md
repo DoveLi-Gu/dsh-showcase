@@ -5,7 +5,7 @@
 - [ ] `git status --short` 只包含计划发布的文件。
 - [ ] `git diff --check` 没有空白错误。
 - [ ] `npm run check` 全部通过。
-- [ ] Node.js 20 和 22 的 GitHub Actions CI 通过。
+- [ ] Windows/Linux、Node.js 20/22/24 的 GitHub Actions CI 通过；面向用户的运行环境仍要求 Node.js 22.19+ 或 24+。
 - [ ] `npm pack --dry-run --json` 只包含运行时、README、许可证和必要素材。
 - [ ] 包中不包含 `src/`、`tests/`、`dist/`、`.showcase/`、日志、Source Map 或 `tsbuildinfo`。
 
@@ -39,5 +39,6 @@
 - [ ] `CHANGELOG.md` 已更新。
 - [ ] Git Tag 与 `package.json` 版本一致。
 - [ ] GitHub Release 说明包含新功能、修复、已知限制和升级方式。
-- [ ] npm 包名仍可用，并确认 npm 账号与二次验证状态。
+- [ ] npm 目标版本尚未发布，并确认包维护权限、npm 账号与二次验证状态。
 - [ ] 只有在明确决定公开发布时才运行 `npm publish`。
+- [ ] 发布后在线确认目标版本、`latest` 标签、tarball 完整性和 GitHub Release，不能只依据命令成功提示判断完成。

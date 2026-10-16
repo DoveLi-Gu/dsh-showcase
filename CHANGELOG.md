@@ -4,9 +4,11 @@
 
 ## [Unreleased]
 
-### 2026-10-17 GitHub 源码更新
+后续变更将在下一版本发布前继续记录在这里。
 
-本批更新同步到 GitHub `main`，尚未发布 npm；包版本仍为 `0.1.7`。README 的双主题桌面、手机首屏与完整页面截图均重新采集自本次源码。已导出的报告不会自动变化，需要在更新插件后重新生成。
+## [0.1.8] - 2026-10-17
+
+本版本将此前 GitHub 源码中的双主题界面、鲸鱼娘互动与导出修复纳入 npm 插件。README 的双主题桌面、手机首屏与完整页面截图均来自本次界面源码。已导出的报告不会自动变化，需要在更新插件后重新生成。
 
 ### Changed
 
@@ -36,7 +38,13 @@
 
 ### Security
 
-- 将构建工具链的间接依赖 `source-map-js` 从 `1.2.1` 更新至 `1.2.2`，修复索引 Source Map 可导致事件循环拒绝服务的高危问题（[GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)）。插件运行时依赖及包版本不变。
+- 将构建工具链的间接依赖 `source-map-js` 从 `1.2.1` 更新至 `1.2.2`，修复索引 Source Map 可导致事件循环拒绝服务的高危问题（[GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)）。插件运行时依赖不变。
+
+### Upgrade
+
+- 在 DSH 插件环境中执行 `dsh plugin --profile web add dsh-showcase@0.1.8`，重新加载插件，再对目标项目运行 `showcase_layout_summary`。
+- Node.js 要求仍为 `22.19+` 或 `24+`，DSH 兼容范围仍为 `>=0.2.0-rc.2 <0.3.0`；报告格式与目标项目配置不变。
+- 旧 HTML 是静态快照，不会自动换肤；截图仍需使用者自行采集，演示数据不代表真实项目的验收结果。完整说明见 [v0.1.8 发布公告](docs/RELEASE_v0.1.8_ZH.md)。
 
 ## [0.1.7] - 2026-10-16
 

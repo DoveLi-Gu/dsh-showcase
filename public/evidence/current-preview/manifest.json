@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "packageVersion": "0.1.7",
+  "packageVersion": "0.1.8",
   "screenshots": [
     {
       "id": "fish-1000",
@@ -13,7 +13,7 @@
       },
       "url": "http://localhost:5173/?theme=fish&capture=1",
       "imagePath": "evidence/current-preview/fish-1000x900.jpg",
-      "capturedAt": "2026-10-16T16:13:43.867Z",
+      "capturedAt": "2026-10-16T16:36:17.980Z",
       "kind": "after",
       "captureMode": "viewport",
       "sourceFingerprint": "css-sha256:10134d52f2cec28618c1b975d35b73ce3beb5cb8592da93d4b9f11e742cf5798"
@@ -29,7 +29,7 @@
       },
       "url": "http://localhost:5173/?theme=fish&capture=1",
       "imagePath": "evidence/current-preview/fish-1500x1000.jpg",
-      "capturedAt": "2026-10-16T16:13:45.035Z",
+      "capturedAt": "2026-10-16T16:36:19.127Z",
       "kind": "after",
       "captureMode": "viewport",
       "sourceFingerprint": "css-sha256:10134d52f2cec28618c1b975d35b73ce3beb5cb8592da93d4b9f11e742cf5798"
@@ -45,7 +45,7 @@
       },
       "url": "http://localhost:5173/?theme=fish&capture=1",
       "imagePath": "evidence/current-preview/fish-2000x1200.jpg",
-      "capturedAt": "2026-10-16T16:13:46.215Z",
+      "capturedAt": "2026-10-16T16:36:20.279Z",
       "kind": "after",
       "captureMode": "viewport",
       "sourceFingerprint": "css-sha256:10134d52f2cec28618c1b975d35b73ce3beb5cb8592da93d4b9f11e742cf5798"
@@ -61,7 +61,7 @@
       },
       "url": "http://localhost:5173/?theme=fish&capture=1",
       "imagePath": "evidence/current-preview/fish-390x844.jpg",
-      "capturedAt": "2026-10-16T16:13:47.290Z",
+      "capturedAt": "2026-10-16T16:36:21.347Z",
       "kind": "after",
       "captureMode": "viewport",
       "sourceFingerprint": "css-sha256:10134d52f2cec28618c1b975d35b73ce3beb5cb8592da93d4b9f11e742cf5798"
@@ -77,7 +77,7 @@
       },
       "url": "http://localhost:5173/?theme=dijiang&capture=1",
       "imagePath": "evidence/current-preview/dijiang-1000x900.jpg",
-      "capturedAt": "2026-10-16T16:24:12.772Z",
+      "capturedAt": "2026-10-16T16:36:25.090Z",
       "kind": "after",
       "captureMode": "viewport",
       "sourceFingerprint": "css-sha256:1a9ff65b35b61eb6e11ea3c25eaba2fbdd95da3e04fa649d302a8ff3f2ae3558"
@@ -93,7 +93,7 @@
       },
       "url": "http://localhost:5173/?theme=dijiang&capture=1",
       "imagePath": "evidence/current-preview/dijiang-1500x1000.jpg",
-      "capturedAt": "2026-10-16T16:24:13.963Z",
+      "capturedAt": "2026-10-16T16:36:26.277Z",
       "kind": "after",
       "captureMode": "viewport",
       "sourceFingerprint": "css-sha256:1a9ff65b35b61eb6e11ea3c25eaba2fbdd95da3e04fa649d302a8ff3f2ae3558"
@@ -109,7 +109,7 @@
       },
       "url": "http://localhost:5173/?theme=dijiang&capture=1",
       "imagePath": "evidence/current-preview/dijiang-2000x1200.jpg",
-      "capturedAt": "2026-10-16T16:24:15.185Z",
+      "capturedAt": "2026-10-16T16:36:27.494Z",
       "kind": "after",
       "captureMode": "viewport",
       "sourceFingerprint": "css-sha256:1a9ff65b35b61eb6e11ea3c25eaba2fbdd95da3e04fa649d302a8ff3f2ae3558"
@@ -125,7 +125,7 @@
       },
       "url": "http://localhost:5173/?theme=dijiang&capture=1",
       "imagePath": "evidence/current-preview/dijiang-390x844.jpg",
-      "capturedAt": "2026-10-16T16:24:16.267Z",
+      "capturedAt": "2026-10-16T16:36:28.612Z",
       "kind": "after",
       "captureMode": "viewport",
       "sourceFingerprint": "css-sha256:1a9ff65b35b61eb6e11ea3c25eaba2fbdd95da3e04fa649d302a8ff3f2ae3558"
