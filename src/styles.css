@@ -160,7 +160,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 }
 
 /* Blue Big Fish: flowing evidence poster with the character embedded as atmosphere. */
-.fish-poster { color: #10245c; background: #e8f5ff; border: 4px solid #0757cf; }
+.fish-poster { color: #10245c; background-color: #e8f5ff; background-image: radial-gradient(circle at 82% 19%, rgba(255,210,74,.22) 0 2px, transparent 2.5px), repeating-linear-gradient(112deg, transparent 0 34px, rgba(7,87,207,.045) 34px 35px, transparent 35px 70px); border: 4px solid #0757cf; }
+.fish-poster::before { position: absolute; z-index: 0; inset: 0; content: ""; pointer-events: none; background: linear-gradient(90deg, rgba(255,255,255,.2), transparent 22% 78%, rgba(7,87,207,.08)), repeating-linear-gradient(0deg, transparent 0 23px, rgba(7,87,207,.045) 23px 24px); mix-blend-mode: multiply; opacity: .7; }
+.fish-poster::after { position: absolute; z-index: 0; right: -9%; top: 7%; width: 48%; aspect-ratio: 1; content: ""; pointer-events: none; border: 2px solid rgba(7,87,207,.26); border-radius: 50%; box-shadow: 0 0 0 18px rgba(72,191,233,.08), 0 0 0 42px rgba(7,87,207,.06); transform: rotate(-14deg); }
 .fish-poster__current { position: absolute; z-index: 0; left: -14%; width: 112%; height: 24%; background: rgba(84, 173, 255, .26); clip-path: polygon(0 27%, 92% 0, 100% 71%, 7% 100%); animation: fish-tide 12s cubic-bezier(.22, 1, .36, 1) infinite alternate; }
 .fish-poster__current.current-one { top: -7%; }
 .fish-poster__current.current-two { top: 27%; left: -19%; background: rgba(58, 190, 224, .22); animation-duration: 17s; animation-direction: alternate-reverse; }
@@ -172,7 +174,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   right: -1%;
   width: 45%;
   height: 112%;
-  opacity: .2;
+  opacity: .28;
   mix-blend-mode: multiply;
   pointer-events: none;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 31%, #000 100%);
@@ -184,7 +186,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   height: 100%;
   object-fit: contain;
   object-position: right center;
-  filter: saturate(.9) contrast(1.04);
+  filter: saturate(1.04) contrast(1.1) brightness(.99);
 }
 .fish-poster__arc { position: absolute; z-index: 0; border: 4px solid #1767e8; border-left-color: transparent; border-bottom-color: transparent; border-radius: 50%; }
 .fish-poster__arc.arc-one { top: 11%; right: 7%; width: 42%; aspect-ratio: 1; animation: fish-arc 20s linear infinite; }
@@ -449,7 +451,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .fish-whale--one { top: 45%; right: 14%; width: 20%; }
   .fish-whale--two { top: 58%; right: 2%; width: 13%; }
   .fish-whale--three { right: 25%; bottom: 8%; width: 24%; }
-  .fish-poster__pop.pop-one { top: 46%; right: auto; left: 14px; }
+  .fish-poster__pop.pop-one { top: 46%; right: auto; left: 14px; width: max-content; max-width: calc(100% - 28px); }
   .fish-poster__pop.pop-two { left: 15px; bottom: 26%; }
   .fish-poster__metrics { left: 14px; bottom: 14.5%; width: calc(100% - 28px); gap: 5px; }
   .fish-poster__metrics div { flex: 1; min-width: 0; padding: 8px 6px; border-width: 3px; }
@@ -513,3 +515,6 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .fish-poster__pop.pop-two { right: 5%; bottom: 28%; }
 @media (max-width: 900px) { .fish-poster__copy { width: 100%; } .fish-poster__pop.pop-two { display: none; } .fish-poster__pop.pop-one { top: 1rem; right: 1rem; } .fish-poster { padding-top: 5rem; } }
 @media (max-width: 560px) { .fish-poster h2 { font-size: 3rem; } .fish-poster__metrics { gap: .5rem; } .fish-poster__metrics div { padding: .65rem; } .fish-poster__rail span { padding-inline: .4rem; } }
+
+/* Final fish visual tuning: keep the mobile cutout legible without changing the legacy layout contract. */
+@media (max-width: 560px) { .fish-poster__portrait { top: 27%; right: -18%; width: 108%; height: 76%; opacity: .26; } }
