@@ -92,10 +92,11 @@ export const dijiangMotionScript = `(()=>{
 
   const loader=document.querySelector('.loader');
   if(!loader){root.dataset.loaderReady='true';return}
+  const report=document.querySelector('.dijiang-console');report?.setAttribute('inert','');
   root.dataset.loaderReady='false';loader.dataset.dijiangMotion=root.dataset.dijiangMotion;loader.setAttribute('aria-busy','true');
   const en=root.lang==='en',began=performance.now();let finished=false,progressFrame=0;
   function progress(now){if(finished)return;const value=Math.min(1,(now-began)/1550);loader.querySelector('[data-loader-fill]').style.transform='scaleX('+value+')';loader.querySelector('[data-loader-percent]').textContent=String(Math.round(value*100)).padStart(2,'0')+'%';loader.querySelector('[data-loader-status]').textContent=(en?['Opening local report','Preparing retained records','Preparing the display','Report available']:['打开本地报告','整理已保存记录','准备显示界面','报告可供查看'])[Math.min(3,Math.floor(value*4))];if(value<1)progressFrame=requestAnimationFrame(progress)}
-  function remove(){if(finished)return;finished=true;cancelAnimationFrame(progressFrame);loader.setAttribute('aria-busy','false');root.dataset.loaderReady='true';fields.filter(field=>loader.contains(field.canvas)).forEach(field=>{observer?.unobserve(field.canvas);resize?.unobserve(field.canvas);field.visible=false});loader.remove();start()}
+  function remove(){if(finished)return;finished=true;cancelAnimationFrame(progressFrame);loader.setAttribute('aria-busy','false');report?.removeAttribute('inert');root.dataset.loaderReady='true';fields.filter(field=>loader.contains(field.canvas)).forEach(field=>{observer?.unobserve(field.canvas);resize?.unobserve(field.canvas);field.visible=false});loader.remove();start()}
   function onExit(event){if(event.target===loader){loader.removeEventListener('animationend',onExit);remove()}}
   loader.addEventListener('animationend',onExit);progressFrame=requestAnimationFrame(progress);setTimeout(remove,prefs.motion?2900:180);
 })()`;

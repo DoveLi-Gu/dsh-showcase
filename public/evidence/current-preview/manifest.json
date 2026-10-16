@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "packageVersion": "0.1.7",
+  "screenshots": [
+    {
+      "id": "fish-1000",
+      "theme": "blue-big-fish",
+      "label": "蓝色大肥鱼 / 1000 × 900 / 本轮源码首屏",
+      "viewport": {
+        "name": "desktop",
+        "width": 1000,
+        "height": 900
+      },
+      "url": "http://localhost:5173/?theme=fish&capture=1",
+      "imagePath": "evidence/current-preview/fish-1000x900.jpg",
+      "capturedAt": "2026-10-16T16:13:43.867Z",
+      "kind": "after",
+      "captureMode": "viewport",
+      "sourceFingerprint": "css-sha256:10134d52f2cec28618c1b975d35b73ce3beb5cb8592da93d4b9f11e742cf5798"
+    },
+    {
+      "id": "fish-1500",
+      "theme": "blue-big-fish",
+      "label": "蓝色大肥鱼 / 1500 × 1000 / 本轮源码首屏",
+      "viewport": {
+        "name": "desktop",
+        "width": 1500,
+        "height": 1000
+      },
+      "url": "http://localhost:5173/?theme=fish&capture=1",
+      "imagePath": "evidence/current-preview/fish-1500x1000.jpg",
+      "capturedAt": "2026-10-16T16:13:45.035Z",
+      "kind": "after",
+      "captureMode": "viewport",
+      "sourceFingerprint": "css-sha256:10134d52f2cec28618c1b975d35b73ce3beb5cb8592da93d4b9f11e742cf5798"
+    },
+    {
+      "id": "fish-2000",
+      "theme": "blue-big-fish",
+      "label": "蓝色大肥鱼 / 2000 × 1200 / 本轮源码首屏",
+      "viewport": {
+        "name": "desktop",
+        "width": 2000,
+        "height": 1200
+      },
+      "url": "http://localhost:5173/?theme=fish&capture=1",
+      "imagePath": "evidence/current-preview/fish-2000x1200.jpg",
+      "capturedAt": "2026-10-16T16:13:46.215Z",
+      "kind": "after",
+      "captureMode": "viewport",
+      "sourceFingerprint": "css-sha256:10134d52f2cec28618c1b975d35b73ce3beb5cb8592da93d4b9f11e742cf5798"
+    },
+    {
+      "id": "fish-390",
+      "theme": "blue-big-fish",
+      "label": "蓝色大肥鱼 / 390 × 844 / 本轮源码首屏",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://localhost:5173/?theme=fish&capture=1",
+      "imagePath": "evidence/current-preview/fish-390x844.jpg",
+      "capturedAt": "2026-10-16T16:13:47.290Z",
+      "kind": "after",
+      "captureMode": "viewport",
+      "sourceFingerprint": "css-sha256:10134d52f2cec28618c1b975d35b73ce3beb5cb8592da93d4b9f11e742cf5798"
+    },
+    {
+      "id": "dijiang-1000",
+      "theme": "frontier-signal",
+      "label": "终末地帝江号 / 1000 × 900 / 本轮源码首屏",
+      "viewport": {
+        "name": "desktop",
+        "width": 1000,
+        "height": 900
+      },
+      "url": "http://localhost:5173/?theme=dijiang&capture=1",
+      "imagePath": "evidence/current-preview/dijiang-1000x900.jpg",
+      "capturedAt": "2026-10-16T16:24:12.772Z",
+      "kind": "after",
+      "captureMode": "viewport",
+      "sourceFingerprint": "css-sha256:1a9ff65b35b61eb6e11ea3c25eaba2fbdd95da3e04fa649d302a8ff3f2ae3558"
+    },
+    {
+      "id": "dijiang-1500",
+      "theme": "frontier-signal",
+      "label": "终末地帝江号 / 1500 × 1000 / 本轮源码首屏",
+      "viewport": {
+        "name": "desktop",
+        "width": 1500,
+        "height": 1000
+      },
+      "url": "http://localhost:5173/?theme=dijiang&capture=1",
+      "imagePath": "evidence/current-preview/dijiang-1500x1000.jpg",
+      "capturedAt": "2026-10-16T16:24:13.963Z",
+      "kind": "after",
+      "captureMode": "viewport",
+      "sourceFingerprint": "css-sha256:1a9ff65b35b61eb6e11ea3c25eaba2fbdd95da3e04fa649d302a8ff3f2ae3558"
+    },
+    {
+      "id": "dijiang-2000",
+      "theme": "frontier-signal",
+      "label": "终末地帝江号 / 2000 × 1200 / 本轮源码首屏",
+      "viewport": {
+        "name": "desktop",
+        "width": 2000,
+        "height": 1200
+      },
+      "url": "http://localhost:5173/?theme=dijiang&capture=1",
+      "imagePath": "evidence/current-preview/dijiang-2000x1200.jpg",
+      "capturedAt": "2026-10-16T16:24:15.185Z",
+      "kind": "after",
+      "captureMode": "viewport",
+      "sourceFingerprint": "css-sha256:1a9ff65b35b61eb6e11ea3c25eaba2fbdd95da3e04fa649d302a8ff3f2ae3558"
+    },
+    {
+      "id": "dijiang-390",
+      "theme": "frontier-signal",
+      "label": "终末地帝江号 / 390 × 844 / 本轮源码首屏",
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "url": "http://localhost:5173/?theme=dijiang&capture=1",
+      "imagePath": "evidence/current-preview/dijiang-390x844.jpg",
+      "capturedAt": "2026-10-16T16:24:16.267Z",
+      "kind": "after",
+      "captureMode": "viewport",
+      "sourceFingerprint": "css-sha256:1a9ff65b35b61eb6e11ea3c25eaba2fbdd95da3e04fa649d302a8ff3f2ae3558"
+    }
+  ]
+}

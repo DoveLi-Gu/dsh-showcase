@@ -1,5 +1,5 @@
 import { findComparisonPair, formatReportDuration, reportMarkdown, sanitizeReportExport, serializeInlineJson } from "./report-content.js";
-import { dijiangConsoleCss } from "./dijiang-style.js";
+import { dijiangConsoleCss, dijiangRefinementCss } from "./dijiang-style.js";
 import { renderDijiangLoader, dijiangMotionScript } from "./dijiang-motion.js";
 
 const escape = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
@@ -90,7 +90,7 @@ export function renderDijiangDocument(data, text, status, parts) {
   const station = `<section class="ed-station field-readout" aria-label="${escape(copy.station)}"><header><span>${escape(copy.station)}</span><small>DIJIANG / LOCAL</small></header><p class="ed-station-code">${escape(status.fieldKicker)}</p><div class="ed-verdict" role="status" aria-label="${escape(statusAria)}"><span aria-hidden="true">${escape(status.symbol)}</span><strong>${escape(status.badge)}</strong></div><p class="ed-outcome" aria-label="${escape((en ? "Status: " : "状态：") + status.deliverable)}">${escape(status.deliverable)}</p><div class="ed-metrics">${parts.metrics}</div><footer><span>${escape(copy.privacy)}</span><b>${Number(data.redactionCount) || 0} ${escape(text.redactions)}</b></footer></section>`;
   const reportMeta = `<dl class="ed-meta"><div><dt>${en ? "REVISION" : "比较范围"}</dt><dd>${escape(gitState === "unavailable" ? text.gitUnavailableMeta : data.gitRange || text.noRecords)}</dd></div><div><dt>${en ? "CAPTURED" : "报告时间"}</dt><dd>${escape(data.generatedAt || copy.untimed)}</dd></div></dl>`;
   const body = `<a class="ed-skip" href="#ed-evidence">${escape(copy.skip)}</a>
-    <article class="poster dijiang-console" data-theme="frontier-signal" data-status="${status.key}">
+    <article class="poster dijiang-console" data-theme="frontier-signal" data-status="${status.key}" data-demo="${data.demo === true}">
       <header class="ed-mast"><a class="ed-brand" href="#ed-task"><b>DS</b><span>${escape(text.fieldTheme)}<small>DSH / DIJIANG</small></span></a><div class="ed-mast-meta"><span>${escape(copy.local)}</span><span>${escape(data.demo ? copy.sample : copy.snapshot)}</span>${preferences}</div></header>
       <nav class="ed-stages current-route" aria-label="${escape(copy.jump)}">${data.stages.map((stage, index) => `<a href="#${targets[index]}" ${index === 0 ? 'aria-current="location"' : ""}><b>${String(index + 1).padStart(2, "0")}</b><span>${escape(stage)}</span><i aria-hidden="true">${icons.arrow}</i></a>`).join("")}</nav>
       <div class="ed-bridge"><canvas class="ed-contours" aria-hidden="true"></canvas><div class="ed-shell">
@@ -116,7 +116,7 @@ export function renderDijiangDocument(data, text, status, parts) {
         </div><footer class="ed-footer"><span>${escape(text.footer)}</span><span>DSH / ${escape(copy.archive)}</span></footer>
       </div>
     </article>`;
-  return `<!doctype html><html lang="${data.locale}" data-dijiang-motion="full"><head><!--${lucideLicense}--><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(data.projectName)} · ${escape(text.fieldTheme)}</title><style>${dijiangConsoleCss}</style></head><body>${renderDijiangLoader(data.projectName, en, parts.instrument)}${body}<script id="ed-export-data" type="application/json">${exportPayload}</script><script>${dijiangMotionScript}</script><script>${dijiangConsoleScript}</script></body></html>`;
+  return `<!doctype html><html lang="${data.locale}" data-dijiang-motion="full"><head><!--${lucideLicense}--><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(data.projectName)} · ${escape(text.fieldTheme)}</title><style>${dijiangConsoleCss}${dijiangRefinementCss}</style></head><body>${renderDijiangLoader(data.projectName, en, parts.instrument)}${body}<script id="ed-export-data" type="application/json">${exportPayload}</script><script>${dijiangMotionScript}</script><script>${dijiangConsoleScript}</script></body></html>`;
 }
 
 const dijiangConsoleScript = `(()=>{

@@ -37,7 +37,7 @@ describe("persistent theme motion", () => {
     expect(app).toContain("window.setTimeout(() => setShowIntro(false), 1500)");
   });
 
-  it("uses the shared Dijiang renderer by default and preserves the approved legacy artifact and fish theme", async () => {
+  it("uses the plugin renderer for both default previews and preserves explicit legacy previews", async () => {
     const [app, main, dijiang, hardening] = await Promise.all([
       readFile(appUrl, "utf8"),
       readFile(mainUrl, "utf8"),
@@ -47,20 +47,22 @@ describe("persistent theme motion", () => {
 
     expect(app).toContain("function FishPoster");
     expect(app).toContain('type Theme = "dijiang" | "fish"');
-    expect(main).toContain('import dijiangThemeHtml from "./dijiang-theme.html?raw"');
-    expect(main).toContain('selectedTheme !== "fish"');
+    const legacy = await readFile(new URL("../src/legacy-preview.tsx", import.meta.url), "utf8");
+    expect(legacy).toContain('import dijiangThemeHtml from "./dijiang-theme.html?raw"');
+    expect(main).not.toContain('import App from "./App"');
     expect(main).toContain('params.get("legacy") === "1"');
-    expect(main).toContain('import("./dijiang-preview")');
-    expect(main).toContain("createDijiangDemoDocument()");
-    const preview = await readFile(new URL("../src/dijiang-preview.ts", import.meta.url), "utf8");
+    expect(main).toContain('import("./legacy-preview")');
+    expect(main).toContain('import("./poster-preview")');
+    expect(main).toContain('createDemoDocument(resolvePreviewTheme(selectedTheme))');
+    const preview = await readFile(new URL("../src/poster-preview.ts", import.meta.url), "utf8");
     expect(preview).toContain("createStyledPosterHtml");
     expect(preview).toContain("demo: true");
     expect(main).toContain("document.open()");
-    expect(main).toContain("document.write(dijiangThemeHtml)");
+    expect(legacy).toContain("document.write(dijiangThemeHtml)");
     expect(main).toContain("document.close()");
     expect(main).toContain('params.get("motion") === "accessible" ? "accessible" : "full"');
-    expect(main).toContain("dataset.dijiangMotion = motionMode");
-    expect(main).toContain("dijiangReadoutMarkup");
+    expect(legacy).toContain("dataset.dijiangMotion = motionMode");
+    expect(legacy).toContain("dijiangReadoutMarkup");
     expect(hardening).toContain("field-readout");
     expect(hardening).toContain("dijiang-reference-exit");
     expect(hardening).toContain("dijiang-yellow-transfer");

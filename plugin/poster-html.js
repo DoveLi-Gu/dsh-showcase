@@ -1,11 +1,42 @@
 import { renderDijiangDocument } from "./dijiang-layout.js";
 import { fishVisualCss } from "./fish-visual.js";
+import { fishMotionScript } from "./fish-motion.js";
+import { whaleGirlChibiUri, whaleGirlChibiNotice } from "./assets/whale-girl-chibi-b64.js";
+import { fishCompanionUris } from "./assets/fish-companions.js";
 import { findComparisonPair, formatReportDuration } from "./report-content.js";
 
 const POSTER_RECORD_LIMIT = 20;
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
+}
+
+// The renderer runs in Node and the browser, and exported posters stay offline.
+function fishPortraitUri(image, fallback = whaleGirlChibiUri) {
+  const value = typeof image === "string" ? image.trim() : "";
+  if (/^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(value)) return value;
+  if (/^[A-Za-z0-9+/]+={0,2}$/.test(value)) return "data:image/webp;base64," + value;
+  return fallback;
+}
+
+function fishCompanionMarkup(data, status) {
+  const en = data.locale === "en";
+  const poses = {
+    completed: { idle: "awake", response: "chibi", target: "fish-outputs", cue: en ? "Ready! Let's see the delivery." : "完成啦，看看交付成果", action: en ? "View delivery artifacts" : "查看交付产物" },
+    partial: { idle: "focus", response: "awake", target: "fish-tests", cue: en ? "Let's check the receipts." : "还有待复核项，一起核对", action: en ? "Review verification receipts" : "查看待复核的验证回执" },
+    failed: { idle: "rest", response: "focus", target: "fish-tests", cue: en ? "Let's inspect what failed." : "先看看未通过的验证", action: en ? "Inspect failed verification" : "查看未通过的验证" },
+  };
+  const pose = poses[status.key] || poses.partial;
+  const response = pose.response === "chibi" ? whaleGirlChibiUri : fishCompanionUris[pose.response];
+  return '<aside class="portrait-field"><a class="fish-companion" data-fish-region="companion" href="#' + pose.target + '" aria-label="' + escapeHtml(pose.action) + '"><span class="fish-companion__body" aria-hidden="true"><img class="art" src="' + fishPortraitUri(data.image, fishCompanionUris[pose.idle]) + '" data-pose="' + pose.idle + '" alt=""><img class="art-response" src="' + fishPortraitUri(data.image, response) + '" data-pose="' + pose.response + '" alt=""></span><span class="fish-companion__cue" aria-hidden="true">' + escapeHtml(pose.cue) + '</span></a></aside>';
+}
+
+function fishRouteTarget(stage) {
+  if (/测试|验证|test|verif/i.test(stage)) return "fish-tests";
+  if (/捕获|截图|capture|screen/i.test(stage)) return "fish-captures";
+  if (/交付|导出|deliver|export/i.test(stage)) return "fish-outputs";
+  if (/构建|改动|build|change/i.test(stage)) return "fish-changes";
+  return "fish-summary";
 }
 
 function posterText(locale) {
@@ -283,10 +314,13 @@ function normalizeReceiptStatus(value, exitCode) {
 function statusPresentation(data, text) {
   const key = normalizeTaskStatus(data.taskStatus);
   const copy = text.status[key] ?? text.status.partial;
+  const demoBadge = data.demo === true ? (data.locale === "en"
+    ? { completed: "Demo status: complete", partial: "Demo status: review required", failed: "Demo status: failed" }
+    : { completed: "演示状态：已完成", partial: "演示状态：待复核", failed: "演示状态：未通过" })[key] : undefined;
   return {
     key,
-    badge: data.taskStatusLabel || copy.badge,
-    summary: copy.summary,
+    badge: demoBadge ?? (data.taskStatusLabel || copy.badge),
+    summary: demoBadge ?? copy.summary,
     deliverable: copy.deliverable,
     fieldKicker: copy.fieldKicker,
     fishKicker: copy.fishKicker,
@@ -482,8 +516,8 @@ function evidencePageMarkup(data, text) {
   const totalCount = matchingCount + (data.isolatedEvidenceViewports?.length ?? 0) + (data.unclassifiedEvidenceViewports?.length ?? 0) + (data.invalidEvidenceViewports?.length ?? 0);
   const screenshotOptional = data.visualProject === false && matchingCount === 0;
   return [
-    '<section class="evidence-page" aria-label="', escapeHtml(text.evidence), '">',
-    '<div class="evidence-page__frame"><header class="evidence-page__head"><div><small>DSH / SHOWCASE</small><h2>', escapeHtml(text.evidence), '</h2></div>',
+    '<section class="evidence-page" id="fish-captures" aria-label="', escapeHtml(text.evidence), '">',
+    '<div class="evidence-page__frame"><header class="evidence-page__head"><div class="fish-evidence-title">', data.theme === "blue-big-fish" ? '<img class="fish-evidence-companion" src="' + fishCompanionUris[matchingCount ? "awake" : "rest"] + '" alt="" aria-hidden="true">' : '', '<div><small>DSH / SHOWCASE</small><h2>', escapeHtml(text.evidence), '</h2></div></div>',
     '<span>', String(matchingCount).padStart(2, "0"), ' / ', String(totalCount).padStart(2, "0"), ' ', escapeHtml(screenshotOptional ? text.captureOptionalMeta : text.captureMatched), '</span></header>',
     '<div class="evidence-page__grid">', evidenceMarkup(data, text), '</div></div>',
     '<p class="evidence-page__footer mono">', escapeHtml(text.footer), '</p></section>',
@@ -492,12 +526,12 @@ function evidencePageMarkup(data, text) {
 
 function currentRouteMarkup(stages, text) {
   const nodes = stages.map((stage, index) => [
-    '<span><b>', String(index + 1).padStart(2, "0"), '</b><em>', escapeHtml(stage), '</em></span>',
+    '<span><a href="#', fishRouteTarget(stage), '"><b>', String(index + 1).padStart(2, "0"), '</b><em>', escapeHtml(stage), '</em></a></span>',
   ].join("")).join("");
   return [
-    '<section class="current-route" aria-label="', escapeHtml(text.route), '"><header><small>', escapeHtml(text.routeMeta), '</small><b>', escapeHtml(text.route), '</b></header>',
+    '<section class="current-route" data-fish-region="route" aria-label="', escapeHtml(text.route), '"><header><small>', escapeHtml(text.routeMeta), '</small><b>', escapeHtml(text.route), '</b></header>',
     '<svg class="route-swell" viewBox="0 0 1000 140" preserveAspectRatio="none" aria-hidden="true"><path d="M20 84C144 18 232 120 350 70s206-60 324 0 196 42 306-28"/></svg>',
-    '<div class="route-nodes">', nodes, '</div></section>',
+    '<nav class="route-nodes" aria-label="', escapeHtml(text.route), '">', nodes, '</nav></section>',
   ].join("");
 }
 
@@ -653,10 +687,10 @@ function deliveryManifestMarkup(data, text) {
   return [
     '<section class="route-evidence delivery-manifest" data-status="', status.key, '" data-git-state="', gitState, '" data-test-state="', testState, '" data-output-state="', outputState, '" aria-label="', escapeHtml(manifestAriaLabel), '"><header><div><small>', escapeHtml(text.manifestMeta), '</small><b>', escapeHtml(text.manifest), '</b></div>',
     '<span data-status="', status.key, '" role="status" aria-label="', escapeHtml(statusAriaLabel(data.locale, status.badge)), '">', String(checked).padStart(2, "0"), ' ', escapeHtml(status.manifest), '</span></header>',
-    '<div class="manifest-grid"><article class="manifest-block" data-block-state="', gitState, '"><div class="manifest-block__head"><span>', escapeHtml(text.manifestChanges), '</span><small>', escapeHtml(gitMeta), '</small></div><ul data-empty="', changedGitItems ? 'false' : 'true', '">', gitItems, '</ul></article>',
-    '<article class="manifest-block" data-block-state="', testState, '"><div class="manifest-block__head"><span>', escapeHtml(text.manifestReceipts), '</span><small>', escapeHtml(testMeta), '</small></div><ul data-empty="', rawReceipts.length ? 'false' : 'true', '">', receipts, '</ul></article></div>',
+    '<div class="manifest-grid"><article class="manifest-block" id="fish-changes" data-block-state="', gitState, '"><div class="manifest-block__head"><span>', escapeHtml(text.manifestChanges), '</span><small>', escapeHtml(gitMeta), '</small></div><ul data-empty="', changedGitItems ? 'false' : 'true', '">', gitItems, '</ul></article>',
+    '<article class="manifest-block" id="fish-tests" data-block-state="', testState, '"><div class="manifest-block__head"><span>', escapeHtml(text.manifestReceipts), '</span><small>', escapeHtml(testMeta), '</small></div><ul data-empty="', rawReceipts.length ? 'false' : 'true', '">', receipts, '</ul></article></div>',
     '<div class="manifest-scope"><small>', escapeHtml(text.manifestScope), '</small><div>', scope, '</div></div>',
-    '<footer class="manifest-output" data-status="', status.key, '" data-output-state="', outputState, '"><div class="manifest-output__meta"><div class="manifest-output__label"><span>', escapeHtml(text.manifestOutput), '</span><small data-status="', status.key, '" aria-label="', escapeHtml(statusAriaLabel(data.locale, outputLine ? status.output : text.outputsMissingTitle)), '">', escapeHtml(outputLine ? status.output : text.outputsMissingTitle), '</small></div><small class="manifest-output__privacy">', Number(data.redactionCount) || 0, ' ', escapeHtml(text.manifestRedactions), ' / ', escapeHtml(text.manifestLocal), '</small></div><div class="manifest-output__path">', outputSteps, '</div></footer>',
+    '<footer class="manifest-output" id="fish-outputs" data-status="', status.key, '" data-output-state="', outputState, '"><div class="manifest-output__meta"><div class="manifest-output__label"><span>', escapeHtml(text.manifestOutput), '</span><small data-status="', status.key, '" aria-label="', escapeHtml(statusAriaLabel(data.locale, outputLine ? status.output : text.outputsMissingTitle)), '">', escapeHtml(outputLine ? status.output : text.outputsMissingTitle), '</small></div><small class="manifest-output__privacy">', Number(data.redactionCount) || 0, ' ', escapeHtml(text.manifestRedactions), ' / ', escapeHtml(text.manifestLocal), '</small></div><div class="manifest-output__path">', outputSteps, '</div></footer>',
     fishDetailLedgerMarkup(data, text), '</section>',
   ].join("");
 }
@@ -705,7 +739,7 @@ function loadingMarkup(text, theme = "field", statusKey = "completed", projectNa
     fishMotion,
     '<div class="load-brand"><span class="load-mark">DSH</span><strong>', escapeHtml(projectName), '</strong><small>', escapeHtml(text.loading), '</small></div>',
     '<div class="load-progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>',
-    '<script>(function(){var node=document.querySelector(".loader");if(!node)return;var done=false;var root=document.documentElement;root.dataset.loaderReady="false";node.setAttribute("aria-busy","true");function remove(){if(done)return;done=true;node.dataset.loaderState="complete";node.setAttribute("aria-busy","false");root.dataset.loaderReady="true";node.remove()}function fallbackDelay(){var style=getComputedStyle(node);var duration=parseFloat(style.animationDuration)||0;var delay=parseFloat(style.animationDelay)||0;return Math.max(5000,Math.ceil((duration+delay)*1000)+600)}node.addEventListener("animationend",function(event){if(event.target===node)remove()},{once:true});setTimeout(remove,fallbackDelay())})()</script>',
+    '<script>(function(){var node=document.querySelector(".loader");if(!node)return;var done=false;var root=document.documentElement;root.dataset.loaderReady="false";node.setAttribute("aria-busy","true");function remove(){if(done)return;done=true;node.dataset.loaderState="complete";node.setAttribute("aria-busy","false");root.dataset.loaderReady="true";node.remove()}function fallbackDelay(){var style=getComputedStyle(node);var duration=parseFloat(style.animationDuration)||0;var delay=parseFloat(style.animationDelay)||0;return Math.max(5000,Math.ceil((duration+delay)*1000)+600)}function onExit(event){if(event.target===node){node.removeEventListener("animationend",onExit);remove()}}node.addEventListener("animationend",onExit);setTimeout(remove,fallbackDelay())})()</script>',
     '</div>',
   ].join("");
 }
@@ -741,9 +775,9 @@ const evidenceIntegrityCss = [
 ].join("");
 
 const statusCss = [
-  ".verified[data-status='partial'],.stamp[data-status='partial']{color:#10245c!important;background:#cceeff!important;border-color:#0757cf!important;box-shadow:.24rem .24rem 0 #48bfe9!important}",
-  ".verified[data-status='failed'],.stamp[data-status='failed']{color:#fff!important;background:#d94b62!important;border-color:#101115!important;box-shadow:.24rem .24rem 0 #101115!important}",
-  ".verified[data-status='skipped'],.stamp[data-status='skipped']{color:#10245c!important;background:#d8e6eb!important;border-color:#52616b!important;box-shadow:.24rem .24rem 0 #8ca4ae!important}",
+  ".verified[data-status='partial'],.stamp[data-status='partial']{color:#10245c;background:#cceeff;border-color:#0757cf;box-shadow:.24rem .24rem 0 #48bfe9}",
+  ".verified[data-status='failed'],.stamp[data-status='failed']{color:#fff;background:#d94b62;border-color:#101115;box-shadow:.24rem .24rem 0 #101115}",
+  ".verified[data-status='skipped'],.stamp[data-status='skipped']{color:#10245c;background:#d8e6eb;border-color:#52616b;box-shadow:.24rem .24rem 0 #8ca4ae}",
   ".delivery-manifest[data-status='partial'] header>span,.delivery-manifest header>span[data-status='partial']{color:#ffe08a!important}",
   ".delivery-manifest[data-status='failed'] header>span,.delivery-manifest header>span[data-status='failed']{color:#ffb3be!important}",
   ".delivery-manifest[data-status='partial'] .manifest-output__label small{color:#a96f00!important}",
@@ -1078,7 +1112,7 @@ const fishGlassCss = [
 ].join("");
 
 const fishVisualHardeningCss = [
-  ".portrait-field{isolation:isolate;overflow:hidden;padding-bottom:.45rem}.portrait-field .art{object-fit:contain;object-position:50% 100%;mix-blend-mode:multiply;transform-origin:center bottom}.portrait-field:after{z-index:3;bottom:3%;height:12%;opacity:.72}.route-evidence{margin-top:clamp(.4rem,1vh,.8rem)}",
+  ".portrait-field{isolation:isolate;overflow:hidden;padding-bottom:.45rem}.portrait-field .art{object-fit:contain;object-position:50% 100%;mix-blend-mode:normal;transform-origin:center bottom}.portrait-field:after{z-index:3;bottom:3%;height:12%;opacity:.72}.route-evidence{margin-top:clamp(.4rem,1vh,.8rem)}",
   "@media(max-width:56.249rem){.poster-layout{grid-template-rows:auto 17.5rem auto auto auto auto}.portrait-field{height:17.5rem;padding-bottom:.25rem}.portrait-field .art{object-fit:contain;object-position:50% 100%}.portrait-field:after{bottom:2%;height:10%}.route-evidence{margin-top:.25rem}}",
   "@media(min-width:35rem) and (max-width:56.249rem){.poster-layout{grid-template-rows:auto 24rem auto auto auto auto}.portrait-field{height:24rem}}",
 ].join("");
@@ -1108,11 +1142,12 @@ function createFishPoster(data) {
   return [
     '<!doctype html><html lang="', data.locale, '"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>', escapeHtml(text.title), '</title><style>', sharedCss, evidenceIntegrityCss, css, fishManifestHardeningCss, fishReceiptCss, fishDetailCss, manifestStateCss, fishGlassCss, fishVisualHardeningCss, statusCss, '</style></head><body>', loadingMarkup(text, "fish", status.key, data.projectName),
     '<article class="poster" data-theme="blue-big-fish" data-status="', status.key, '"><div class="current current-one"></div><div class="current current-two"></div><div class="current current-three"></div><div class="ripple ripple-one"></div><div class="ripple ripple-two"></div><div class="light light-one"></div><div class="light light-two"></div>', bubbleMarkup(), whaleSchoolMarkup(), '<i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i>',
-    '<div class="poster-layout"><section class="copy"><div class="kicker">', escapeHtml(text.fishTheme), ' / ', escapeHtml(status.fishKicker), '</div><h1 class="title">', escapeHtml(data.projectName), '</h1><p class="task">', escapeHtml(data.task), '</p><div class="verified" data-status="', status.key, '" role="status" aria-label="', escapeHtml(statusAriaLabel(data.locale, status.badge)), '"><span aria-hidden="true">', escapeHtml(status.symbol), '</span> ', escapeHtml(status.summary), '</div></section>',
-    '<aside class="portrait-field" aria-hidden="true"><img class="art" src="data:image/webp;base64,', data.image, '" alt=""></aside>',
+    '<div class="poster-layout"><section class="copy" id="fish-summary"><div class="fish-mast"><div class="kicker">', escapeHtml(text.fishTheme), ' / ', escapeHtml(status.fishKicker), '</div><label class="fish-motion-control" hidden><input type="checkbox" data-fish-motion-toggle><span>', data.locale === "en" ? 'Responsive motion' : '动态回应', '</span></label></div><h1 class="title">', escapeHtml(data.projectName), '</h1>',
+    '<div class="fish-brief">', fishCompanionMarkup(data, status),
+    '<div class="fish-brief__message"><p class="task" data-fish-region="task">', escapeHtml(data.task), '</p><div class="fish-status-wrap" data-fish-region="status"><div class="verified" data-status="', status.key, '" role="status" aria-label="', escapeHtml(statusAriaLabel(data.locale, status.badge)), '"><span aria-hidden="true">', escapeHtml(status.symbol), '</span> ', escapeHtml(status.summary), '</div></div></div>',
+    '<section class="metrics" data-fish-region="metrics">', posterMetricsMarkup(data, text, "metric"), '</section></div></section>',
     currentRouteMarkup(data.stages, text),
-    '<section class="metrics">', posterMetricsMarkup(data, text, "metric"), '</section>',
-    deliveryManifestMarkup(data, text), '<footer class="footer mono">', escapeHtml(text.footer), '</footer></div></article>', evidencePageMarkup(data, text), '</body></html>',
+    deliveryManifestMarkup(data, text), '<footer class="footer mono">', escapeHtml(text.footer), '</footer></div></article>', evidencePageMarkup(data, text), '<script>', fishMotionScript, '</script></body></html>',
   ].join("");
 }
 
@@ -1122,7 +1157,7 @@ export function createStyledPosterHtml(data) {
   const html = createFishPoster(normalizedData);
   const warnings = Array.isArray(data?.freshnessWarnings) ? data.freshnessWarnings : [];
   const notice = warnings.length ? `<aside class="evidence-warnings" role="status"><strong>${normalizedData.locale === "en" ? "Evidence needs review" : "证据需要复核"}</strong><ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></aside>` : "";
-  return html.replace("</style>", `${responsiveEvidenceCss}${fishVisualCss}</style>`).replace('<article class="poster', `${notice}<article class="poster`);
+  return html.replace("</style>", `${responsiveEvidenceCss}${fishVisualCss}</style>`).replace("</head>", `${whaleGirlChibiNotice}</head>`).replace('<article class="poster', `${notice}<article class="poster`);
 }
 
 const responsiveEvidenceCss = `

@@ -105,8 +105,10 @@ describe("shared Dijiang evidence console", () => {
     for (const color of ["#fff", "#191919", "#f2f2f2", "#fffa00", "#14d0d0"]) expect(html).toContain(color);
     expect(html).toContain("font-variant-numeric:tabular-nums");
     expect(html).toContain("ed-lateral-reveal");
-    expect(html).toContain("html:not([data-loader-ready=true]) .dijiang-console{visibility:hidden}");
-    expect(html).toContain("html[data-loader-ready=true] .dijiang-console{visibility:visible}");
+    expect(html.includes("html:not([data-loader-ready=true]) .dijiang-console{visibility:hidden}")).toBe(false);
+    expect(html.includes(".dijiang-console{visibility:visible}")).toBe(true);
+    expect(html.includes("report?.setAttribute('inert','')")).toBe(true);
+    expect(html.includes("report?.removeAttribute('inert')")).toBe(true);
     expect(html).toContain("document.hidden");
     expect(html).toContain('<option value="120">120 FPS</option>');
     expect(html).toContain("Math.min(devicePixelRatio||1,1.5)");

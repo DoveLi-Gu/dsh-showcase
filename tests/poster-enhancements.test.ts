@@ -1,9 +1,11 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { runInNewContext } from "node:vm";
 import { afterEach, describe, expect, it } from "vitest";
 import { generateLayoutSummary } from "../plugin/layout-summary.js";
 import { fishVisualCss } from "../plugin/fish-visual.js";
+import { dijiangConsoleCss, dijiangRefinementCss } from "../plugin/dijiang-style.js";
 
 const posterModulePath = "../plugin/poster-html.js" as string;
 const temporaryDirectories: string[] = [];
@@ -60,11 +62,190 @@ describe("poster material and empty-state enhancements", () => {
     expect(app).toContain('import { fishVisualCss } from "../plugin/fish-visual.js"');
     expect(app).toContain("<style>{fishVisualCss}</style>");
     expect(poster).toContain('data-theme="blue-big-fish" data-status="partial"');
-    expect(fishVisualCss).toContain("grid-template-rows:auto auto auto auto auto auto");
-    expect(fishVisualCss).toContain("object-fit:contain;object-position:center bottom;opacity:.9");
+    expect(fishVisualCss).toContain("grid-template-rows:auto auto auto auto");
+    expect(fishVisualCss).toContain("grid-template-areas:'copy' 'route' 'evidence' 'footer'");
+    expect(fishVisualCss).toContain('opacity:1;mask-image:none;filter:none');
+    expect(fishVisualCss).toMatch(/object-fit:\s*contain;/);
+    expect(fishVisualCss).toMatch(/object-position:\s*50% 100%;/);
+    expect(fishVisualCss).toMatch(/animation:\s*fish-report-portrait /);
     const dijiang = await renderPoster({ theme: "frontier-signal" });
     expect(dijiang).not.toContain(fishVisualCss);
     expect(dijiang).not.toContain("fish-report-portrait");
+  });
+
+  it("embeds one valid portrait URI for fallback, raw base64 and full data URIs", async () => {
+    const asset = await readFile(new URL("../plugin/assets/whale-girl-focus.webp", import.meta.url));
+    const fallback = "data:image/webp;base64," + asset.toString("base64");
+    const sample = "UklGRg==";
+    for (const [image, expected] of [
+      ["", fallback],
+      [sample, "data:image/webp;base64," + sample],
+      ["data:image/png;base64," + sample, "data:image/png;base64," + sample],
+      ['\" onerror=\"alert(1)', fallback],
+      ["https://example.com/tracking.webp", fallback],
+    ]) {
+      const html = await renderPoster({ image });
+      const portrait = html.match(/<img class="art" src="([^"]+)"/);
+      expect(portrait?.[1] === expected).toBe(true);
+      expect(html.includes('onerror="alert(1)')).toBe(false);
+    }
+  });
+
+  it("keeps screenshot galleries independent of the old three-shot ordering", () => {
+    expect(fishVisualCss).toContain('~ .evidence-page .evidence-page__grid');
+    expect(fishVisualCss).toContain('grid-template-columns:repeat(2,minmax(0,1fr))');
+    expect(fishVisualCss).toContain('~ .evidence-page .evidence-page__item { grid-column:auto; }');
+    expect(fishVisualCss).toContain('width:100%;height:100%;max-height:none;object-fit:contain;');
+    expect(fishVisualCss).toContain('position:absolute;inset:0;width:100%;height:100%');
+    expect(fishVisualCss).toContain('~ .evidence-page .shot img { position:static;height:auto; }');
+  });
+
+  it("ships a transparent character and removes its old portrait frame", async () => {
+    const asset = await readFile(new URL("../plugin/assets/whale-girl-chibi.webp", import.meta.url));
+    expect(asset.toString("ascii", 0, 4)).toBe("RIFF");
+    expect(asset.toString("ascii", 8, 12)).toBe("WEBP");
+    expect(asset.toString("ascii", 12, 16)).toBe("VP8X");
+    expect(asset[20] & 0x10).toBe(0x10);
+    expect(fishVisualCss).toContain('.portrait-field:after { content:none; }');
+    expect(fishVisualCss).toContain('margin-inline:auto');
+  });
+
+  it("integrates the chibi, task and metrics inside one brief instead of a separate portrait column", async () => {
+    const html = await renderPoster();
+    expect(html).toContain('Copyright (c) 2026 dsh-damage-pulse contributors');
+    expect(html).toContain('THE SOFTWARE IS PROVIDED "AS IS"');
+    const brief = html.slice(html.indexOf('<div class="fish-brief">'), html.indexOf('<section class="current-route"'));
+    expect(brief).toContain('<aside class="portrait-field"');
+    expect(brief).toContain('<p class="task"');
+    expect(brief).toContain('<section class="metrics"');
+    expect((html.match(/<aside class="portrait-field"/g) || []).length).toBe(1);
+    expect(html).not.toContain('class="fish-status-companion"');
+    expect(fishVisualCss).not.toContain("'copy portrait'");
+    expect(fishVisualCss).not.toContain("'metrics portrait'");
+    expect(fishVisualCss).toContain("grid-template-areas:'portrait message' 'portrait metrics'");
+    expect(fishVisualCss).toContain("grid-template-areas:'portrait message' 'metrics metrics'");
+    expect(fishVisualCss).toContain('grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem 1rem');
+  });
+
+  it("turns route labels into real, escaped report destinations", async () => {
+    const html = await renderPoster({ stages: ['提示', '构建', '测试', '捕获', '交付'] });
+    for (const id of ['fish-summary', 'fish-changes', 'fish-tests', 'fish-captures', 'fish-outputs']) {
+      expect(html).toContain(`href="#${id}"`);
+      expect(html).toContain(`id="${id}"`);
+    }
+    const custom = await renderPoster({stages:['<custom>']});
+    expect(custom.includes('&lt;custom&gt;')).toBe(true);
+    expect(html).toContain('<nav class="route-nodes"');
+    const en = await renderPoster({locale:'en',stages:['Plan','Build','Verify','Capture','Deliver']});
+    for (const id of ['fish-summary', 'fish-changes', 'fish-tests', 'fish-captures', 'fish-outputs']) {
+      expect(en).toContain(`href="#${id}"`);
+    }
+  });
+
+  it("ties companion expressions to report state without changing the status", async () => {
+    const { fishCompanionUris } = await import('../plugin/assets/fish-companions.js');
+    for (const [status, idle, response, destination] of [
+      ['completed', 'awake', 'chibi', 'fish-outputs'],
+      ['partial', 'focus', 'awake', 'fish-tests'],
+      ['failed', 'rest', 'focus', 'fish-tests'],
+    ] as const) {
+      const html = await renderPoster({ taskStatus: status });
+      expect(html).toContain(`data-status="${status}"`);
+      expect(html.includes(`class="art" src="${fishCompanionUris[idle]}" data-pose="${idle}"`)).toBe(true);
+      expect(html).toMatch(new RegExp(`class="art-response" src="[^"]+" data-pose="${response}"`));
+      expect(html).toContain(`data-fish-region="companion" href="#${destination}"`);
+    }
+    const unknown = await renderPoster({ taskStatus: 'unknown' });
+    expect(unknown).toContain('data-status="partial"');
+    expect(unknown).toMatch(/class="art" src="[^"]+" data-pose="focus"/);
+  });
+
+  it("preserves a custom portrait during interaction and keeps Dijiang independent", async () => {
+    const source = 'data:image/png;base64,UklGRg==';
+    const html = await renderPoster({ image: source });
+    expect(html).toContain(`class="art" src="${source}"`);
+    expect(html).toContain(`class="art-response" src="${source}"`);
+    expect(html).toContain('data-fish-motion-toggle');
+    expect(html).toContain('查看待复核的验证回执');
+    const en = await renderPoster({locale:'en',taskStatus:'failed'});
+    expect(en).toContain('Inspect failed verification');
+    const dijiang = await renderPoster({theme:'frontier-signal'});
+    expect(dijiang).not.toContain('data-fish-motion-toggle');
+    expect(dijiang).not.toContain('data-fish-region="companion"');
+  });
+
+  it.each(['blue-big-fish', 'frontier-signal'])("keeps real %s outcomes independent of demo wording", async (theme) => {
+    for (const [taskStatus, label] of [['completed', '已验证'], ['partial', '需要复核'], ['failed', '执行失败']]) {
+      for (const demo of [undefined, false, 'true']) {
+        const html = await renderPoster({theme, taskStatus, demo, taskStatusLabel: ''});
+        expect(html).toContain(`data-status="${taskStatus}"`);
+        expect(html.includes(`aria-label="状态：${label}"`)).toBe(true);
+        expect(html).not.toContain('演示状态：');
+      }
+    }
+    const en = await renderPoster({theme, locale:'en', demo:true, taskStatus:'partial'});
+    expect(en).toContain('Demo status: review required');
+    if (theme === 'frontier-signal') {
+      expect(en).toContain('data-demo="true"');
+      expect(en).toContain('.dijiang-console[data-demo=true] .ed-verdict strong');
+      const real = await renderPoster({theme, demo:false});
+      expect(real).toContain('data-demo="false"');
+    }
+    for (const [taskStatus, label] of [['completed', '演示状态：已完成'], ['failed', '演示状态：未通过']]) {
+      const demo = await renderPoster({theme, taskStatus, demo:true});
+      expect(demo.includes(label)).toBe(true);
+    }
+  });
+
+  it("keeps all companion poses transparent and offline", async () => {
+    const { fishCompanionUris } = await import('../plugin/assets/fish-companions.js');
+    for (const pose of ['focus', 'rest', 'awake'] as const) {
+      const asset = await readFile(new URL(`../plugin/assets/whale-girl-${pose}.webp`, import.meta.url));
+      expect(asset.toString('ascii',12,16)).toBe('VP8X');
+      expect(asset[20] & 0x10).toBe(0x10);
+      expect(fishCompanionUris[pose] === 'data:image/webp;base64,' + asset.toString('base64')).toBe(true);
+    }
+  });
+
+  it("keeps the shared renderer browser-safe and finishes the v2 interaction states", async () => {
+    const renderer = await readFile(new URL("../plugin/poster-html.js", import.meta.url), "utf8");
+    expect(renderer).not.toMatch(/from ["'](?:node:)?(?:fs|path|url)["']/);
+    expect(dijiangRefinementCss).toContain(':root[data-ed-palette=dark] .poster.dijiang-console');
+    expect(dijiangRefinementCss).toContain(':root[data-ed-accent=cyan] .poster.dijiang-console');
+    expect(dijiangRefinementCss).toContain('--surface:#303438;--inset:#383d40');
+    expect(dijiangRefinementCss).toContain('.ed-stages a[aria-current] b { color:inherit; }');
+    expect(dijiangConsoleCss).not.toContain('html:not([data-loader-ready=true]) .dijiang-console{visibility:hidden}');
+    expect(dijiangRefinementCss).not.toMatch(/html\[data-loader-ready=true\]/);
+  });
+
+  it("does not let a child animation consume the fish loader exit handler", async () => {
+    const html = await renderPoster();
+    const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+    expect(script).toBeTruthy();
+    const root = { dataset: {} as Record<string, string> };
+    let removed = false;
+    let listener: ((event: { target: unknown }) => void) | undefined;
+    let once = false;
+    const node = {
+      dataset: {} as Record<string, string>,
+      setAttribute: () => {},
+      remove: () => { removed = true; },
+      addEventListener: (_name: string, callback: typeof listener, options?: { once?: boolean }) => {
+        listener = callback; once = Boolean(options?.once);
+      },
+      removeEventListener: () => { listener = undefined; },
+    };
+    runInNewContext(script!, {
+      document: { documentElement: root, querySelector: () => node },
+      getComputedStyle: () => ({ animationDuration: "2.8s", animationDelay: "0s" }),
+      setTimeout: () => {},
+    });
+    listener?.({ target: {} });
+    if (once) listener = undefined;
+    expect(removed).toBe(false);
+    listener?.({ target: node });
+    expect(removed).toBe(true);
+    expect(root.dataset.loaderReady).toBe("true");
   });
 
   it("gives the Dijiang loader a scoped industrial boot sequence", async () => {
@@ -275,7 +456,8 @@ describe("poster material and empty-state enhancements", () => {
     expect(poster).toContain("00 / 00 截图非必需");
     expect(poster).not.toContain("重新采集当前主题");
     expect(poster).not.toContain("<button");
-    expect(poster).not.toContain(" href=");
+    const links = [...poster.matchAll(/href="([^"]+)"/g)].map(match => match[1]);
+    expect(links.every(href => href.startsWith('#') && poster.includes(`id="${href.slice(1)}"`))).toBe(true);
   });
 
   it("asks visual projects for captures while reporting a clean Git workspace in English", async () => {

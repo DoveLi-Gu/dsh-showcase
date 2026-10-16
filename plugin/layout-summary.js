@@ -842,11 +842,8 @@ async function generateLockedSummary(options) {
     // Static HTML projects often keep responsive rules in an inline <style>
     // block. Let that source feed breakpoint detection when no .css file exists.
     if (!css && appPath && [".html", ".htm"].includes(sourceExtension(appPath))) css = app;
-    if (generatePoster) {
-      posterImage = await readFile(new URL(
-        theme === "blue-big-fish" ? "./assets/whale-girl-keyvisual.webp" : "./assets/dijiang-survey-surface.webp",
-        import.meta.url,
-      ));
+    if (generatePoster && theme !== "blue-big-fish") {
+      posterImage = await readFile(new URL("./assets/dijiang-survey-surface.webp", import.meta.url));
     }
   } catch (error) {
     throw new Error(`Unable to read layout sources or poster asset: ${error instanceof Error ? error.message : String(error)}`);

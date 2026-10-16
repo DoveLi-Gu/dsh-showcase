@@ -40,6 +40,7 @@ describe("published package artifact", () => {
       "plugin/layout-summary.js",
       "plugin/poster-html.js",
       "plugin/fish-visual.js",
+      "plugin/fish-motion.js",
       "plugin/dijiang-layout.js",
       "plugin/dijiang-style.js",
       "plugin/dijiang-motion.js",
@@ -57,6 +58,11 @@ describe("published package artifact", () => {
     expect(paths).toEqual(expect.arrayContaining(required));
     expect(paths).toContain("plugin/assets/dijiang-survey-surface.webp");
     expect(paths).toContain("plugin/assets/whale-girl-keyvisual.webp");
+    expect(paths).toContain("plugin/assets/whale-girl-chibi.webp");
+    expect(paths).toContain("plugin/assets/whale-girl-chibi-b64.js");
+    expect(paths).toContain("THIRD_PARTY_NOTICES.md");
+    expect(paths).toContain("plugin/assets/fish-companions.js");
+    for (const pose of ["focus", "rest", "awake"]) expect(paths).toContain(`plugin/assets/whale-girl-${pose}.webp`);
     expect(paths).not.toContain("plugin/assets/dijiang-orbital-graphic.png");
     expect(paths).not.toContain("plugin/assets/frontier-industrial.webp");
     expect(paths).not.toContain("plugin/assets/whale-girl-poster.webp");

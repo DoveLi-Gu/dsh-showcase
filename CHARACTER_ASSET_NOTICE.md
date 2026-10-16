@@ -6,6 +6,9 @@ The following demonstration assets are excluded from that MIT grant:
 
 - `public/whale-girl-keyvisual.webp`
 - `plugin/assets/whale-girl-keyvisual.webp`
+- `plugin/assets/whale-girl-keyvisual-b64.js`
+- `plugin/assets/whale-girl-cutout.webp`
+- `plugin/assets/whale-girl-cutout-b64.js`
 - `docs/assets/whale-girl-keyvisual-4k.png`
 - `public/dijiang-survey-surface.webp`
 - `plugin/assets/dijiang-survey-surface.webp`
@@ -13,8 +16,14 @@ The following demonstration assets are excluded from that MIT grant:
 - `docs/assets/dijiang-mobile-latest.png`
 - `docs/assets/blue-big-fish-desktop-latest.png`
 - `docs/assets/blue-big-fish-mobile-latest.png`
+- `docs/assets/dijiang-full-latest.png`
+- `docs/assets/blue-big-fish-full-latest.png`
 
 The whale-girl key visual is an AI-generated demonstration image inspired by a community meme. It is not represented as copyright-free and does not imply official endorsement by DeepSeek.
+
+The transparent full-body cutout is an AI-edited derivative of this project's existing key visual (2026-10-16).
+
+The current Q-version mascot is a separate third-party asset from `wssfk12138/dsh-damage-pulse`, redistributed under its upstream MIT notice. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the source, modifications and full license. It is not an official DeepSeek asset.
 
 The Dijiang survey surface and the README screenshots derived from the two visual themes are demonstration material. Their inclusion in this repository does not grant rights to third-party names, visual identities, characters, or source references that may have inspired them.
 

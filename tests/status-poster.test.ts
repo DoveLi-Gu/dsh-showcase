@@ -54,6 +54,9 @@ describe("poster status semantics", () => {
     expect(fieldPoster).toContain("已验证");
     expect(fishPoster).toContain('data-theme="blue-big-fish" data-status="completed"');
     expect(fishPoster).toContain('data-status="passed"');
+    const { fishCompanionUris } = await import('../plugin/assets/fish-companions.js');
+    expect(fishPoster.includes(`class="art" src="${fishCompanionUris.awake}"`)).toBe(true);
+    expect(fishPoster).not.toContain('演示状态：');
   });
 
   it("renders partial and failed reports without claiming success", async () => {
@@ -68,6 +71,24 @@ describe("poster status semantics", () => {
       expect(poster).not.toContain("VERIFIED / ALL CHECKS PASSED");
       expect(poster).toContain("验证失败 / 不可交付");
       expect(poster).toContain("未通过");
+      const { fishCompanionUris } = await import('../plugin/assets/fish-companions.js');
+      expect(poster.includes(`class="art" src="${fishCompanionUris.rest}"`)).toBe(true);
+      expect(poster.includes(`class="art-response" src="${fishCompanionUris.focus}"`)).toBe(true);
     }
+  });
+
+  it("uses the review expression in real partial exports, not a fixed custom portrait", async () => {
+    const projectPath = await createProject("completed");
+    const report = createReport("completed");
+    report.task.status = "partial";
+    await writeFile(join(projectPath, ".showcase", "report.json"), JSON.stringify(report));
+    const result = await generateLayoutSummary({ projectPath, theme: "blue-big-fish" });
+    const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
+    const { fishCompanionUris } = await import('../plugin/assets/fish-companions.js');
+    expect(poster).toContain('data-theme="blue-big-fish" data-status="partial"');
+    expect(poster.includes(`class="art" src="${fishCompanionUris.focus}"`)).toBe(true);
+    expect(poster.includes(`class="art-response" src="${fishCompanionUris.awake}"`)).toBe(true);
+    expect(poster).toContain('部分完成 / 需要复核');
+    expect(poster).not.toContain('演示状态：');
   });
 });
