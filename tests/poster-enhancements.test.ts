@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { generateLayoutSummary } from "../plugin/layout-summary.js";
+import { fishVisualCss } from "../plugin/fish-visual.js";
 
 const posterModulePath = "../plugin/poster-html.js" as string;
 const temporaryDirectories: string[] = [];
@@ -52,6 +53,20 @@ async function renderPoster(overrides: Record<string, unknown> = {}) {
 }
 
 describe("poster material and empty-state enhancements", () => {
+  it("embeds the same fish visual rules in the npm poster and the React preview", async () => {
+    const poster = await renderPoster();
+    const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
+    expect(poster).toContain(fishVisualCss);
+    expect(app).toContain('import { fishVisualCss } from "../plugin/fish-visual.js"');
+    expect(app).toContain("<style>{fishVisualCss}</style>");
+    expect(poster).toContain('data-theme="blue-big-fish" data-status="partial"');
+    expect(fishVisualCss).toContain("grid-template-rows:auto auto auto auto auto auto");
+    expect(fishVisualCss).toContain("object-fit:contain;object-position:center bottom;opacity:.9");
+    const dijiang = await renderPoster({ theme: "frontier-signal" });
+    expect(dijiang).not.toContain(fishVisualCss);
+    expect(dijiang).not.toContain("fish-report-portrait");
+  });
+
   it("gives the Dijiang loader a scoped industrial boot sequence", async () => {
     const dijiang = await renderPoster({ theme: "frontier-signal", evidenceThemeName: "终末地帝江号" });
     const fish = await renderPoster({ theme: "blue-big-fish" });
@@ -336,6 +351,8 @@ describe("poster material and empty-state enhancements", () => {
     const result = await generateLayoutSummary({ projectPath, theme: "blue-big-fish" });
     const poster = await readFile(join(projectPath, result.posterPath!), "utf8");
 
+    expect(poster).toContain(fishVisualCss);
+    expect(poster).toMatch(/src="data:image\/webp;base64,[A-Za-z0-9+/=]+"/);
     expect(poster).toContain('data-git-state="unavailable"');
     expect(poster).toContain('data-test-state="unconfigured"');
     expect(poster).toContain('data-capture-state="optional"');

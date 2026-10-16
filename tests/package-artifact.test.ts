@@ -39,6 +39,7 @@ describe("published package artifact", () => {
       "plugin/layout-summary.d.ts",
       "plugin/layout-summary.js",
       "plugin/poster-html.js",
+      "plugin/fish-visual.js",
       "plugin/dijiang-layout.js",
       "plugin/dijiang-style.js",
       "plugin/dijiang-motion.js",

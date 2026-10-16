@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { demoReport } from "./core/browser";
 import { demoDiffs as diffs } from "./core/demo-fixture";
+import { fishVisualCss } from "../plugin/fish-visual.js";
 
 type Theme = "dijiang" | "fish";
 
@@ -96,6 +97,7 @@ function OceanAtmosphere() {
 function FishPoster({ passedTests }: PosterProps) {
   const report = demoReport;
   return <section className="poster-summary fish-poster" aria-labelledby="poster-title">
+    <style>{fishVisualCss}</style>
     <div className="fish-poster__current current-one" aria-hidden="true" />
     <div className="fish-poster__current current-two" aria-hidden="true" />
     <div className="fish-poster__current current-three" aria-hidden="true" />

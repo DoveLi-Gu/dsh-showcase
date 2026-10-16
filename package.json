@@ -1,6 +1,6 @@
 {
   "name": "dsh-showcase",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Local, verifiable delivery evidence reports for coding-agent work.",
   "type": "module",
   "main": "./plugin/client-host.js",
@@ -62,6 +62,7 @@
     "plugin/layout-summary.d.ts",
     "plugin/layout-summary.js",
     "plugin/poster-html.js",
+    "plugin/fish-visual.js",
     "plugin/dijiang-layout.js",
     "plugin/dijiang-style.js",
     "plugin/dijiang-motion.js",

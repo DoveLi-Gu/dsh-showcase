@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { fishVisualCss } from "../plugin/fish-visual.js";
 
 const stylesUrl = new URL("../src/styles.css", import.meta.url);
 const appUrl = new URL("../src/App.tsx", import.meta.url);
@@ -93,7 +94,8 @@ describe("persistent theme motion", () => {
     const css = await readFile(stylesUrl, "utf8");
 
     expect(css).toContain(".fish-poster__portrait { top: 34%; right: -7%; width: 68%; height: 76%; opacity: .16; }");
-    expect(css).toContain(".fish-poster__portrait { top: 40%; right: -22%; width: 104%; height: 70%; opacity: .13; }");
+    expect(fishVisualCss).toContain(".fish-poster .fish-poster__portrait { top:27%;right:-18%;width:108%;height:76%;opacity:.26; }");
+    expect(fishVisualCss).toContain("left:auto;width:max-content;max-width:calc(100% - 2rem)");
     expect(css).toContain("@media (min-width: 901px) and (max-height: 48rem)");
     expect(css).toContain("height: calc(100svh - 148px);");
   });

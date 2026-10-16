@@ -1,4 +1,5 @@
 import { renderDijiangDocument } from "./dijiang-layout.js";
+import { fishVisualCss } from "./fish-visual.js";
 import { findComparisonPair, formatReportDuration } from "./report-content.js";
 
 const POSTER_RECORD_LIMIT = 20;
@@ -1121,7 +1122,7 @@ export function createStyledPosterHtml(data) {
   const html = createFishPoster(normalizedData);
   const warnings = Array.isArray(data?.freshnessWarnings) ? data.freshnessWarnings : [];
   const notice = warnings.length ? `<aside class="evidence-warnings" role="status"><strong>${normalizedData.locale === "en" ? "Evidence needs review" : "证据需要复核"}</strong><ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></aside>` : "";
-  return html.replace("</style>", `${responsiveEvidenceCss}</style>`).replace('<article class="poster', `${notice}<article class="poster`);
+  return html.replace("</style>", `${responsiveEvidenceCss}${fishVisualCss}</style>`).replace('<article class="poster', `${notice}<article class="poster`);
 }
 
 const responsiveEvidenceCss = `
