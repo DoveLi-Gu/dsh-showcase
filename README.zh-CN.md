@@ -2,6 +2,8 @@
 
 `dsh-showcase` 是一个本地优先的 DSH 插件。它在任意目标项目中读取 Git 改动、测试回执和可选的响应式截图，生成中文 Markdown 摘要与自包含 HTML 交付海报。
 
+**也提供免费通用 Skill**：无需 DSH 服务，安装完整 ZIP 后仅需 Node.js 和支持终端的 Agent。下载及使用说明见 [README 的免费 Skill 章节](README.md#免费-skill无需-dsh)，源码见 [SKILL.md](skills/dsh-showcase/SKILL.md)。Skill `1.0.0` 与 npm 插件 `0.1.8` 分别维护版本。
+
 完整的功能、安装、三步使用流程、截图规则、边界条件和主题预览都在主 README 中：
 
 [打开 README.md](README.md)

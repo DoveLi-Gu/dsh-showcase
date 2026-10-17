@@ -1,0 +1,4 @@
+interface:
+  display_name: "DSH Showcase"
+  short_description: "Create delivery reports from changes and test evidence"
+  default_prompt: "Use $dsh-showcase to turn this project's changes and test results into a verifiable delivery report."

@@ -6,7 +6,7 @@
 
 **把编程 Agent 的改动和测试结果，整理成可核验的中文交付报告。**
 
-dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 改动、测试回执和可选截图，生成 Markdown 摘要与自包含 HTML 海报。
+dsh-showcase 提供 **DSH 插件**和**免费通用 Skill** 两种入口。它读取目标项目的 Git 改动、测试回执和可选截图，生成 Markdown 摘要与自包含 HTML 海报。
 
 它不会上传项目文件，也不会把目标项目的数据写回本仓库。
 
@@ -44,6 +44,8 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 
 ## 你需要什么
 
+**不使用 DSH？** 直接安装下方免费 Skill，只需要支持本地终端的 Agent 和 Node.js，无需启动 DSH、API Key 或安装 npm 依赖。以下 DSH 要求仅适用于插件入口。
+
 - **必须**：已经可以运行的 DSH Web 环境（当前插件兼容 DSH `0.2.0-rc.2` 及同一 0.2 系列）；
 - **必须**：Node.js `22.19+` 或 `24+` 和 npm，用于安装本仓库及运行采集 CLI；
 - **可选**：Git。没有 Git 时仍会生成报告，但状态会明确标为 `partial`；
@@ -74,6 +76,22 @@ dsh-showcase 是一个本地运行的 DSH 插件。它读取目标项目的 Git 
 ```
 
 ## 5 分钟快速开始
+
+### 免费 Skill：无需 DSH
+
+适用于能读取 `SKILL.md`、运行本地终端的 Agent，例如 Codex、Claude Code 或 Cursor。各客户端的安装目录不同，请使用该客户端的本地 Skill 安装功能；不支持终端的纯聊天环境不能直接执行采集。
+
+1. 从 [Skill v1.0.0 发布页](https://github.com/DoveLi-Gu/dsh-showcase/releases/tag/skill-v1.0.0)下载 ZIP，解压后将完整的 `dsh-showcase` 文件夹安装到 Agent 的 Skill 目录，**不要只复制 `SKILL.md`**。
+2. 确认 Node.js `22.19+` 或 `24+`。运行包已包含依赖，不需要 `npm install`，也不需要 DSH 服务。
+3. 对 Agent 说：**“使用 dsh-showcase，为当前项目生成可核验的交付报告。先检查配置的测试命令，保留失败和缺失证据；使用鲸鱼娘主题和中文。”**
+
+Skill 会先展示测试计划，经确认在任务授权范围内再采集；失败测试仍可生成报告。输出在目标项目的 `.showcase/`，两种主题均可选。报告不会自动上传，分享前仍需人工检查敏感信息。
+
+[查看 Skill 源码与使用流程](skills/dsh-showcase/SKILL.md) · [证据配置与状态规则](skills/dsh-showcase/references/evidence.md)。Skill 使用独立版本号 `1.0.0`，当前复用插件 `0.1.8` 引擎，不改变 npm 插件版本。
+
+源码开发者可执行 `npm ci` 和 `npm run skill:build`，在 `output/skills/` 得到完整 ZIP 与校验文件。仓库中的 `skills/dsh-showcase/` 是说明源文件，运行脚本由构建步骤生成；直接使用请下载发行 ZIP。
+
+### DSH 插件
 
 <details>
 <summary><strong>第一步：安装插件</strong></summary>
